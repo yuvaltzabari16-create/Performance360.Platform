@@ -97,6 +97,7 @@ test.describe.serial("Performance360 core workflows", () => {
 
     await page.goto("/athletes");
     await page.getByRole("link", { name: "Dana Athlete" }).click();
+    await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/);
     athleteRecordUrl = page.url();
 
     await page.goto("/training/new");
@@ -106,13 +107,13 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.waitForURL(/\/training\/[0-9a-f-]{36}$/);
     programUrl = page.url();
 
-    await page.getByLabel("Session title").fill("Speed day");
+    await page.getByPlaceholder("Lower body strength").fill("Speed day");
     await page.getByLabel("Planned duration (min)").fill("60");
     await page.getByRole("button", { name: "Add session" }).click();
     await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
 
     await page.getByText("+ Add exercise").click();
-    await page.getByLabel("Exercise", { exact: true }).selectOption({ label: "10 m Acceleration Sprint" });
+    await page.locator('select[name="exercise_id"]').selectOption({ label: "10 m Acceleration Sprint" });
     await page.locator('form:has(button:text("Add exercise")) input[name="sets"]').fill("6");
     await page.locator('form:has(button:text("Add exercise")) input[name="reps"]').fill("1");
     await page.locator('form:has(button:text("Add exercise")) input[name="rest_s"]').fill("120");
@@ -125,7 +126,7 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
 
     await page.goto(programUrl);
-    await page.getByLabel("Athletes").selectOption({ label: "Dana Athlete" });
+    await page.locator('select[name="athlete_ids"]').selectOption({ label: "Dana Athlete" });
     await page.getByRole("button", { name: "Assign", exact: true }).click();
     await expect(page.getByText("Planned vs completed: 0/2")).toBeVisible();
     await page.getByRole("button", { name: "Save version" }).click();
@@ -136,7 +137,7 @@ test.describe.serial("Performance360 core workflows", () => {
   test("coach records a jump test with trials", async ({ browser }) => {
     const page = await login(browser, coach);
     await page.goto(`/testing/new?athlete=${athleteRecordUrl.split("/").pop()}`);
-    await page.getByLabel("Test *").selectOption({ label: "Countermovement Jump (cm ↑)" });
+    await page.locator('select[name="r0_test"]').selectOption({ label: "Countermovement Jump (cm ↑)" });
     await page.getByLabel("Trial 1", { exact: true }).fill("38.1");
     await page.getByLabel("Trial 2", { exact: true }).fill("39.4");
     await page.getByLabel("Trial 3", { exact: true }).fill("38.9");

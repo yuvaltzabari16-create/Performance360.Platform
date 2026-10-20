@@ -91,7 +91,7 @@ export async function addNote(formData: FormData) {
   });
   if (error) fail(`/athletes/${athleteId}`, t.common.notAllowed);
   revalidatePath(`/athletes/${athleteId}`);
-  redirect(`/athletes/${athleteId}#notes`);
+  redirect(`/athletes/${athleteId}`);
 }
 
 export async function deleteNote(formData: FormData) {
@@ -101,7 +101,7 @@ export async function deleteNote(formData: FormData) {
   if (!isUuid(id) || !isUuid(athleteId)) fail("/athletes", t.common.notFound);
   await supabase.from("athlete_notes").delete().eq("id", id);
   revalidatePath(`/athletes/${athleteId}`);
-  redirect(`/athletes/${athleteId}#notes`);
+  redirect(`/athletes/${athleteId}`);
 }
 
 export async function endRelationship(formData: FormData) {

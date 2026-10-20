@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Performance360
 
-## Getting Started
+Athletic performance management for coaches, practitioners and athletes:
+**Assess → Plan → Train → Monitor → Analyze → Adapt → Perform.**
 
-First, run the development server:
+Built with Next.js 15 (App Router, server actions), TypeScript, Tailwind CSS 4
+and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
+
+## Status: Phase 1 core (plus parts of Phase 2)
+
+| Module | State |
+| --- | --- |
+| Auth: sign up, sign in, password reset, sign out | Working (reset emails need SMTP configured in Supabase) |
+| Role onboarding (7 roles), enforced in the database | Working |
+| Athlete management: profiles, search/filter, archive, notes, flags | Working |
+| Personal coach codes, invitation links, confirmed connect, coach transfer | Working |
+| Exercise library: 45 system exercises, custom exercises, favorites, video links | Working |
+| Training planner: programs → phases → weeks → sessions → exercises, copy/duplicate, templates, versions, assignment, athlete logging, planned vs completed | Working |
+| Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
+| Readiness check-ins with self-referenced review flags | Working |
+| Teams/groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
+| AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, rehab module, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
+
+There are no fake metrics. Every dashboard number is counted from database rows,
+and no normative values are shown.
+
+## Security model
+
+Authorization lives in Postgres row level security, not in the UI:
+
+- Every table has RLS enabled. Pages and server actions query as the signed-in user.
+- Coaches see an athlete only through an **active coach–athlete relationship**.
+  Team membership never grants access by itself.
+- Relationships are created only by `SECURITY DEFINER` functions: creating an athlete,
+  or `connect_with_coach_code`, which requires the athlete to be signed in and to confirm.
+- Roles are set once by `complete_onboarding`. The `role` and `is_platform_admin`
+  columns are not writable by users.
+- Codes are invitations, not credentials. Regenerating a code keeps existing connections.
+- Sensitive actions (connections, code changes, assignments, onboarding) are written to `audit_log`.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local      # fill in your Supabase URL + publishable key
+# apply supabase/migrations/*.sql to your project (Supabase CLI: `supabase db push`)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In Supabase Auth settings, add `<site>/auth/callback` to the redirect URLs.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | What it checks |
+| --- | --- |
+| `npm run test` | Unit tests for metrics, form parsing and video embedding (Vitest) |
+| `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission and training-function suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
+| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, Hebrew RTL, mobile menu |
+| `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/app/(auth)        sign in / sign up / password reset
+src/app/(app)         authenticated app (dashboard, athletes, training, testing, …)
+src/app/onboarding    role selection
+src/lib               auth guards, i18n (en/he), metrics, units, form helpers
+src/components        UI kit, app shell, charts
+supabase/migrations   schema, RLS, functions, reference data
+supabase/sql-tests    database permission tests
+e2e                   Playwright end-to-end tests
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- There is intentionally no `loading.tsx` in the `(app)` group: with one, server-action redirects
+  hung in Next.js 15.5 in our testing. Buttons show pending states instead.
+- Measurements are stored in metric units and converted for display.

@@ -216,7 +216,7 @@ export async function addSessionExercise(formData: FormData) {
     ...exerciseRowFields(formData),
   });
   if (error) fail(programPath(programId, week), error.message);
-  redirect(`${programPath(programId, week)}#s-${sessionId}`);
+  redirect(programPath(programId, week));
 }
 
 export async function updateSessionExercise(formData: FormData) {
