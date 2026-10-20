@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Performance360 design tokens: white surfaces, green accent, charcoal ink. */
+@theme {
+  --color-brand-50: #effaf3;
+  --color-brand-100: #d7f2e0;
+  --color-brand-200: #b0e4c4;
+  --color-brand-300: #7ccfa0;
+  --color-brand-400: #46b47a;
+  --color-brand-500: #23985e;
+  --color-brand-600: #157a4a;
+  --color-brand-700: #12623d;
+  --color-brand-800: #114e33;
+  --color-brand-900: #0f402b;
+  --color-ink: #1c2321;
+  --color-ink-soft: #4a5552;
+  --color-muted: #6b7672;
+  --color-line: #e4e8e6;
+  --color-surface: #ffffff;
+  --color-canvas: #f7f9f8;
+  --color-charcoal: #1f2624;
+  --font-sans: "Inter", "Heebo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers in data tables stay left-to-right even in Hebrew layouts. */
+.num {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
