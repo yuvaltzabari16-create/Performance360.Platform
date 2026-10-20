@@ -1,39 +1,44 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { errorResponse, json, readJson } from '../../shared/coachAuth.ts';
+import { onboardingRoleDecision } from '../../shared/policy.ts';
+import { optionalText } from '../../shared/validation.ts';
 
-export default async function(req) {
+// Completes onboarding. The role can be chosen once (coach or athlete);
+// after onboarding only an administrator can change it.
+export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user) return json({ error: 'Unauthorized' }, 401);
 
-    const body = await req.json();
-    const role = body.role;
-    const sport = body.sport;
-    const bio = body.bio;
-    const profile_image_url = body.profile_image_url;
-    const full_name = body.full_name;
+    const body = await readJson(req);
+    const role = typeof body.role === 'string' ? body.role : undefined;
+    const decision = onboardingRoleDecision(user, role);
+    if (!decision.ok) return json({ error: decision.error }, decision.status);
 
-    if (role && !['coach', 'athlete'].includes(role)) {
-      return Response.json({ error: 'Role must be "coach" or "athlete"' }, { status: 400 });
-    }
-
-    // Update non-role fields first (always allowed)
-    const update = { onboarded: true };
+    const update: Record<string, unknown> = { onboarded: true };
+    const sport = optionalText(body.sport, 'Sport', 80);
+    const bio = optionalText(body.bio, 'Bio', 2000);
+    const fullName = optionalText(body.full_name, 'Name', 120);
+    const photo = optionalText(body.profile_image_url, 'Profile photo', 2048);
     if (sport !== undefined) update.sport = sport;
     if (bio !== undefined) update.bio = bio;
-    if (profile_image_url !== undefined) update.profile_image_url = profile_image_url;
-    if (full_name !== undefined) update.full_name = full_name;
+    if (fullName !== undefined) update.full_name = fullName;
+    if (photo !== undefined) update.profile_image_url = photo;
     await base44.asServiceRole.entities.User.update(user.id, update);
 
-    // Try role update separately (platform blocks role changes for app owner)
-    if (role && user.role !== 'admin') {
+    let roleSet = true;
+    if (role && role !== user.role) {
       try {
         await base44.asServiceRole.entities.User.update(user.id, { role });
-      } catch (_) {}
+      } catch (err) {
+        // The platform refuses role changes on some accounts (e.g. the app owner).
+        console.error('[onboardUser] role update refused', (err as Error)?.message);
+        roleSet = false;
+      }
     }
-
-    return Response.json({ success: true });
+    return json({ success: true, roleSet });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return errorResponse(error);
   }
 }

@@ -1,50 +1,72 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { errorResponse, json, llmError, readJson, relationToAthlete } from '../../shared/coachAuth.ts';
+import { ValidationError, optionalText, requireId } from '../../shared/validation.ts';
 
-export default async function(req) {
+// AI-assisted movement review of an uploaded video. The record is created and
+// updated here (not by the browser), so the stored feedback always comes from
+// this function. If the model cannot read the video the analysis fails; it
+// never falls back to feedback produced without seeing the video.
+export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    const body = await req.json();
-    const videoUrl = body.video_url;
-    const movementType = body.movement_type || 'general athletic movement';
-    if (!videoUrl) return Response.json({ error: 'video_url required' }, { status: 400 });
+    if (!user) return json({ error: 'Unauthorized' }, 401);
+
+    const body = await readJson(req);
+    const videoUrl = optionalText(body.video_url, 'video_url', 2048);
+    if (!videoUrl || !/^https:\/\//i.test(videoUrl)) throw new ValidationError('A video upload (https URL) is required');
+    // file_uri is the private storage reference that is kept; video_url is a
+    // short-lived signed URL used only to let the model read the video now.
+    const fileUri = optionalText(body.file_uri, 'file_uri', 2048);
+    if (!fileUri) throw new ValidationError('file_uri is required');
+    const movementType = optionalText(body.movement_type, 'Movement type', 80) || 'general athletic movement';
+    const athleteId = body.athlete_id === undefined ? user.id : requireId(body.athlete_id, 'athlete_id');
+
+    const relation = await relationToAthlete(base44, user, athleteId);
+    if (!relation) return json({ error: 'You do not have access to this athlete' }, 403);
+
+    const db = base44.asServiceRole.entities;
+    const record = await db.MovementAnalysis.create({
+      user_id: athleteId,
+      coach_id: relation === 'coach' ? user.id : undefined,
+      video_url: fileUri,
+      movement_type: movementType,
+      status: 'processing',
+    });
 
     const schema = {
       type: 'object',
       properties: {
         ai_feedback: { type: 'string' },
         discrepancies: { type: 'array', items: { type: 'string' } },
-        score: { type: 'number' }
       },
-      required: ['ai_feedback', 'discrepancies', 'score']
+      required: ['ai_feedback', 'discrepancies'],
     };
-    const prompt = `You are a sports-biomechanics expert analyzing an athlete's ${movementType}. Assess technique quality, joint angles, tempo, symmetry and injury-risk flags. Provide:
-1. ai_feedback: 3-4 concise sentences.
-2. discrepancies: short bullet-phrase list of specific movement issues.
-3. score: overall movement quality 0-100.
-Return JSON only.`;
+    const prompt =
+      `You are assisting a strength and conditioning coach reviewing a video of an athlete performing: ${movementType}. ` +
+      'Describe only what is visible in the video: technique, positions, tempo and left/right symmetry. ' +
+      'Do not diagnose injuries or give medical advice. If the video is unclear or does not show the movement, say so. ' +
+      'Return ai_feedback (3–4 sentences) and discrepancies (short phrases). JSON only.';
 
     let result;
     try {
-      result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt, file_urls: [videoUrl], response_json_schema: schema
-      });
-    } catch (_visionErr) {
-      try {
-        result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-          prompt: `Based on a ${movementType} screen, ${prompt}`, response_json_schema: schema
-        });
-      } catch (llmErr) {
-        const msg = String(llmErr?.message || llmErr);
-        if (msg.includes('rate') || msg.includes('429')) return Response.json({ error: 'AI service rate limit reached. Please try again shortly.' }, { status: 429 });
-        if (msg.includes('timeout') || msg.includes('Timeout')) return Response.json({ error: 'AI request timed out. Please try again.' }, { status: 504 });
-        return Response.json({ error: 'AI returned an invalid response: ' + msg }, { status: 502 });
-      }
+      result = await base44.asServiceRole.integrations.Core.InvokeLLM({ prompt, file_urls: [videoUrl], response_json_schema: schema });
+    } catch (err) {
+      await db.MovementAnalysis.update(record.id, { status: 'failed' });
+      const e = llmError(err);
+      return json({ error: e.error, analysis_id: record.id }, e.status);
     }
-    if (!result || typeof result.score !== 'number') return Response.json({ error: 'AI returned malformed analysis data' }, { status: 502 });
-    return Response.json({ analysis: result });
+    if (!result || typeof result.ai_feedback !== 'string') {
+      await db.MovementAnalysis.update(record.id, { status: 'failed' });
+      return json({ error: 'The AI service could not analyze this video', analysis_id: record.id }, 502);
+    }
+    const updated = await db.MovementAnalysis.update(record.id, {
+      status: 'completed',
+      ai_feedback: result.ai_feedback,
+      discrepancies: Array.isArray(result.discrepancies) ? result.discrepancies.slice(0, 20) : [],
+    });
+    return json({ analysis: updated });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return errorResponse(error);
   }
 }

@@ -1,75 +1,68 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
+import { errorResponse, json, readJson } from '../../shared/coachAuth.ts';
+import { respondDecision, isInvitationExpired } from '../../shared/policy.ts';
+import { oneOf, requireId } from '../../shared/validation.ts';
 
-export default async function(req) {
+export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user) return json({ error: 'Unauthorized' }, 401);
 
-    const body = await req.json();
-    const assignmentId = body.assignment_id;
-    const action = body.action;
+    const body = await readJson(req);
+    const assignmentId = requireId(body.assignment_id, 'assignment_id');
+    const action = oneOf(body.action, ['accept', 'decline'] as const, 'action');
 
-    if (!assignmentId) return Response.json({ error: 'assignment_id required' }, { status: 400 });
-    if (!['accept', 'decline'].includes(action)) {
-      return Response.json({ error: 'action must be "accept" or "decline"' }, { status: 400 });
-    }
+    const db = base44.asServiceRole.entities;
+    const assignment = await db.Assignment.get(assignmentId).catch(() => null);
+    if (!assignment) return json({ error: 'Invitation not found' }, 404);
 
-    const assignment = await base44.asServiceRole.entities.Assignment.get(assignmentId);
-    if (!assignment) return Response.json({ error: 'Invitation not found' }, { status: 404 });
-
-    // Verify this invitation belongs to the signed-in user
-    if (assignment.athlete_email !== user.email && assignment.athlete_id !== user.id) {
-      return Response.json({ error: 'This invitation is not for you' }, { status: 403 });
-    }
-
-    if (assignment.status !== 'pending') {
-      return Response.json({ error: 'Invitation is already ' + assignment.status }, { status: 400 });
-    }
-
-    // Check expiry
-    if (assignment.expires_at && new Date(assignment.expires_at) < new Date()) {
-      await base44.asServiceRole.entities.Assignment.update(assignmentId, { status: 'expired' });
-      return Response.json({ error: 'This invitation has expired' }, { status: 410 });
-    }
-
-    if (action === 'accept') {
-      await base44.asServiceRole.entities.Assignment.update(assignmentId, {
-        status: 'active',
-        athlete_id: user.id,
-        athlete_name: user.full_name || user.email
-      });
-
-      // Set coach_id on the user (field is locked, need service role)
-      if (assignment.coach_id && user.coach_id !== assignment.coach_id) {
-        await base44.asServiceRole.entities.User.update(user.id, { coach_id: assignment.coach_id });
+    const now = new Date();
+    const decision = respondDecision(assignment, user, now);
+    if (!decision.ok) {
+      if (decision.status === 410 && assignment.status === 'pending' && isInvitationExpired(assignment, now)) {
+        await db.Assignment.update(assignmentId, { status: 'expired' });
       }
+      return json({ error: decision.error }, decision.status);
+    }
 
-      // If team assignment, create TeamMember
-      if (assignment.team_id) {
-        const existingMember = await base44.asServiceRole.entities.TeamMember.filter({
+    if (action === 'decline') {
+      await db.Assignment.update(assignmentId, { status: 'declined', responded_at: now.toISOString() });
+      return json({ status: 'declined', message: 'Invitation declined' });
+    }
+
+    if (user.role === 'coach') {
+      return json({ error: 'This is a coach account. Sign in with an athlete account to accept.' }, 409);
+    }
+
+    await db.Assignment.update(assignmentId, {
+      status: 'active',
+      athlete_id: user.id,
+      athlete_name: user.full_name || user.email,
+      responded_at: now.toISOString(),
+    });
+
+    // Primary coach pointer (admin-only field, so service role is required).
+    if (!user.coach_id) {
+      await db.User.update(user.id, { coach_id: assignment.coach_id });
+    }
+
+    if (assignment.team_id) {
+      const existing = await db.TeamMember.filter({ team_id: assignment.team_id, user_id: user.id }, { limit: 1 });
+      if (!existing.items?.length) {
+        await db.TeamMember.create({
           team_id: assignment.team_id,
-          user_id: user.id
-        }, { limit: 1 });
-        if (!existingMember.items?.length) {
-          await base44.asServiceRole.entities.TeamMember.create({
-            team_id: assignment.team_id,
-            team_name: assignment.team_name,
-            coach_id: assignment.coach_id,
-            user_id: user.id,
-            user_name: user.full_name || user.email,
-            user_email: user.email,
-            role: 'athlete'
-          });
-        }
+          team_name: assignment.team_name,
+          coach_id: assignment.coach_id,
+          user_id: user.id,
+          user_name: user.full_name || user.email,
+          user_email: user.email,
+          role: 'athlete',
+        });
       }
-
-      return Response.json({ status: 'active', message: 'Invitation accepted' });
-    } else {
-      await base44.asServiceRole.entities.Assignment.update(assignmentId, { status: 'declined' });
-      return Response.json({ status: 'declined', message: 'Invitation declined' });
     }
+    return json({ status: 'active', message: 'Invitation accepted' });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return errorResponse(error);
   }
 }

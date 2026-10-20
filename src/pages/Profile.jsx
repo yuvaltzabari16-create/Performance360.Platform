@@ -1,41 +1,25 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/lib/useCurrentUser';
-import { useCoachLink } from '@/lib/useCoachLink';
+import { Link } from 'react-router-dom';
+import { errorMessage } from '@/lib/athleteData';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogOut, Save, UserPlus, Mail, Trash2, Upload, Loader2, Link as LinkIcon } from 'lucide-react';
-
-const STATUS_COLORS = {
-  pending: 'text-amber-600 border-amber-400/40',
-  active: 'text-emerald-600 border-emerald-400/40',
-  declined: 'text-muted-foreground',
-  removed: 'text-destructive',
-  expired: 'text-muted-foreground',
-};
+import { LogOut, Save, UserPlus, Mail, Upload, Loader2 } from 'lucide-react';
 
 export default function Profile() {
   const { user, loading, setUser } = useCurrentUser();
-  const { coachName, teamName } = useCoachLink(user);
   const [sport, setSport] = useState('');
   const [bio, setBio] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [teamId, setTeamId] = useState('');
-  const [teams, setTeams] = useState([]);
-  const [inviting, setInviting] = useState(false);
-  const [assignments, setAssignments] = useState([]);
-  const [inviteMsg, setInviteMsg] = useState('');
-  const [inviteLink, setInviteLink] = useState('');
-  const [removingId, setRemovingId] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -45,66 +29,30 @@ export default function Profile() {
     }
   }, [user]);
 
-  const loadAssignments = async () => {
-    if (!user || (user.role !== 'coach' && user.role !== 'admin')) return;
-    const res = await base44.entities.Assignment.filter({ coach_id: user.id }, { sort: '-created_date', limit: 50 });
-    setAssignments(res.items || []);
-  };
-  const loadTeams = async () => {
-    if (!user || (user.role !== 'coach' && user.role !== 'admin')) return;
-    const res = await base44.entities.Team.filter({ coach_id: user.id }, { sort: '-created_date', limit: 50 });
-    setTeams(res.items || []);
-  };
-  useEffect(() => { loadAssignments(); loadTeams(); }, [user]);
-
   const handlePhoto = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
-    setPhotoUrl(file_url);
+    setError('');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setError('Use a JPEG, PNG or WebP image'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('Images must be 5 MB or smaller'); return; }
+    try {
+      // Note: profile photos are stored as public files (anyone with the URL can view them).
+      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
+      setPhotoUrl(file_url);
+    } catch (err) { setError(errorMessage(err, 'Upload failed')); }
   };
 
   const save = async () => {
-    setSaving(true);
+    setSaving(true); setError('');
     try {
-      await base44.auth.updateMe({ sport, bio, profile_image_url: photoUrl });
+      await base44.auth.updateMe({ sport: sport.slice(0, 80), bio: bio.slice(0, 2000), profile_image_url: photoUrl });
       const me = await base44.auth.me();
       setUser(me);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } finally { setSaving(false); }
-  };
-
-  const invite = async () => {
-    if (!inviteEmail.trim()) return;
-    setInviting(true);
-    setInviteMsg('');
-    setInviteLink('');
-    try {
-      const res = await base44.functions.invoke('inviteAthlete', {
-        athlete_email: inviteEmail.trim(),
-        team_id: teamId || undefined
-      });
-      const data = res.data || res;
-      if (data.emailSent) {
-        setInviteMsg('Invitation email sent to ' + inviteEmail.trim());
-      } else {
-        setInviteLink(window.location.origin + '/');
-        setInviteMsg('Could not email the athlete directly. Share this link so they can sign in:');
-      }
-      setInviteEmail('');
-      loadAssignments();
-    } catch (e) {
-      setInviteMsg(e.response?.data?.error || e.message || 'Could not invite');
-    } finally { setInviting(false); }
-  };
-
-  const removeAthlete = async (assignmentId) => {
-    setRemovingId(assignmentId);
-    try {
-      await base44.functions.invoke('removeAthlete', { assignment_id: assignmentId });
-      loadAssignments();
-    } catch (_) {} finally { setRemovingId(null); }
+    } catch (err) { setError(errorMessage(err, 'Could not save your profile')); }
+    finally { setSaving(false); }
   };
 
   if (loading) return <div className="h-64 flex items-center justify-center text-muted-foreground">Loading…</div>;
@@ -118,7 +66,7 @@ export default function Profile() {
         <Card className="p-6">
           <div className="flex items-center gap-4 mb-6">
             {photoUrl ? (
-              <img src={photoUrl} className="w-16 h-16 rounded-full object-cover" />
+              <img src={photoUrl} alt="Profile photo" className="w-16 h-16 rounded-full object-cover" />
             ) : (
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-semibold">
                 {(user?.full_name || user?.email || '?').charAt(0).toUpperCase()}
@@ -134,104 +82,39 @@ export default function Profile() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               {photoUrl ? (
-                <img src={photoUrl} className="w-10 h-10 rounded-full object-cover" />
+                <img src={photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"><Mail className="w-4 h-4 text-muted-foreground" /></div>
               )}
               <label className="cursor-pointer">
                 <span className="inline-flex items-center gap-1.5 text-sm text-primary"><Upload className="w-3.5 h-3.5" /> Update photo</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handlePhoto} />
               </label>
             </div>
             <div>
               <Label htmlFor="sport">Sport / Discipline</Label>
-              <Input id="sport" value={sport} onChange={(e) => setSport(e.target.value)} placeholder="e.g. Track & Field, Soccer" className="mt-1.5" />
+              <Input id="sport" value={sport} onChange={(e) => setSport(e.target.value)} placeholder="e.g. Football" maxLength={80} className="mt-1.5" />
             </div>
             <div>
               <Label htmlFor="bio">Bio</Label>
               <textarea id="bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3}
-                placeholder="Background, goals, injury history…"
+                placeholder="Background and goals. Do not add medical details here." maxLength={2000}
                 className="w-full mt-1.5 rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none" />
             </div>
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <Button onClick={save} disabled={saving}>
               <Save className="w-4 h-4 mr-1.5" /> {saved ? 'Saved' : saving ? 'Saving…' : 'Save Profile'}
             </Button>
           </div>
         </Card>
 
-        {user?.role === 'athlete' && (
-          <Card className="p-6">
-            <h3 className="font-semibold mb-1">Coach & Team</h3>
-            {coachName ? (
-              <div className="space-y-1">
-                <p className="text-sm"><span className="text-muted-foreground">Coach:</span> <span className="text-primary font-medium">{coachName}</span></p>
-                {teamName && <p className="text-sm"><span className="text-muted-foreground">Team:</span> {teamName}</p>}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No coach linked yet. Ask your coach to invite you by email — you'll see the invitation here after signing in.</p>
-            )}
-          </Card>
-        )}
+        {user?.role === 'athlete' && <MyCoaches user={user} />}
 
         {isCoach && (
           <Card className="p-6">
-            <h3 className="font-semibold mb-1">Invite Athlete</h3>
-            <p className="text-sm text-muted-foreground mb-4">Send an invite by email. The athlete sees the invitation after signing in.</p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="athlete@email.com" className="pl-9" />
-              </div>
-              {teams.length > 0 && (
-                <Select value={teamId} onValueChange={setTeamId}>
-                  <SelectTrigger className="sm:w-40"><SelectValue placeholder="No team" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>No team</SelectItem>
-                    {teams.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-              <Button onClick={invite} disabled={inviting || !inviteEmail.trim()}>
-                <UserPlus className="w-4 h-4 mr-1.5" /> {inviting ? 'Sending…' : 'Invite'}
-              </Button>
-            </div>
-            {inviteMsg && (
-              <div className="mt-3 text-sm">
-                <p className="text-muted-foreground">{inviteMsg}</p>
-                {inviteLink && (
-                  <div className="mt-1 flex items-center gap-2 rounded-md border border-input px-3 py-2 bg-secondary/50">
-                    <LinkIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <code className="text-xs truncate">{inviteLink}</code>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="mt-6">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Roster</p>
-              {assignments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No athletes invited yet.</p>
-              ) : (
-                <div className="divide-y divide-border">
-                  {assignments.map((a) => (
-                    <div key={a.id} className="py-2.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{a.athlete_name || a.athlete_email}</p>
-                        <p className="text-xs text-muted-foreground">{a.athlete_email}{a.team_name ? ' · ' + a.team_name : ''}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`capitalize ${STATUS_COLORS[a.status] || ''}`}>{a.status}</Badge>
-                        {(a.status === 'active' || a.status === 'pending') && (
-                          <Button size="icon" variant="ghost" onClick={() => removeAthlete(a.id)} disabled={removingId === a.id}>
-                            {removingId === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5 text-destructive" />}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <h3 className="font-semibold mb-1">Athletes</h3>
+            <p className="text-sm text-muted-foreground mb-3">Invite athletes and manage connections on the Athletes page.</p>
+            <Button asChild variant="outline"><Link to="/athletes"><UserPlus className="w-4 h-4 mr-1.5" /> Manage athletes</Link></Button>
           </Card>
         )}
 
@@ -242,5 +125,59 @@ export default function Profile() {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Athlete view of their coach connections, with the option to leave. */
+function MyCoaches({ user }) {
+  const [links, setLinks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmId, setConfirmId] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await base44.entities.Assignment.filter({ athlete_id: user.id, status: 'active' }, { limit: 50 });
+      setLinks(res.items || []);
+    } catch (e) { setError(errorMessage(e)); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, [user.id]);
+
+  const leave = async (id) => {
+    setBusy(true); setError('');
+    try { await base44.functions.invoke('removeAthlete', { assignment_id: id }); setConfirmId(null); load(); }
+    catch (e) { setError(errorMessage(e)); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <Card className="p-6">
+      <h3 className="font-semibold mb-1">My coaches</h3>
+      <p className="text-sm text-muted-foreground mb-3">Connected coaches can see your training, tests, check-ins and rehab records. Leaving a coach ends their access immediately.</p>
+      {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : links.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No coach connected. Ask your coach to invite your email address; the invitation appears at the top of the app after you sign in.</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {links.map((a) => (
+            <li key={a.id} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium">{a.coach_name || 'Coach'}</p>
+                {a.team_name && <p className="text-xs text-muted-foreground">Team: {a.team_name}</p>}
+              </div>
+              {confirmId === a.id ? (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="destructive" disabled={busy} onClick={() => leave(a.id)}>{busy && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}Confirm leave</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setConfirmId(null)}>Cancel</Button>
+                </div>
+              ) : <Button size="sm" variant="outline" onClick={() => setConfirmId(a.id)}>Leave</Button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
+    </Card>
   );
 }

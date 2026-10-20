@@ -5,32 +5,39 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2, Save, BookOpen } from 'lucide-react';
+import { errorMessage } from '@/lib/athleteData';
 
 export default function ResearchHub() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
   const search = async () => {
     if (!query.trim()) return;
-    setLoading(true); setResult(''); setSaved(false);
+    setLoading(true); setResult(''); setSaved(false); setError('');
     try {
       const res = await base44.functions.invoke('aiAssistant', {
         prompt: `Summarize the current scientific research and evidence on: ${query}. Include key findings, practical applications for coaches, and notable studies or review references where possible.`,
         use_web: true,
       });
       setResult(res.data.answer);
-    } finally { setLoading(false); }
+    } catch (e) { setError(errorMessage(e, 'Search failed')); }
+    finally { setLoading(false); }
   };
 
   const saveArticle = async () => {
     if (!result) return;
-    await base44.entities.KnowledgeArticle.create({
-      title: query, category: 'Research', cycle_type: 'general',
-      summary: result.slice(0, 200), content: result, tags: ['research', 'saved'],
-    });
-    setSaved(true);
+    try {
+      // Saved privately to the coach's own library; only admins publish articles.
+      await base44.entities.KnowledgeArticle.create({
+        title: query.slice(0, 200), category: 'Research', cycle_type: 'general', visibility: 'private',
+        summary: result.slice(0, 200), content: result, tags: ['research', 'ai-summary'],
+        author: 'AI summary (unverified)',
+      });
+      setSaved(true);
+    } catch (e) { setError(errorMessage(e, 'Could not save')); }
   };
 
   return (
@@ -52,6 +59,7 @@ export default function ResearchHub() {
         </div>
       </Card>
 
+      {error && <p role="alert" className="mb-4 text-sm text-destructive">{error}</p>}
       {loading && <div className="flex items-center justify-center py-12 text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Searching the literature…</div>}
 
       {result && (
@@ -62,6 +70,7 @@ export default function ResearchHub() {
               <Save className="w-4 h-4 mr-1.5" /> {saved ? 'Saved' : 'Save to Library'}
             </Button>
           </div>
+          <p className="mb-3 text-xs text-muted-foreground">AI-generated summary. Check the cited studies before relying on it.</p>
           <pre className="text-sm whitespace-pre-wrap font-body leading-relaxed">{result}</pre>
         </Card>
       )}

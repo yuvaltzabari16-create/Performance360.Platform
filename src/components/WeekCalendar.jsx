@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Dumbbell } from 'lucide-react';
+import { todayStr } from '@/lib/useCurrentUser';
 
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -14,7 +15,8 @@ function startOfWeek(d) {
   date.setHours(0, 0, 0, 0);
   return date;
 }
-function toStr(d) { return d.toISOString().slice(0, 10); }
+// Local calendar date; toISOString() would shift dates for users east of UTC.
+const toStr = (d) => todayStr(d);
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 
 const STATUS_DOT = {
@@ -38,7 +40,7 @@ export default function WeekCalendar({ athleteId }) {
     base44.entities.Workout.filter(
       { user_id: athleteId, date: { $gte: toStr(weekStart), $lte: toStr(weekEnd) } },
       { sort: 'date', limit: 100 }
-    ).then((res) => setWorkouts(res.items || [])).finally(() => setLoading(false));
+    ).then((res) => setWorkouts(res.items || [])).catch(() => setWorkouts([])).finally(() => setLoading(false));
   }, [athleteId, toStr(weekStart)]);
 
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -51,16 +53,17 @@ export default function WeekCalendar({ athleteId }) {
 
   return (
     <Card className="p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 className="font-semibold flex items-center gap-2"><Dumbbell className="w-4 h-4 text-primary" /> This Week</h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground mr-1">{weekLabel}</span>
-          <Button size="icon" variant="ghost" onClick={() => setWeekStart(addDays(weekStart, -7))}><ChevronLeft className="w-4 h-4" /></Button>
+          <Button size="icon" variant="ghost" aria-label="Previous week" onClick={() => setWeekStart(addDays(weekStart, -7))}><ChevronLeft className="w-4 h-4" /></Button>
           <Button size="sm" variant="outline" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</Button>
-          <Button size="icon" variant="ghost" onClick={() => setWeekStart(addDays(weekStart, 7))}><ChevronRight className="w-4 h-4" /></Button>
+          <Button size="icon" variant="ghost" aria-label="Next week" onClick={() => setWeekStart(addDays(weekStart, 7))}><ChevronRight className="w-4 h-4" /></Button>
         </div>
       </div>
-      <div className="grid grid-cols-7 gap-2">
+      <div className="overflow-x-auto -mx-1 px-1">
+      <div className="grid grid-cols-7 gap-2 min-w-[560px]">
         {days.map((d) => (
           <div key={d.ds} className={`rounded-lg border p-2 min-h-[96px] flex flex-col ${d.isToday ? 'border-primary bg-primary/5' : 'border-border'}`}>
             <div className="flex items-center justify-between mb-1.5">
@@ -80,8 +83,9 @@ export default function WeekCalendar({ athleteId }) {
           </div>
         ))}
       </div>
+      </div>
       {loading && <p className="text-xs text-muted-foreground mt-2">Loading…</p>}
-      <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
         {Object.entries(STATUS_DOT).map(([k, v]) => (
           <span key={k} className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${v}`} /> {k.replace('_', ' ')}</span>
         ))}

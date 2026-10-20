@@ -24,6 +24,22 @@
     "completion_count": {
       "type": "number",
       "default": 0
+    },
+    "source_workout_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "completed",
+        "skipped"
+      ],
+      "default": "planned"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
@@ -40,9 +56,6 @@
           "data.coach_id": "{{user.id}}"
         },
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -50,51 +63,19 @@
       ]
     },
     "create": {
-      "$or": [
-        {
-          "data.athlete_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
-      "$or": [
-        {
-          "data.athlete_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "$or": [
         {
-          "data.athlete_id": "{{user.id}}"
-        },
-        {
           "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {

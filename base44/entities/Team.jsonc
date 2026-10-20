@@ -36,7 +36,25 @@
       ]
     },
     "create": {
-      "data.coach_id": "{{user.id}}"
+      "$and": [
+        {
+          "data.coach_id": "{{user.id}}"
+        },
+        {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "coach"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      ]
     },
     "update": {
       "$or": [

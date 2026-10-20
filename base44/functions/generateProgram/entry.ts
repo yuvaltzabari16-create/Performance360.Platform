@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 
 const blockItemSchema = {
   type: 'object',
@@ -36,7 +36,13 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const mode = body.mode || 'program';
+    const mode = body.mode === 'workout' ? 'workout' : 'program';
+    for (const k of ['prompt', 'sport', 'goal', 'focus', 'level']) {
+      const max = k === 'prompt' ? 2000 : 80;
+      if (body[k] !== undefined && (typeof body[k] !== 'string' || body[k].length > max)) {
+        return Response.json({ error: `${k} must be text up to ${max} characters` }, { status: 400 });
+      }
+    }
 
     if (mode === 'workout') {
       const sport = (body.sport || 'general').toLowerCase();
@@ -55,9 +61,19 @@ export default async function(req) {
         required: ['title', 'blocks']
       };
 
-      const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-        prompt: fullPrompt, response_json_schema: schema
-      });
+      let result;
+      try {
+        result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: fullPrompt, response_json_schema: schema
+        });
+      } catch (llmErr) {
+        const msg = String(llmErr?.message || llmErr);
+        if (msg.includes('rate') || msg.includes('429')) return Response.json({ error: 'AI service rate limit reached. Please try again shortly.' }, { status: 429 });
+        if (msg.includes('timeout') || msg.includes('Timeout')) return Response.json({ error: 'AI request timed out. Please try again.' }, { status: 504 });
+        console.error('[llm error]', msg);
+        return Response.json({ error: 'The AI service returned an invalid response. Please try again.' }, { status: 502 });
+      }
+      if (!result || !Array.isArray(result.blocks)) return Response.json({ error: 'AI returned malformed workout data' }, { status: 502 });
       return Response.json({ workout: result });
     }
 
@@ -107,11 +123,13 @@ Return a program name, description, num_weeks, and a workouts array. Each workou
       const msg = String(llmErr?.message || llmErr);
       if (msg.includes('rate') || msg.includes('429')) return Response.json({ error: 'AI service rate limit reached. Please try again shortly.' }, { status: 429 });
       if (msg.includes('timeout') || msg.includes('Timeout')) return Response.json({ error: 'AI request timed out. Please try again.' }, { status: 504 });
-      return Response.json({ error: 'AI returned an invalid response: ' + msg }, { status: 502 });
+      console.error('[llm error]', msg);
+      return Response.json({ error: 'The AI service returned an invalid response. Please try again.' }, { status: 502 });
     }
     if (!result || !result.workouts) return Response.json({ error: 'AI returned malformed program data' }, { status: 502 });
     return Response.json({ program: result });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[function error]', error?.message);
+    return Response.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

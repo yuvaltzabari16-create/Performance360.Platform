@@ -29,6 +29,7 @@ import WorkoutPlanner from '@/pages/WorkoutPlanner';
 import Reports from '@/pages/Reports';
 import Onboarding from '@/pages/Onboarding';
 import Profile from '@/pages/Profile';
+import Messages from '@/pages/Messages';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
           <Route path="/reports" element={<Reports />} />
           <Route path="/knowledge" element={<Knowledge />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/messages" element={<Messages />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

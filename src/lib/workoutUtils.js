@@ -73,7 +73,7 @@ export function createBlankWorkout() {
 export function migrateExercisesToBlocks(exercises) {
   if (!exercises || !exercises.length) return [];
   return [{
-    id: uid(),
+    id: 'legacy-a',
     label: 'A',
     type: 'straight_sets',
     rounds: 1,
@@ -97,11 +97,13 @@ export function migrateExercisesToBlocks(exercises) {
 
 export function normalizeWorkout(w) {
   if (!w) return w;
-  if ((!w.blocks || !w.blocks.length) && w.exercises && w.exercises.length) {
-    return { ...w, blocks: migrateExercisesToBlocks(w.exercises) };
+  let blocks = w.blocks;
+  if ((!blocks || !blocks.length) && w.exercises && w.exercises.length) {
+    blocks = migrateExercisesToBlocks(w.exercises);
   }
-  if (!w.blocks) return { ...w, blocks: [] };
-  return w;
+  // Stable ids so athlete results can reference a block across reloads.
+  blocks = (blocks || []).map((b, i) => (b.id ? b : { ...b, id: `blk${i}` }));
+  return { ...w, blocks };
 }
 
 export function relabelBlocks(blocks) {

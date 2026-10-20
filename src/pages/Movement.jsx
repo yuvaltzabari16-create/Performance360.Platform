@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, Loader2, AlertTriangle, Gauge, Video } from 'lucide-react';
+import { Upload, Loader2, AlertTriangle, Video } from 'lucide-react';
+import { fetchAthleteRecords, errorMessage } from '@/lib/athleteData';
 
 const MOVEMENTS = ['Squat', 'Deadlift', 'Sprint', 'Jump', 'Lunge', 'Overhead Press', 'General'];
 
@@ -25,16 +26,19 @@ export default function Movement() {
   const fileRef = useRef(null);
 
   const load = async () => {
-    if (!activeId) return;
-    const res = await base44.entities.MovementAnalysis.filter({ user_id: activeId }, { sort: '-created_date', limit: 20 });
-    setHistory(res.items || []);
+    if (!activeId || !user) { setHistory([]); return; }
+    try { setHistory(await fetchAthleteRecords(user, activeId, 'MovementAnalysis', { sort: '-created_date', limit: 20 })); }
+    catch (e) { setError(errorMessage(e)); }
   };
-  useEffect(() => { load(); }, [activeId]);
+  useEffect(() => { load(); }, [activeId, user?.id]);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file || !activeId) return;
     setError('');
+    if (!/^video\/(mp4|quicktime|webm)$/.test(file.type)) { setError('Upload an MP4, MOV or WebM video'); return; }
+    if (file.size > 200 * 1024 * 1024) { setError('Videos must be 200 MB or smaller'); return; }
     setUploading(true);
     setProgress(10);
     try {
@@ -43,25 +47,18 @@ export default function Movement() {
       setProgress(30);
       const signed = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
       const videoUrl = signed.signed_url;
-      const rec = await base44.entities.MovementAnalysis.create({
-        user_id: activeId, video_url: fileUri, movement_type: movementType, status: 'processing',
-      });
       setUploading(false);
       setAnalyzing(true);
       setProgress(50);
-      const res = await base44.functions.invoke('analyzeMovement', { video_url: videoUrl, movement_type: movementType });
-      setProgress(85);
-      const a = res.data.analysis;
-      await base44.entities.MovementAnalysis.update(rec.id, {
-        ai_feedback: a.ai_feedback, discrepancies: a.discrepancies, score: a.score, status: 'completed',
-      });
+      await base44.functions.invoke('analyzeMovement', { video_url: videoUrl, file_uri: fileUri, movement_type: movementType, athlete_id: activeId });
       setProgress(100);
       setAnalyzing(false);
       load();
     } catch (err) {
-      setError(err.message || 'Analysis failed');
+      setError(errorMessage(err, 'Analysis failed'));
       setAnalyzing(false);
       setUploading(false);
+      load();
     }
   };
 
@@ -69,7 +66,7 @@ export default function Movement() {
 
   return (
     <div>
-      <PageHeader title="Movement Analysis" subtitle="AI-assisted biomechanical assessment"
+      <PageHeader title="Video Analysis" subtitle="AI-assisted technique review of uploaded videos — a coaching aid, not a medical assessment"
         actions={isCoach && <AthleteSelector coachId={user.id} value={activeId} onChange={setAthleteId} />} />
 
       <Card className="p-6 mb-6">
@@ -83,7 +80,7 @@ export default function Movement() {
               </SelectContent>
             </Select>
           </div>
-          <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleFile} />
+          <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/webm" className="sr-only" onChange={handleFile} aria-label="Upload video" />
           <Button onClick={() => fileRef.current?.click()} disabled={uploading || analyzing || !activeId}>
             <Upload className="w-4 h-4 mr-1.5" /> {uploading ? 'Uploading…' : analyzing ? 'Analyzing…' : 'Upload Video'}
           </Button>
@@ -91,7 +88,7 @@ export default function Movement() {
         {(uploading || analyzing) && (
           <div className="mt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-              <Loader2 className="w-4 h-4 animate-spin" /> {analyzing ? 'Running biomechanical analysis…' : 'Uploading video…'}
+              <Loader2 className="w-4 h-4 animate-spin" /> {analyzing ? 'Reviewing the video…' : 'Uploading video…'}
             </div>
             <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
@@ -115,16 +112,12 @@ export default function Movement() {
                 <div>
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{h.movement_type}</h3>
-                    {h.status === 'completed' ? (
-                      <Badge variant="outline" className="gap-1 text-primary border-primary/30">
-                        <Gauge className="w-3.5 h-3.5" /> {h.score}/100
-                      </Badge>
-                    ) : <Badge variant="outline" className="text-amber-500">{h.status}</Badge>}
+                    <Badge variant="outline" className={h.status === 'completed' ? 'text-primary border-primary/30' : h.status === 'failed' ? 'text-rose-500' : 'text-amber-500'}>{h.status === 'completed' ? (h.created_date || '').slice(0, 10) : h.status}</Badge>
                   </div>
                   {h.ai_feedback && <p className="text-sm text-muted-foreground mt-2">{h.ai_feedback}</p>}
                   {h.discrepancies?.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1.5">Discrepancies</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1.5">Observations</p>
                       <ul className="space-y-1">
                         {h.discrepancies.map((d, i) => (
                           <li key={i} className="text-sm flex items-start gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />{d}</li>

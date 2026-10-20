@@ -3,26 +3,27 @@ import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { useActiveAthlete } from '@/lib/useActiveAthlete';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { createBlankBlock, createBlankItem, relabelBlocks, BLOCK_LABELS } from '@/lib/workoutUtils';
 
 export default function AddToWorkoutDialog({ open, onOpenChange, exercise }) {
   const { user } = useCurrentUser();
-  const { activeId } = useActiveAthlete(user);
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open && activeId) {
-      setLoading(true);
-      base44.entities.Workout.filter({ user_id: activeId }, { sort: '-updated_date', limit: 50 })
-        .then((res) => setWorkouts(res.items || []))
+    if (open && user) {
+      setLoading(true); setError('');
+      // Only the user's own editable workouts: not coach-prescribed copies and not recorded sessions.
+      base44.entities.Workout.filter({ user_id: user.id }, { sort: '-updated_date', limit: 100 })
+        .then((res) => setWorkouts((res.items || []).filter((w) => w.owner_scope !== 'assigned' && w.status !== 'completed' && w.status !== 'skipped')))
+        .catch(() => setWorkouts([]))
         .finally(() => setLoading(false));
     }
-  }, [open, activeId]);
+  }, [open, user?.id]);
 
   const filtered = workouts.filter((w) => !search || w.title?.toLowerCase().includes(search.toLowerCase()));
 
@@ -39,7 +40,8 @@ export default function AddToWorkoutDialog({ open, onOpenChange, exercise }) {
       await base44.entities.Workout.update(wk.id, { blocks: updated.blocks });
       onOpenChange(false);
       window.location.href = '/planner';
-    } finally { setAdding(false); }
+    } catch (e) { setError(e?.message || 'Could not add the exercise'); }
+    finally { setAdding(false); }
   };
 
   return (
@@ -63,6 +65,7 @@ export default function AddToWorkoutDialog({ open, onOpenChange, exercise }) {
             </div>
           </>
         )}
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter><Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button></DialogFooter>
       </DialogContent>
     </Dialog>

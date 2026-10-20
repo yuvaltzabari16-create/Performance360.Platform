@@ -30,6 +30,14 @@
     },
     "author": {
       "type": "string"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "private"
     }
   },
   "required": [
@@ -37,21 +45,85 @@
     "category"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "$nor": [
+            {
+              "data.visibility": "private"
+            }
+          ]
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "create": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "$and": [
+            {
+              "data.visibility": "private"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "role": "coach"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "role": "admin"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "$and": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "data.visibility": "private"
+            }
+          ]
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

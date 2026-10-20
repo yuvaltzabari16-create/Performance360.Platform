@@ -31,6 +31,10 @@
     },
     "order": {
       "type": "number"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
@@ -44,9 +48,6 @@
           "data.user_id": "{{user.id}}"
         },
         {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -54,49 +55,19 @@
       ]
     },
     "create": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

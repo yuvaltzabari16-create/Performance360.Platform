@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { fetchAthleteRecords } from '@/lib/athleteData';
 import { base44 } from '@/api/base44Client';
 
 const PRIMARY = [43, 127, 224];
@@ -22,15 +23,31 @@ function ensureSpace(doc, y, needed = 40) {
   return y;
 }
 
-export async function generateAthleteReport(athleteId, athleteName = 'Athlete') {
-  const [perf, milestones, movement] = await Promise.all([
-    base44.entities.PerformanceMetric.filter({ user_id: athleteId }, { sort: '-date', limit: 200 }),
-    base44.entities.ClearanceMilestone.filter({ user_id: athleteId }, { sort: 'order', limit: 50 }),
-    base44.entities.MovementAnalysis.filter({ user_id: athleteId, status: 'completed' }, { sort: '-created_date', limit: 10 }),
+async function resolveAthleteName(user, athleteId) {
+  if (athleteId === user.id) return user.full_name || user.email || 'Athlete';
+  try {
+    const res = await base44.entities.Assignment.filter({ coach_id: user.id, athlete_id: athleteId, status: 'active' }, { limit: 1 });
+    const a = res.items?.[0];
+    return a?.athlete_name || a?.athlete_email || 'Athlete';
+  } catch { return 'Athlete'; }
+}
+
+/**
+ * Builds the PDF in the browser from records the viewer is authorized to
+ * read (own records, or a connected athlete's via the athleteData function).
+ */
+export async function generateAthleteReport(user, athleteId) {
+  const [metrics, ms, movesAll, workouts, athleteName] = await Promise.all([
+    fetchAthleteRecords(user, athleteId, 'PerformanceMetric', { sort: '-date', limit: 500 }),
+    fetchAthleteRecords(user, athleteId, 'ClearanceMilestone', { sort: 'order', limit: 50 }),
+    fetchAthleteRecords(user, athleteId, 'MovementAnalysis', { sort: '-created_date', limit: 20 }),
+    fetchAthleteRecords(user, athleteId, 'Workout', { sort: '-date', limit: 200 }),
+    resolveAthleteName(user, athleteId),
   ]);
-  const metrics = perf.items || [];
-  const ms = milestones.items || [];
-  const moves = movement.items || [];
+  const moves = movesAll.filter((m) => m.status === 'completed').slice(0, 10);
+  const since = new Date(Date.now() - 28 * 86400000).toISOString().slice(0, 10);
+  const recent = workouts.filter((w) => w.date && w.date >= since && w.date <= new Date().toISOString().slice(0, 10));
+  const done = recent.filter((w) => w.status === 'completed').length;
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();
@@ -51,13 +68,20 @@ export async function generateAthleteReport(athleteId, athleteName = 'Athlete') 
   // Summary line
   doc.setTextColor(...MUTED); doc.setFontSize(9);
   const completedMs = ms.filter((m) => m.status === 'completed').length;
-  doc.text(`Performance tests: ${metrics.length}   |   Rehab milestones: ${completedMs}/${ms.length} completed   |   Movement analyses: ${moves.length}`, M, y);
+  doc.text(`Performance tests: ${metrics.length}   |   Rehab phases: ${completedMs}/${ms.length} completed   |   Movement reviews: ${moves.length}`, M, y);
+  y += 14;
+  doc.text(recent.length
+    ? `Training adherence, last 28 days: ${done} of ${recent.length} scheduled sessions completed (${Math.round((done / recent.length) * 100)}%)`
+    : 'Training adherence, last 28 days: no sessions scheduled', M, y);
   y += 24;
 
   // Performance Metrics — latest per test
   y = sectionTitle(doc, 'Performance Metrics (Latest Results)', M, y);
   const latestPerTest = {};
-  metrics.forEach((m) => { if (!latestPerTest[m.test_name] || m.date > latestPerTest[m.test_name].date) latestPerTest[m.test_name] = m; });
+  metrics.forEach((m) => {
+    const k = (m.metric_key || m.test_name) + (m.side ? ':' + m.side : '');
+    if (!latestPerTest[k] || m.date > latestPerTest[k].date) latestPerTest[k] = { ...m, test_name: m.side ? `${m.test_name} (${m.side})` : m.test_name };
+  });
   const testRows = Object.values(latestPerTest);
   if (testRows.length === 0) {
     doc.setTextColor(...MUTED); doc.setFontSize(10); doc.setFont('helvetica', 'italic');
@@ -95,6 +119,9 @@ export async function generateAthleteReport(athleteId, athleteName = 'Athlete') 
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...MUTED);
       doc.text(m.status.replace('_', ' '), M + 400, y, { align: 'left' });
       y += 13;
+      if (m.status === 'completed' && m.cleared_by_name) {
+        doc.text(`Cleared by ${String(m.cleared_by_name).slice(0, 60)}${m.cleared_at ? ' on ' + m.cleared_at.slice(0, 10) : ''}`, M + 14, y); y += 12;
+      }
       if (m.description) { doc.text(String(m.description).slice(0, 90), M + 14, y); y += 12; }
       y += 6;
     });
@@ -103,7 +130,7 @@ export async function generateAthleteReport(athleteId, athleteName = 'Athlete') 
 
   // Movement Analysis
   y = ensureSpace(doc, y, 60);
-  y = sectionTitle(doc, 'Recent Movement Analysis', M, y);
+  y = sectionTitle(doc, 'Recent AI-Assisted Movement Reviews', M, y);
   if (moves.length === 0) {
     doc.setTextColor(...MUTED); doc.setFontSize(10); doc.setFont('helvetica', 'italic');
     doc.text('No completed movement analyses.', M, y); y += 18;
@@ -112,7 +139,7 @@ export async function generateAthleteReport(athleteId, athleteName = 'Athlete') 
       y = ensureSpace(doc, y, 40);
       doc.setTextColor(...DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
       doc.text(mv.movement_type || 'Movement Analysis', M, y);
-      doc.setTextColor(...PRIMARY); doc.text(`Score: ${mv.score ?? '—'}/100`, M + 400, y);
+      doc.setTextColor(...MUTED); doc.setFont('helvetica', 'normal'); doc.text(String(mv.created_date || '').slice(0, 10), M + 400, y);
       y += 13;
       if (mv.ai_feedback) {
         doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...MUTED);
@@ -128,9 +155,9 @@ export async function generateAthleteReport(athleteId, athleteName = 'Athlete') 
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     doc.setFontSize(8); doc.setTextColor(...MUTED);
-    doc.text(`ApexMotion · Generated ${new Date().toLocaleString()}`, M, 820);
+    doc.text(`Performance360 · Generated ${new Date().toLocaleString()} · AI reviews are coaching aids, not medical assessments`, M, 820);
     doc.text(`${i}/${pages}`, W - M, 820, { align: 'right' });
   }
 
-  doc.save(`ApexMotion-Report-${athleteName.replace(/\s+/g, '-')}.pdf`);
+  doc.save(`Performance360-Report-${athleteName.replace(/[^A-Za-z0-9]+/g, '-')}.pdf`);
 }

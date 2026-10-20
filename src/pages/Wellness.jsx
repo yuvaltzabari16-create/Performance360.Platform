@@ -1,67 +1,101 @@
-import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useCurrentUser } from '@/lib/useCurrentUser';
+import { useEffect, useMemo, useState } from 'react';
+import { useCurrentUser, todayStr } from '@/lib/useCurrentUser';
 import { useActiveAthlete } from '@/lib/useActiveAthlete';
+import { fetchAthleteRecords, errorMessage } from '@/lib/athleteData';
 import PageHeader, { StatCard } from '@/components/PageHeader';
 import ReadinessWidget from '@/components/ReadinessWidget';
 import AthleteSelector from '@/components/AthleteSelector';
 import { Card } from '@/components/ui/card';
-import { HeartPulse, Moon, Battery, Zap } from 'lucide-react';
+import { Moon, Battery, Gauge, CalendarCheck } from 'lucide-react';
+
+/** Mean of the values that were actually reported. */
+const meanOf = (rows, key) => {
+  const v = rows.map((r) => r[key]).filter((x) => typeof x === 'number' && Number.isFinite(x));
+  return v.length ? { value: (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1), n: v.length } : null;
+};
 
 export default function Wellness() {
   const { user, loading } = useCurrentUser();
   const { activeId, setAthleteId, isCoach } = useActiveAthlete(user);
   const [entries, setEntries] = useState([]);
+  const [workouts, setWorkouts] = useState([]);
+  const [error, setError] = useState('');
 
   const load = async () => {
-    if (!activeId) { setEntries([]); return; }
-    const res = await base44.entities.ReadinessEntry.filter({ user_id: activeId }, { sort: '-date', limit: 30 });
-    setEntries(res.items || []);
+    if (!activeId || !user) { setEntries([]); setWorkouts([]); return; }
+    setError('');
+    try {
+      const [r, w] = await Promise.all([
+        fetchAthleteRecords(user, activeId, 'ReadinessEntry', { sort: '-date', limit: 60 }),
+        fetchAthleteRecords(user, activeId, 'Workout', { sort: '-date', limit: 200 }),
+      ]);
+      setEntries(r); setWorkouts(w);
+    } catch (e) { setError(errorMessage(e)); }
   };
-  useEffect(() => { load(); }, [activeId]);
+  useEffect(() => { load(); }, [activeId, user?.id]);
+
+  const week = useMemo(() => {
+    const from = todayStr(new Date(Date.now() - 6 * 86400000));
+    const to = todayStr();
+    const rows = entries.filter((e) => e.date >= from && e.date <= to);
+    const sessions = workouts.filter((w) => w.date >= from && w.date <= to && w.status === 'completed');
+    const loads = sessions.map((w) => w.athlete_result?.session_load).filter((x) => typeof x === 'number');
+    return {
+      rows, sessions,
+      sleep: meanOf(rows, 'sleep_hours'), soreness: meanOf(rows, 'soreness'),
+      load: loads.length ? loads.reduce((a, b) => a + b, 0) : null, loadN: loads.length,
+    };
+  }, [entries, workouts]);
 
   if (loading) return <div className="h-64 flex items-center justify-center text-muted-foreground">Loading…</div>;
-
-  const latest = entries[0];
-  const avg = (key) => entries.length ? (entries.reduce((s, e) => s + (e[key] || 0), 0) / entries.length).toFixed(1) : '—';
+  const own = activeId && activeId === user?.id;
 
   return (
     <div>
-      <PageHeader title="Training Load & Wellness" subtitle="Monitor workload, readiness, recovery and fatigue"
+      <PageHeader title="Training Load & Wellness" subtitle="Daily check-ins and session load (session RPE × minutes) over the last 7 days"
         actions={isCoach && <AthleteSelector coachId={user.id} value={activeId} onChange={setAthleteId} />} />
+      {error && <p role="alert" className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</p>}
+      {!activeId ? (
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Select a connected athlete.</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <StatCard icon={CalendarCheck} label="Check-ins (7 d)" value={week.rows.length} unit="/ 7" />
+            <StatCard icon={Moon} label="Avg sleep (7 d)" value={week.sleep?.value ?? '—'} unit={week.sleep ? 'h' : ''} hint={week.sleep ? `${week.sleep.n} reports` : 'Not reported'} />
+            <StatCard icon={Battery} label="Avg soreness (7 d)" value={week.soreness?.value ?? '—'} unit={week.soreness ? '/10' : ''} hint={week.soreness ? `${week.soreness.n} reports` : 'Not reported'} />
+            <StatCard icon={Gauge} label="Session load (7 d)" value={week.load ?? '—'} unit={week.load !== null ? 'AU' : ''}
+              hint={`${week.sessions.length} completed session(s), ${week.loadN} with RPE and duration`} />
+          </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard icon={HeartPulse} label="Readiness" value={latest?.readiness_score ?? '—'} unit="/100" />
-        <StatCard icon={Moon} label="Avg sleep" value={avg('sleep_hours')} unit="h" />
-        <StatCard icon={Battery} label="Avg soreness" value={avg('soreness')} unit="/10" />
-        <StatCard icon={Zap} label="Avg RPE" value={avg('rpe')} unit="/10" />
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <ReadinessWidget userId={activeId} onSaved={load} />
-        <Card className="p-5">
-          <h3 className="font-semibold mb-3">Readiness History</h3>
-          {entries.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No wellness data logged yet.</div>
-          ) : (
-            <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-thin">
-              {entries.map((e) => (
-                <div key={e.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
-                    <p className="text-sm font-medium">{e.date}</p>
-                    <p className="text-xs text-muted-foreground">{e.notes || '—'}</p>
-                  </div>
-                  <div className="flex gap-3 text-xs text-right">
-                    <div><p className="text-muted-foreground">Ready</p><p className="font-semibold">{e.readiness_score ?? '—'}</p></div>
-                    <div><p className="text-muted-foreground">Sleep</p><p className="font-semibold">{e.sleep_hours ?? '—'}h</p></div>
-                    <div><p className="text-muted-foreground">RPE</p><p className="font-semibold">{e.rpe ?? '—'}</p></div>
-                  </div>
+          <div className={`grid gap-6 ${own ? 'lg:grid-cols-2' : ''}`}>
+            {own && <ReadinessWidget onSaved={load} />}
+            <Card className="p-5">
+              <h2 className="font-semibold mb-3">Check-in history</h2>
+              {entries.length === 0 ? (
+                <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No check-ins recorded yet.</div>
+              ) : (
+                <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin">
+                  {entries.map((e) => (
+                    <div key={e.id} className="flex items-start justify-between gap-3 py-2 border-b border-border last:border-0">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{e.date}</p>
+                        {e.notes && <p className="text-xs text-muted-foreground break-words">{e.notes}</p>}
+                      </div>
+                      <dl className="grid grid-cols-4 gap-3 text-xs text-right shrink-0">
+                        <div><dt className="text-muted-foreground">Sleep</dt><dd className="font-semibold">{e.sleep_hours ?? '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Sore</dt><dd className="font-semibold">{e.soreness ?? '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">Mood</dt><dd className="font-semibold">{e.mood ?? '—'}</dd></div>
+                        <div><dt className="text-muted-foreground">RPE</dt><dd className="font-semibold">{e.rpe ?? '—'}</dd></div>
+                      </dl>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
+              )}
+            </Card>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">Session load uses the session-RPE method (Foster et al., 2001) and is only counted when the athlete logged both RPE and duration. These figures support coaching conversations; they are not a medical or injury-risk assessment.</p>
+        </>
+      )}
     </div>
   );
 }

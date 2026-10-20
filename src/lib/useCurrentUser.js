@@ -14,4 +14,8 @@ export function useCurrentUser() {
   return { user, loading, setUser };
 }
 
-export const todayStr = () => new Date().toISOString().slice(0, 10);
+/** Today's date in the user's local time zone (YYYY-MM-DD). */
+export const todayStr = (d = new Date()) => {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};

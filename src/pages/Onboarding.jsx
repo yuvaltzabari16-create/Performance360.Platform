@@ -44,10 +44,15 @@ export default function Onboarding() {
     setSaving(true);
     setError('');
     try {
-      await base44.functions.invoke('onboardUser', {
+      const res = await base44.functions.invoke('onboardUser', {
         role, sport, bio, profile_image_url: photoUrl, full_name: name
       });
       const me = await base44.auth.me();
+      if (res.data?.roleSet === false || (role && me.role !== role && me.role !== 'admin')) {
+        setUser(me);
+        setError('Your profile was saved, but the role could not be changed on this account. An administrator can set it in the Base44 dashboard.');
+        return;
+      }
       setUser(me);
       navigate('/', { replace: true });
     } catch (e) {
@@ -62,7 +67,7 @@ export default function Onboarding() {
           <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mx-auto mb-3 shadow-sm shadow-primary/30">
             <Dumbbell className="w-7 h-7 text-primary-foreground" />
           </div>
-          <h1 className="text-xl font-semibold">Welcome to ApexMotion</h1>
+          <h1 className="text-xl font-semibold">Welcome to Performance360</h1>
           <p className="text-sm text-muted-foreground mt-1">Set up your account to get started.</p>
         </div>
 

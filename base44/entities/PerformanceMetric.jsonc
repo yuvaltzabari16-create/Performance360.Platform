@@ -15,9 +15,12 @@
     "category": {
       "type": "string",
       "enum": [
-        "strength",
         "speed",
+        "power",
+        "strength",
+        "change_of_direction",
         "endurance",
+        "repeated_sprint",
         "mobility"
       ]
     },
@@ -29,6 +32,32 @@
     },
     "unit": {
       "type": "string"
+    },
+    "metric_key": {
+      "type": "string",
+      "description": "Key from base44/shared/metrics.ts catalog"
+    },
+    "side": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right",
+        "bilateral"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "recorded_by_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "athlete",
+        "coach",
+        "admin"
+      ]
     }
   },
   "required": [
@@ -45,9 +74,6 @@
           "data.user_id": "{{user.id}}"
         },
         {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -55,49 +81,19 @@
       ]
     },
     "create": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

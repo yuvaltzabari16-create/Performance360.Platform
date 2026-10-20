@@ -30,6 +30,7 @@
         "active",
         "declined",
         "removed",
+        "revoked",
         "expired"
       ],
       "default": "pending"
@@ -37,6 +38,17 @@
     "expires_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "responded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_by_id": {
+      "type": "string"
     }
   },
   "required": [
@@ -63,43 +75,14 @@
       ]
     },
     "create": {
-      "$and": [
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "$or": [
-            {
-              "user_condition": {
-                "role": "coach"
-              }
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
-      "$or": [
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "data.athlete_email": "{{user.email}}"
-        },
-        {
-          "data.athlete_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {

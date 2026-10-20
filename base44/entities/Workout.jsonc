@@ -132,6 +132,69 @@
     },
     "notes": {
       "type": "string"
+    },
+    "owner_scope": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "coach_library",
+        "assigned"
+      ],
+      "default": "personal"
+    },
+    "source_workout_id": {
+      "type": "string"
+    },
+    "prescribed_by_id": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "athlete_result": {
+      "type": "object",
+      "description": "Athlete-recorded results; written only by completeWorkout",
+      "properties": {
+        "session_rpe": {
+          "type": "number"
+        },
+        "duration_min": {
+          "type": "number"
+        },
+        "session_load": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "item_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "block_id": {
+                "type": "string"
+              },
+              "item_index": {
+                "type": "number"
+              },
+              "sets_done": {
+                "type": "number"
+              },
+              "reps_done": {
+                "type": "string"
+              },
+              "load_used": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [
@@ -147,9 +210,6 @@
           "data.coach_id": "{{user.id}}"
         },
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -162,12 +222,6 @@
           "data.user_id": "{{user.id}}"
         },
         {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -177,13 +231,14 @@
     "update": {
       "$or": [
         {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
+          "$and": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
         },
         {
           "user_condition": {
@@ -195,13 +250,14 @@
     "delete": {
       "$or": [
         {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "data.coach_id": "{{user.id}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
+          "$and": [
+            {
+              "data.user_id": "{{user.id}}"
+            },
+            {
+              "created_by_id": "{{user.id}}"
+            }
+          ]
         },
         {
           "user_condition": {

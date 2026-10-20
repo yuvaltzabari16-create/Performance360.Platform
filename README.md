@@ -1,4 +1,12 @@
-# Base44 Project
+# Performance360
+
+> **Sync status (2026-10-20):** this repository is a manual one-way copy of
+> Base44 app `6abac832c9b011820449e26c`. Base44's GitHub integration is **not**
+> connected, so pushing here does **not** update Base44, despite the template
+> text below. See `docs/LAUNCH_CHECKLIST.md` §1 for supported deploy routes,
+> `docs/ENGINEERING_REPORT.md` for the current state, and `docs/TESTING.md`
+> to run tests (`bun test`).
+
 
 Use this repository to run and edit the app locally, then publish changes back through Base44.
 

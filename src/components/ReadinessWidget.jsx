@@ -1,77 +1,67 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Moon, Activity, Smile, Zap, Check } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Check, Loader2 } from 'lucide-react';
 import { todayStr } from '@/lib/useCurrentUser';
+import { errorMessage } from '@/lib/athleteData';
 
-function Slider({ icon: Icon, label, value, set, min, max, suffix }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="flex items-center gap-2 text-sm font-medium">
-          <Icon className="w-4 h-4 text-primary" /> {label}
-        </span>
-        <span className="text-sm font-semibold tabular-nums">{value}{suffix}</span>
-      </div>
-      <input
-        type="range" min={min} max={max} value={value}
-        onChange={(e) => set(Number(e.target.value))}
-        className="w-full accent-primary"
-      />
-    </div>
-  );
-}
+const FIELDS = [
+  { key: 'sleep_hours', label: 'Sleep last night', unit: 'hours', min: 0, max: 24, step: 0.5, help: 'Total hours slept' },
+  { key: 'soreness', label: 'Muscle soreness', unit: '1–10', min: 1, max: 10, step: 1, help: '1 = none, 10 = extreme' },
+  { key: 'mood', label: 'Mood', unit: '1–10', min: 1, max: 10, step: 1, help: '1 = very low, 10 = excellent' },
+  { key: 'rpe', label: "Yesterday's session RPE", unit: '0–10', min: 0, max: 10, step: 1, help: 'CR-10 scale; leave blank if you did not train' },
+];
 
-export default function ReadinessWidget({ userId, onSaved }) {
-  const [sleep, setSleep] = useState(7);
-  const [soreness, setSoreness] = useState(3);
-  const [mood, setMood] = useState(6);
-  const [rpe, setRpe] = useState(5);
-  const [notes, setNotes] = useState('');
+/**
+ * Daily wellness self-report. Values the athlete leaves blank are stored as
+ * "not reported" — nothing is pre-filled or estimated.
+ */
+export default function ReadinessWidget({ onSaved }) {
+  const empty = { sleep_hours: '', soreness: '', mood: '', rpe: '', notes: '' };
+  const [values, setValues] = useState(empty);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
-  const score = Math.round(Math.max(0, Math.min(100,
-    100 - soreness * 6 - (8 - sleep) * 4 - (10 - mood) * 3 - Math.abs(rpe - 5) * 4
-  )));
-  const scoreColor = score >= 75 ? 'text-emerald-600' : score >= 50 ? 'text-amber-500' : 'text-rose-500';
+  const set = (k, v) => { setDone(false); setValues((s) => ({ ...s, [k]: v })); };
 
-  const save = async () => {
-    setSaving(true);
+  const save = async (e) => {
+    e.preventDefault();
+    setSaving(true); setError('');
     try {
-      await base44.entities.ReadinessEntry.create({
-        user_id: userId, date: todayStr(),
-        sleep_hours: sleep, soreness, mood, rpe, readiness_score: score, notes,
-      });
+      const payload = { kind: 'readiness', date: todayStr(), notes: values.notes || undefined };
+      for (const f of FIELDS) if (values[f.key] !== '') payload[f.key] = Number(values[f.key]);
+      await base44.functions.invoke('recordMetric', payload);
       setDone(true);
       onSaved?.();
-    } finally { setSaving(false); }
+    } catch (err) { setError(errorMessage(err)); }
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Daily Readiness</h3>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Readiness score</p>
-          <p className={`text-2xl font-semibold tabular-nums ${scoreColor}`}>{score}<span className="text-sm text-muted-foreground">/100</span></p>
-        </div>
+    <form onSubmit={save} className="rounded-xl border border-border bg-card p-5">
+      <h2 className="font-semibold">Today’s check-in</h2>
+      <p className="text-xs text-muted-foreground mb-4">One check-in per day; saving again updates today’s entry. Shared with your connected coaches.</p>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {FIELDS.map((f) => (
+          <div key={f.key} className="flex flex-col gap-1.5">
+            <Label htmlFor={`rw-${f.key}`}>{f.label} <span className="text-muted-foreground font-normal">({f.unit})</span></Label>
+            <input id={`rw-${f.key}`} type="number" inputMode="decimal" min={f.min} max={f.max} step={f.step}
+              value={values[f.key]} onChange={(e) => set(f.key, e.target.value)}
+              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm" aria-describedby={`rw-${f.key}-h`} />
+            <span id={`rw-${f.key}-h`} className="text-[11px] text-muted-foreground">{f.help}</span>
+          </div>
+        ))}
       </div>
-      <div className="space-y-4">
-        <Slider icon={Moon} label="Sleep" value={sleep} set={setSleep} min={0} max={12} suffix="h" />
-        <Slider icon={Activity} label="Soreness" value={soreness} set={setSoreness} min={0} max={10} />
-        <Slider icon={Smile} label="Mood" value={mood} set={setMood} min={0} max={10} />
-        <Slider icon={Zap} label="Yesterday RPE" value={rpe} set={setRpe} min={0} max={10} />
-        <textarea
-          value={notes} onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notes for your coach…"
-          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none"
-          rows={2}
-        />
-      </div>
-      <Button onClick={save} disabled={saving || done} className="w-full mt-4">
-        {done ? <><Check className="w-4 h-4 mr-2" /> Logged</> : saving ? 'Saving…' : 'Log Readiness'}
+      <Label htmlFor="rw-notes" className="mt-4 block">Notes for your coach</Label>
+      <textarea id="rw-notes" value={values.notes} maxLength={1000} onChange={(e) => set('notes', e.target.value)}
+        className="mt-1.5 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none" rows={2} />
+      {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
+      <Button type="submit" disabled={saving} className="w-full mt-4">
+        {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : done ? <Check className="w-4 h-4 mr-2" /> : null}
+        {done ? 'Saved' : 'Save check-in'}
       </Button>
-    </div>
+    </form>
   );
 }

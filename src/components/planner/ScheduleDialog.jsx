@@ -1,80 +1,94 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { errorMessage } from '@/lib/athleteData';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { todayStr } from '@/lib/useCurrentUser';
 
-export default function ScheduleDialog({ open, onOpenChange, workout, teams, athletes }) {
+/**
+ * Schedules the selected workout through the assignWorkout function, which
+ * checks every athlete's connection and gives each athlete their own copy.
+ */
+export default function ScheduleDialog({ open, onOpenChange, workout, teams, athletes, onScheduled }) {
   const [target, setTarget] = useState('athlete');
-  const [athleteId, setAthleteId] = useState('');
+  const [athleteIds, setAthleteIds] = useState([]);
   const [teamId, setTeamId] = useState('');
   const [date, setDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open) { setTarget('athlete'); setAthleteId(''); setTeamId(''); setDate(todayStr()); setError(''); }
+    if (open) { setTarget('athlete'); setAthleteIds([]); setTeamId(''); setDate(todayStr()); setError(''); }
   }, [open]);
+
+  const toggle = (id) => setAthleteIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const save = async () => {
     if (!workout) return;
+    if (target === 'athlete' && athleteIds.length === 0) { setError('Choose at least one athlete'); return; }
+    if (target === 'team' && !teamId) { setError('Choose a team'); return; }
     setSaving(true); setError('');
     try {
-      const base = {
-        workout_id: workout.id,
-        workout_title: workout.title,
-        date,
-      };
-      if (target === 'athlete') {
-        if (!athleteId) { setError('Select an athlete'); setSaving(false); return; }
-        await base44.entities.WorkoutAssignment.create({ ...base, athlete_id: athleteId });
-      } else {
-        if (!teamId) { setError('Select a team'); setSaving(false); return; }
-        await base44.entities.WorkoutAssignment.create({ ...base, team_id: teamId });
-      }
+      const res = await base44.functions.invoke('assignWorkout', {
+        workout_id: workout.id, date,
+        ...(target === 'athlete' ? { athlete_ids: athleteIds } : { team_id: teamId }),
+      });
+      const { scheduled = 0, skipped = 0 } = res.data || {};
+      onScheduled?.(`Scheduled for ${scheduled} athlete(s)${skipped ? `; ${skipped} skipped (not connected)` : ''}.`);
       onOpenChange(false);
-    } catch (e) { setError(e.message || 'Failed to schedule'); }
+    } catch (e) { setError(errorMessage(e, 'Failed to schedule')); }
     finally { setSaving(false); }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>Schedule Workout</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Schedule “{workout?.title}”</DialogTitle>
+          <DialogDescription>Each athlete receives their own copy. Later edits to this workout do not change sessions already scheduled.</DialogDescription>
+        </DialogHeader>
         <div className="space-y-4">
-          <div className="flex gap-2">
-            <button onClick={() => setTarget('athlete')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${target === 'athlete' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>Single Athlete</button>
-            <button onClick={() => setTarget('team')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${target === 'team' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>Whole Team</button>
+          <div className="flex gap-2" role="radiogroup" aria-label="Schedule for">
+            {[['athlete', 'Athletes'], ['team', 'Whole team']].map(([v, l]) => (
+              <button key={v} type="button" role="radio" aria-checked={target === v} onClick={() => setTarget(v)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${target === v ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{l}</button>
+            ))}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs">Date</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Label htmlFor="sched-date" className="text-xs">Date</Label>
+            <Input id="sched-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           {target === 'athlete' ? (
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-xs">Athlete</Label>
-              <select value={athleteId} onChange={(e) => setAthleteId(e.target.value)} className="h-9 px-3 rounded-md border border-input bg-background text-sm">
-                <option value="">Select athlete...</option>
-                {athletes.map((a) => <option key={a.id} value={a.id}>{a.full_name || a.email}</option>)}
-              </select>
-            </div>
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="text-xs font-medium mb-1">Athletes</legend>
+              {athletes.length === 0 ? <p className="text-sm text-muted-foreground">No connected athletes yet.</p> : (
+                <div className="max-h-56 overflow-y-auto rounded-md border border-border divide-y divide-border">
+                  {athletes.map((a) => (
+                    <label key={a.id} className="flex items-center gap-2.5 px-3 py-2 text-sm cursor-pointer">
+                      <input type="checkbox" className="w-4 h-4 accent-primary" checked={athleteIds.includes(a.id)} onChange={() => toggle(a.id)} />
+                      {a.full_name || a.email}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </fieldset>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs">Team</Label>
-              <select value={teamId} onChange={(e) => setTeamId(e.target.value)} className="h-9 px-3 rounded-md border border-input bg-background text-sm">
-                <option value="">Select team...</option>
+              <Label htmlFor="sched-team" className="text-xs">Team</Label>
+              <select id="sched-team" value={teamId} onChange={(e) => setTeamId(e.target.value)} className="h-9 px-3 rounded-md border border-input bg-background text-sm">
+                <option value="">Choose a team…</option>
                 {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
           )}
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={saving}>{saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}Schedule</Button>
+          <Button onClick={save} disabled={saving}>{saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}Schedule</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -48,8 +48,11 @@ export default function VideoFeed() {
 
   const addToWorkout = async (ex) => {
     await base44.entities.WorkoutTemplate.create({
-      name: ex.name, category: ex.category,
-      exercises: [{ name: ex.name, sets: 3, reps: '8-12', notes: ex.instructions || '' }],
+      name: ex.name, category: ex.category, focus: 'mixed',
+      blocks: [{ id: 'b0', label: 'A', type: 'straight_sets', rounds: 1, items: [{
+        exercise_id: ex.id, exercise_name: ex.name, label: 'A1', sets: null, reps: '', load: '', rpe: '', rir: '',
+        tempo: '', rest: '', time: '', distance: '', note: '',
+      }] }],
     });
     setSaved((s) => [...s, ex.id]);
   };
