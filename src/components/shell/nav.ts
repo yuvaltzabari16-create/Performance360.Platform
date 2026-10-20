@@ -2,7 +2,7 @@ import type { Dictionary } from "@/lib/i18n";
 import type { UserRole } from "@/lib/types";
 
 export type NavIcon =
-  | "home" | "users" | "group" | "calendar" | "library" | "chart" | "pulse" | "key" | "link" | "bell" | "settings";
+  | "home" | "users" | "group" | "calendar" | "library" | "chart" | "pulse" | "key" | "link" | "bell" | "settings" | "chat" | "shield";
 
 export interface NavItem {
   href: string;
@@ -18,6 +18,8 @@ export function navFor(role: UserRole, t: Dictionary): NavItem[] {
       { href: "/training", label: t.nav.myTraining, icon: "calendar" },
       { href: "/testing", label: t.nav.myResults, icon: "chart" },
       { href: "/readiness", label: t.nav.readiness, icon: "pulse" },
+      { href: "/rehab", label: t.nav.rehab, icon: "shield" },
+      { href: "/messages", label: t.nav.messages, icon: "chat" },
       { href: "/exercises", label: t.nav.exercises, icon: "library" },
       { href: "/connect", label: t.nav.connect, icon: "link" },
       { href: "/notifications", label: t.nav.notifications, icon: "bell" },
@@ -32,6 +34,8 @@ export function navFor(role: UserRole, t: Dictionary): NavItem[] {
     { href: "/exercises", label: t.nav.exercises, icon: "library" },
     { href: "/testing", label: t.nav.testing, icon: "chart" },
     { href: "/readiness", label: t.nav.readiness, icon: "pulse" },
+    { href: "/rehab", label: t.nav.rehab, icon: "shield" },
+    { href: "/messages", label: t.nav.messages, icon: "chat" },
     { href: "/code", label: t.nav.code, icon: "key" },
     { href: "/notifications", label: t.nav.notifications, icon: "bell" },
     { href: "/settings", label: t.nav.settings, icon: "settings" },
