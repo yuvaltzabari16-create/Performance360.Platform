@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { todayFor } from "@/lib/dates.server";
 
 // Exports the signed-in user's own data as JSON. Every query runs under RLS as
 // that user; professionals get their own authored content, athletes their record.
@@ -43,7 +44,7 @@ export async function GET() {
   return new NextResponse(JSON.stringify(out, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="performance360-export-${new Date().toISOString().slice(0, 10)}.json"`,
+      "Content-Disposition": `attachment; filename="performance360-export-${await todayFor()}.json"`,
       "Cache-Control": "no-store",
     },
   });

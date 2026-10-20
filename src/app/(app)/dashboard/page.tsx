@@ -5,10 +5,11 @@ import type { Dictionary } from "@/lib/i18n";
 import { bestTrial, readinessFlag, wellnessIndex } from "@/lib/metrics";
 import type { ReadinessEntry, TrainingSession } from "@/lib/types";
 import { round } from "@/lib/units";
+import { todayFor } from "@/lib/dates.server";
+import { addDays } from "@/lib/dates";
 
 export const metadata = { title: "Dashboard" };
 
-const isoDaysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
 
 export default async function DashboardPage() {
   const { profile, t } = await requireProfile();
@@ -19,15 +20,15 @@ export default async function DashboardPage() {
 async function CoachDashboard({ t }: { t: Dictionary }) {
   const { supabase, user, profile } = await requireProfile();
   const td = t.dashboard;
-  const today = isoDaysAgo(0);
+  const today = await todayFor();
   const [athletes, programs, tests30, sessions7, readinessToday, recentTests, readinessRecent] = await Promise.all([
     supabase.from("athletes").select("id", { count: "exact", head: true }).eq("status", "active"),
     supabase.from("training_programs").select("id", { count: "exact", head: true }).eq("coach_id", user.id).eq("status", "active"),
-    supabase.from("test_results").select("id", { count: "exact", head: true }).gte("tested_on", isoDaysAgo(30)),
-    supabase.from("workout_completions").select("id", { count: "exact", head: true }).gte("completed_on", isoDaysAgo(7)).neq("status", "skipped"),
+    supabase.from("test_results").select("id", { count: "exact", head: true }).gte("tested_on", addDays(today, -30)),
+    supabase.from("workout_completions").select("id", { count: "exact", head: true }).gte("completed_on", addDays(today, -7)).neq("status", "skipped"),
     supabase.from("readiness_entries").select("id", { count: "exact", head: true }).eq("entry_date", today),
     supabase.from("test_results").select("id, athlete_id, tested_on, side, trials, test_definitions(name, unit, higher_is_better), athletes(full_name)").order("created_at", { ascending: false }).limit(6),
-    supabase.from("readiness_entries").select("*, athletes(full_name)").gte("entry_date", isoDaysAgo(21)).order("entry_date", { ascending: false }).limit(3000),
+    supabase.from("readiness_entries").select("*, athletes(full_name)").gte("entry_date", addDays(today, -21)).order("entry_date", { ascending: false }).limit(3000),
   ]);
 
   const entries = (readinessRecent.data ?? []) as (ReadinessEntry & { athletes: { full_name: string } })[];
@@ -116,7 +117,7 @@ async function AthleteDashboard({ t }: { t: Dictionary }) {
   const { supabase, profile } = await requireProfile();
   const td = t.dashboard;
   const athleteId = await getMyAthleteId();
-  const today = isoDaysAgo(0);
+  const today = await todayFor();
 
   if (!athleteId) {
     return (

@@ -24,7 +24,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run lint
+      - name: Lint
+        # Errors are also emitted as annotations so they are readable without the raw log.
+        run: |
+          if ! npx eslint -f unix . > lint.txt 2>&1; then
+            sed 's/^/::error::/' lint.txt | head -50
+            exit 1
+          fi
       - run: npm run typecheck
       - run: npm test
       - run: npm run build

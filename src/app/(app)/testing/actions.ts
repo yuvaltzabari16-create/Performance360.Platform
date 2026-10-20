@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireProfessional } from "@/lib/auth";
 import { TEST_CATEGORIES } from "@/lib/catalog";
 import { bool, done, fail, int, isUuid, num, oneOf, str, uuid } from "@/lib/forms";
+import { todayFor } from "@/lib/dates.server";
 
 const MAX_TRIALS = 10;
 const MAX_ROWS = 30;
@@ -15,7 +16,7 @@ export async function recordTests(formData: FormData) {
   const battery = uuid(formData, "battery_id");
   const back = `/testing/new?${new URLSearchParams({ ...(athleteId ? { athlete: athleteId } : {}), ...(battery ? { battery } : {}) })}`;
   if (!athleteId) fail(back, t.common.required);
-  const testedOn = str(formData, "tested_on", 10) ?? new Date().toISOString().slice(0, 10);
+  const testedOn = str(formData, "tested_on", 10) ?? (await todayFor());
   const rowCount = Math.min(MAX_ROWS, int(formData, "row_count") ?? 1);
 
   const rows = [];

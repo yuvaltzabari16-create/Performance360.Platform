@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAthlete } from "@/lib/auth";
 import { bool, done, fail, int, num, str } from "@/lib/forms";
+import { todayFor } from "@/lib/dates.server";
 
 const scale = (fd: FormData, key: string) => {
   const v = int(fd, key);
@@ -15,7 +16,7 @@ export async function submitReadiness(formData: FormData) {
   const { data: athleteId, error: ensureError } = await supabase.rpc("ensure_my_athlete_record");
   if (ensureError || !athleteId) fail("/readiness", t.common.error);
   const sleep = num(formData, "sleep_hours");
-  const entryDate = str(formData, "entry_date", 10) ?? new Date().toISOString().slice(0, 10);
+  const entryDate = str(formData, "entry_date", 10) ?? (await todayFor());
   const { error } = await supabase.from("readiness_entries").upsert(
     {
       athlete_id: athleteId,

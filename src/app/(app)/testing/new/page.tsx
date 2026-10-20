@@ -6,6 +6,7 @@ import { TEST_CATEGORIES } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
 import type { TestDefinition } from "@/lib/types";
 import { createTestDefinition, recordTests } from "../actions";
+import { todayFor } from "@/lib/dates.server";
 
 export const metadata = { title: "Record test" };
 
@@ -16,6 +17,7 @@ interface Row {
 
 export default async function RecordTestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
+  const today = await todayFor();
   const { supabase, t } = await requireProfessional();
   const tt = t.testing;
 
@@ -64,7 +66,7 @@ export default async function RecordTestPage({ searchParams }: { searchParams: P
                 {(athletes ?? []).map((a) => <option key={a.id} value={a.id}>{a.full_name}</option>)}
               </Select>
             </Field>
-            <Field label={tt.testedOn}><Input type="date" name="tested_on" defaultValue={new Date().toISOString().slice(0, 10)} required /></Field>
+            <Field label={tt.testedOn}><Input type="date" name="tested_on" defaultValue={today} required /></Field>
             <Field label={tt.quality}>
               <Select name="data_quality" defaultValue="good">
                 {(["good", "questionable", "poor"] as const).map((q) => <option key={q} value={q}>{tt.qualities[q]}</option>)}
