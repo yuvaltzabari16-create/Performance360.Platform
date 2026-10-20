@@ -810,7 +810,9 @@ returns uuid language sql stable security definer set search_path = public, pg_t
   select program_id from public.training_sessions where id = p_session
 $$;
 
-create policy programs_select on public.training_programs for select to authenticated using (public.can_view_program(id));
+-- coach_id is checked directly so INSERT ... RETURNING can see the row being created.
+create policy programs_select on public.training_programs for select to authenticated
+  using (coach_id = auth.uid() or public.can_view_program(id));
 create policy programs_insert on public.training_programs for insert to authenticated
   with check (coach_id = auth.uid() and public.is_professional());
 create policy programs_update on public.training_programs for update to authenticated

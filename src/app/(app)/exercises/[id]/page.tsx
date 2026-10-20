@@ -1,0 +1,102 @@
+import { notFound } from "next/navigation";
+import { Badge, ButtonLink, Card, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
+import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
+import { requireProfile } from "@/lib/auth";
+import { embedUrl, type ExerciseCategory } from "@/lib/catalog";
+import { isUuid } from "@/lib/forms";
+import type { Exercise } from "@/lib/types";
+import { archiveExercise, duplicateExercise, toggleFavorite } from "../actions";
+
+export default async function ExercisePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
+  const { id } = await params;
+  const sp = await searchParams;
+  const { supabase, user, profile, t } = await requireProfile();
+  if (!isUuid(id)) notFound();
+  const { data } = await supabase.from("exercises").select("*").eq("id", id).maybeSingle();
+  if (!data) notFound();
+  const e = data as Exercise;
+  const te = t.exercises;
+  const isOwner = e.owner_id === user.id;
+  const isPro = profile.role !== "athlete";
+  const { data: fav } = await supabase.from("exercise_favorites").select("exercise_id").eq("exercise_id", id).eq("user_id", user.id).maybeSingle();
+  const media = embedUrl(e.video_url);
+
+  return (
+    <>
+      <PageHeader
+        title={e.name}
+        crumbs={[{ href: "/exercises", label: te.title }]}
+        actions={
+          <>
+            <form action={toggleFavorite}>
+              <input type="hidden" name="id" value={e.id} />
+              <SubmitButton variant="secondary">{fav ? `★ ${te.unfavorite}` : `☆ ${te.favorite}`}</SubmitButton>
+            </form>
+            {isPro && !isOwner && (
+              <form action={duplicateExercise}>
+                <input type="hidden" name="id" value={e.id} />
+                <SubmitButton variant="secondary">{te.duplicate}</SubmitButton>
+              </form>
+            )}
+            {isOwner && <ButtonLink variant="secondary" href={`/exercises/${e.id}/edit`}>{t.common.edit}</ButtonLink>}
+            {isOwner && (
+              <form action={archiveExercise}>
+                <input type="hidden" name="id" value={e.id} />
+                <ConfirmSubmit variant="danger" message={`${t.common.archive}?`}>{t.common.archive}</ConfirmSubmit>
+              </form>
+            )}
+          </>
+        }
+      />
+      <FlashMessage error={sp.error} ok={sp.ok} />
+      <div className="mb-4 flex flex-wrap gap-2">
+        <Badge tone="green">{te.categories[e.category as ExerciseCategory]}</Badge>
+        <Badge>{te.difficulties[e.difficulty]}</Badge>
+        {e.owner_id ? <Badge tone="blue">{te.custom}</Badge> : <Badge>{te.system}</Badge>}
+        {e.tags.map((tag) => <Badge key={tag}>#{tag}</Badge>)}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="space-y-6 lg:col-span-3">
+          <Card>
+            {media?.kind === "iframe" ? (
+              <div className="aspect-video overflow-hidden rounded-lg bg-black">
+                <iframe src={media.src} title={e.name} className="size-full" allow="encrypted-media; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
+              </div>
+            ) : media?.kind === "video" ? (
+              <video src={media.src} controls preload="metadata" playsInline className="aspect-video w-full rounded-lg bg-black" poster={e.thumbnail_url ?? undefined} />
+            ) : media?.kind === "link" ? (
+              <a href={media.src} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-700 hover:underline">{te.video} ↗</a>
+            ) : (
+              <p className="text-sm text-muted">{te.noVideo}</p>
+            )}
+            {e.description && <p className="mt-4 whitespace-pre-line text-sm leading-6 text-ink">{e.description}</p>}
+          </Card>
+          <Card title={te.cues}>
+            {e.coaching_cues.length ? <ul className="list-disc space-y-1 ps-5 text-sm">{e.coaching_cues.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="text-sm text-muted">—</p>}
+          </Card>
+          <Card title={te.errors}>
+            {e.common_errors.length ? <ul className="list-disc space-y-1 ps-5 text-sm">{e.common_errors.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="text-sm text-muted">—</p>}
+          </Card>
+        </div>
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <DefinitionList
+              items={[
+                [te.objective, e.primary_objective],
+                [te.pattern, e.movement_pattern],
+                [te.muscles, e.primary_muscles.join(", ") || null],
+                [te.equipment, e.equipment.join(", ") || null],
+                [te.prescription, e.suggested_prescription],
+                [te.regressions, e.regressions],
+                [te.progressions, e.progressions],
+                [te.modNotes, e.modification_notes],
+                [te.source, e.source],
+              ]}
+            />
+          </Card>
+          {!e.owner_id && isPro && <p className="text-xs text-muted">{te.readOnly}</p>}
+        </div>
+      </div>
+    </>
+  );
+}
