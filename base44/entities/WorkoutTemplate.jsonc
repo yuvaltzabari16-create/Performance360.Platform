@@ -1,0 +1,144 @@
+{
+  "name": "WorkoutTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "focus": {
+      "type": "string",
+      "enum": [
+        "strength",
+        "power",
+        "speed",
+        "conditioning",
+        "mobility",
+        "return_to_play",
+        "mixed"
+      ],
+      "default": "mixed"
+    },
+    "estimated_duration": {
+      "type": "number"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "straight_sets",
+              "superset",
+              "circuit"
+            ]
+          },
+          "rounds": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "exercise_id": {
+                  "type": "string"
+                },
+                "exercise_name": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "sets": {
+                  "type": "number"
+                },
+                "reps": {
+                  "type": "string"
+                },
+                "load": {
+                  "type": "string"
+                },
+                "rpe": {
+                  "type": "string"
+                },
+                "rir": {
+                  "type": "string"
+                },
+                "tempo": {
+                  "type": "string"
+                },
+                "rest": {
+                  "type": "string"
+                },
+                "time": {
+                  "type": "string"
+                },
+                "distance": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

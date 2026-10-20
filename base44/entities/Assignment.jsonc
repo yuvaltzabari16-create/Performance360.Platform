@@ -1,0 +1,110 @@
+{
+  "name": "Assignment",
+  "type": "object",
+  "properties": {
+    "coach_id": {
+      "type": "string"
+    },
+    "coach_name": {
+      "type": "string"
+    },
+    "athlete_email": {
+      "type": "string"
+    },
+    "athlete_id": {
+      "type": "string"
+    },
+    "athlete_name": {
+      "type": "string"
+    },
+    "team_id": {
+      "type": "string"
+    },
+    "team_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "declined",
+        "removed",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "coach_id",
+    "athlete_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.coach_id": "{{user.id}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$and": [
+        {
+          "data.coach_id": "{{user.id}}"
+        },
+        {
+          "$or": [
+            {
+              "user_condition": {
+                "role": "coach"
+              }
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.coach_id": "{{user.id}}"
+        },
+        {
+          "data.athlete_email": "{{user.email}}"
+        },
+        {
+          "data.athlete_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
