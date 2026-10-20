@@ -8,6 +8,7 @@ import { isUuid } from "@/lib/forms";
 import type { Dictionary } from "@/lib/i18n";
 import type { SessionExercise, TrainingProgram, TrainingSession } from "@/lib/types";
 import {
+import { todayFor } from "@/lib/dates.server";
   addPhase, addSession, addSessionExercise, assignProgram, cancelAssignment, copySession, deletePhase, deleteSession,
   deleteSessionExercise, duplicateProgram, duplicateWeek, moveSessionExercise, saveVersion, updateProgram,
   updateSession, updateSessionExercise,
@@ -60,6 +61,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
   const { id } = await params;
   const sp = await searchParams;
   const { supabase, user, profile, t } = await requireProfile();
+  const today = await todayFor();
   if (!isUuid(id)) notFound();
   const { data } = await supabase.from("training_programs").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
@@ -338,7 +340,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                     </Select>
                   </Field>
                 )}
-                <Field label={tt.startDate}><Input type="date" name="start_date" defaultValue={new Date().toISOString().slice(0, 10)} required /></Field>
+                <Field label={tt.startDate}><Input type="date" name="start_date" defaultValue={today} required /></Field>
                 <SubmitButton>{tt.assignTo}</SubmitButton>
               </form>
               <div className="mt-5 border-t border-line pt-4">

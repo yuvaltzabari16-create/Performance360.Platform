@@ -7,6 +7,7 @@ import { isUuid } from "@/lib/forms";
 import { sessionLoad } from "@/lib/metrics";
 import type { SessionExercise, TrainingSession } from "@/lib/types";
 import { logSession } from "../../actions";
+import { todayFor } from "@/lib/dates.server";
 
 export const metadata = { title: "Log session" };
 
@@ -24,7 +25,7 @@ export default async function LogSessionPage({ params, searchParams }: { params:
   ]);
   if (!sessionData || !athlete) notFound();
   const session = sessionData as TrainingSession & { training_programs: { id: string; title: string } };
-  const date = (sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : null) ?? new Date().toISOString().slice(0, 10);
+  const date = (sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : null) ?? (await todayFor());
 
   const [{ data: exData }, { data: existing }, { data: history }] = await Promise.all([
     supabase.from("session_exercises").select("*").eq("session_id", id).order("position"),

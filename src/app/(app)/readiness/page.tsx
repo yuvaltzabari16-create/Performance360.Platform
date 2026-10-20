@@ -8,10 +8,10 @@ import { readinessFlag, wellnessIndex } from "@/lib/metrics";
 import type { ReadinessEntry } from "@/lib/types";
 import { round } from "@/lib/units";
 import { submitReadiness } from "./actions";
+import { todayFor } from "@/lib/dates.server";
 
 export const metadata = { title: "Readiness" };
 
-const today = () => new Date().toISOString().slice(0, 10);
 
 function ScaleInput({ name, label, hint, value }: { name: string; label: string; hint: string; value: number | null | undefined }) {
   return (
@@ -45,12 +45,13 @@ export default async function ReadinessPage({ searchParams }: { searchParams: Pr
 async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefined>; t: Dictionary }) {
   const { supabase } = await requireProfile();
   const tr = t.readiness;
+  const todayStr = await todayFor();
   const athleteId = await getMyAthleteId();
   const { data } = athleteId
     ? await supabase.from("readiness_entries").select("*").eq("athlete_id", athleteId).order("entry_date", { ascending: false }).limit(60)
     : { data: [] };
   const entries = (data ?? []) as ReadinessEntry[];
-  const current = entries.find((e) => e.entry_date === today());
+  const current = entries.find((e) => e.entry_date === todayStr);
   const chart = entries.slice(0, 28).reverse().map((e) => ({ date: e.entry_date.slice(5), index: wellnessIndex(e) == null ? null : round(wellnessIndex(e)!, 2) }));
 
   return (
@@ -60,7 +61,7 @@ async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefin
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title={current ? tr.updateToday : tr.checkIn}>
           <form action={submitReadiness} className="space-y-5">
-            <input type="hidden" name="entry_date" value={today()} />
+            <input type="hidden" name="entry_date" value={todayStr} />
             <Field label={tr.sleepHours}><Input type="number" name="sleep_hours" min={0} max={24} step="0.5" defaultValue={current?.sleep_hours ?? ""} className="max-w-32" /></Field>
             <ScaleInput name="sleep_quality" label={tr.sleepQuality} hint={tr.scaleGood} value={current?.sleep_quality} />
             <ScaleInput name="fatigue" label={tr.fatigue} hint={tr.scaleBad} value={current?.fatigue} />
@@ -102,7 +103,7 @@ async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefin
 async function CoachReadiness({ sp, t }: { sp: Record<string, string | undefined>; t: Dictionary }) {
   const { supabase } = await requireProfile();
   const tr = t.readiness;
-  const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today();
+  const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : await todayFor();
   const since = new Date(new Date(date + "T00:00:00Z").getTime() - 21 * 86400000).toISOString().slice(0, 10);
   const [{ data: athletes }, { data: entriesData }] = await Promise.all([
     supabase.from("athletes").select("id, full_name, sport, team_name").eq("status", "active").order("full_name").limit(500),

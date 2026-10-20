@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireProfessional, requireProfile } from "@/lib/auth";
 import { CYCLE_LEVELS, PROGRAM_TYPES, SESSION_SECTIONS } from "@/lib/catalog";
 import { bool, done, fail, int, isUuid, num, oneOf, str, uuid } from "@/lib/forms";
+import { todayFor } from "@/lib/dates.server";
 
 const clampWeek = (n: number | null, fallback = 1) => Math.min(104, Math.max(1, n ?? fallback));
 const clampDay = (n: number | null, fallback = 1) => Math.min(7, Math.max(1, n ?? fallback));
@@ -253,7 +254,7 @@ export async function assignProgram(formData: FormData) {
   const { supabase, user, t } = await requireProfessional();
   const programId = uuid(formData, "program_id");
   if (!programId) fail("/training", t.common.notFound);
-  const startDate = str(formData, "start_date", 10) ?? new Date().toISOString().slice(0, 10);
+  const startDate = str(formData, "start_date", 10) ?? (await todayFor());
   let athleteIds = formData.getAll("athlete_ids").filter((v): v is string => typeof v === "string" && isUuid(v));
   const teamId = uuid(formData, "team_id");
   if (teamId) {
@@ -299,7 +300,7 @@ export async function logSession(formData: FormData) {
   const athleteId = uuid(formData, "athlete_id");
   if (!sessionId || !athleteId) fail("/training", t.common.notFound);
   const back = `/training/session/${sessionId}?athlete=${athleteId}`;
-  const completedOn = str(formData, "completed_on", 10) ?? new Date().toISOString().slice(0, 10);
+  const completedOn = str(formData, "completed_on", 10) ?? (await todayFor());
   const rpe = num(formData, "session_rpe");
   if (rpe != null && (rpe < 0 || rpe > 10)) fail(back, t.training.sessionRpe);
 
