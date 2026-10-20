@@ -39,7 +39,7 @@ export default async function BatteriesPage({ searchParams }: { searchParams: Pr
         </div>
         <Card title={tt.newBattery}>
           <form action={createBattery} className="space-y-3">
-            <Field label={tt.batteryName}><Input name="name" required placeholder="Football U18 preseason" /></Field>
+            <Field label={tt.batteryName}><Input name="name" required placeholder={t.common.exBattery} /></Field>
             <Field label={t.training.description}><Input name="description" /></Field>
             <Field label={tt.test}>
               <Select name="test_ids" multiple size={12} required>

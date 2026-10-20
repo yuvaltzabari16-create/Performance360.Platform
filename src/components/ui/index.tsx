@@ -60,7 +60,7 @@ export function Card({ className, children, title, action }: { className?: strin
     <section className={cx("rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgba(16,24,20,0.04)]", className)}>
       {(title || action) && (
         <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-          <h2 className="text-sm font-semibold text-ink">{title}</h2>
+          <h2 className="text-sm font-semibold text-ink"><bdi>{title}</bdi></h2>
           {action}
         </header>
       )}
@@ -104,7 +104,7 @@ export function PageHeader({ title, subtitle, actions, crumbs }: { title: string
             ))}
           </nav>
         )}
-        <h1 className="truncate text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+        <h1 className="truncate text-2xl font-semibold tracking-tight text-ink"><bdi>{title}</bdi></h1>
         {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-soft">{subtitle}</p>}
       </div>
       {actions && <div className="no-print flex flex-wrap gap-2">{actions}</div>}
@@ -157,7 +157,7 @@ export function DefinitionList({ items }: { items: [string, ReactNode][] }) {
       {items.map(([k, v]) => (
         <div key={k}>
           <dt className="text-xs text-muted">{k}</dt>
-          <dd className="mt-0.5 text-sm whitespace-pre-line text-ink">{v ?? "—"}</dd>
+          <dd className="mt-0.5 text-sm whitespace-pre-line text-ink"><bdi>{v ?? "—"}</bdi></dd>
         </div>
       ))}
     </dl>

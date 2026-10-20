@@ -198,7 +198,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="num text-xs text-muted">{idx + 1}.</span>
-                              {e.exercise_id ? <Link href={`/exercises/${e.exercise_id}`} className="font-medium hover:text-brand-700">{e.exercise_name}</Link> : <span className="font-medium">{e.exercise_name}</span>}
+                              {e.exercise_id ? <Link href={`/exercises/${e.exercise_id}`} className="font-medium hover:text-brand-700"><bdi>{e.exercise_name}</bdi></Link> : <bdi className="font-medium">{e.exercise_name}</bdi>}
                               <Badge>{tt.sections[e.section as SessionSection]}</Badge>
                             </div>
                             <div className="num mt-0.5 text-sm text-ink-soft">{prescription(e, t) || "—"}</div>
@@ -298,7 +298,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 <form action={addSession} className="space-y-3">
                   <input type="hidden" name="program_id" value={id} />
                   <input type="hidden" name="week_number" value={week} />
-                  <Field label={tt.sessionTitle}><Input name="title" required maxLength={160} placeholder="Lower body strength" /></Field>
+                  <Field label={tt.sessionTitle}><Input name="title" required maxLength={160} placeholder={t.common.exSession} /></Field>
                   <div className="grid grid-cols-2 gap-2">
                     <Field label={t.common.day}>
                       <Select name="day_number" defaultValue="1">{[1, 2, 3, 4, 5, 6, 7].map((d) => <option key={d} value={d}>{t.common.day} {d}</option>)}</Select>
@@ -384,7 +384,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 <summary className="cursor-pointer text-sm font-medium text-brand-700">+ {tt.addPhase}</summary>
                 <form action={addPhase} className="mt-3 space-y-2">
                   <input type="hidden" name="program_id" value={id} />
-                  <Field label={tt.phaseName}><Input name="name" required placeholder="General preparation" /></Field>
+                  <Field label={tt.phaseName}><Input name="name" required placeholder={t.common.exPhase} /></Field>
                   <Field label={tt.cycleLevel}>
                     <Select name="cycle_level" defaultValue="mesocycle">{CYCLE_LEVELS.map((c) => <option key={c} value={c}>{tt.cycles[c]}</option>)}</Select>
                   </Field>

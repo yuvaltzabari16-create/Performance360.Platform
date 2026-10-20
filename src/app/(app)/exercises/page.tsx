@@ -69,7 +69,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
             <li key={e.id}>
               <Link href={`/exercises/${e.id}`} className="flex h-full flex-col rounded-xl border border-line bg-surface p-4 transition-colors hover:border-brand-300">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-medium text-ink">{e.name}</h3>
+                  <h3 className="font-medium text-ink"><bdi>{e.name}</bdi></h3>
                   {favorites.has(e.id) && <span className="text-brand-600" aria-label={te.favorites}>★</span>}
                 </div>
                 {e.primary_objective && <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{e.primary_objective}</p>}

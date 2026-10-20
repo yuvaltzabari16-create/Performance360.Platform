@@ -97,9 +97,9 @@ async function CoachDashboard({ t }: { t: Dictionary }) {
                     <li key={r.id} className="flex items-center justify-between py-2">
                       <div>
                         <Link href={`/testing?athlete=${r.athlete_id}`} className="font-medium hover:text-brand-700">{(r.athletes as unknown as { full_name: string }).full_name}</Link>
-                        <div className="text-xs text-muted">{def.name} · {r.tested_on}</div>
+                        <div className="text-xs text-muted"><bdi>{def.name}</bdi>{r.side !== "both" && ` · ${t.testing.sides[r.side as "left" | "right"]}`} · <span className="num whitespace-nowrap">{r.tested_on}</span></div>
                       </div>
-                      <span className="num font-medium">{bestTrial(r.trials as number[], def.higher_is_better)} {def.unit}</span>
+                      <span className="num shrink-0 whitespace-nowrap font-medium">{bestTrial(r.trials as number[], def.higher_is_better)} {def.unit}</span>
                     </li>
                   );
                 })}
@@ -139,7 +139,7 @@ async function AthleteDashboard({ t }: { t: Dictionary }) {
     supabase.from("readiness_entries").select("id").eq("athlete_id", athleteId).eq("entry_date", today).maybeSingle(),
     supabase.from("workout_completions").select("session_id, status").eq("athlete_id", athleteId),
     supabase.from("athlete_notes").select("id, body, created_at").eq("athlete_id", athleteId).eq("shared_with_athlete", true).order("created_at", { ascending: false }).limit(3),
-    supabase.from("test_results").select("id, tested_on, trials, test_definitions(name, unit, higher_is_better)").eq("athlete_id", athleteId).order("tested_on", { ascending: false }).limit(5),
+    supabase.from("test_results").select("id, tested_on, side, trials, test_definitions(name, unit, higher_is_better)").eq("athlete_id", athleteId).order("tested_on", { ascending: false }).limit(5),
     supabase.from("coach_athlete_relationships").select("id").eq("athlete_id", athleteId).eq("status", "active"),
   ]);
   const programIds = (assignments ?? []).map((a) => a.program_id);
@@ -192,8 +192,8 @@ async function AthleteDashboard({ t }: { t: Dictionary }) {
                 const def = r.test_definitions as unknown as { name: string; unit: string; higher_is_better: boolean };
                 return (
                   <li key={r.id} className="flex justify-between gap-2">
-                    <span>{def.name}<span className="text-xs text-muted"> · {r.tested_on}</span></span>
-                    <span className="num font-medium">{bestTrial(r.trials as number[], def.higher_is_better)} {def.unit}</span>
+                    <span className="min-w-0"><bdi>{def.name}</bdi><span className="text-xs text-muted">{r.side !== "both" && ` · ${t.testing.sides[r.side as "left" | "right"]}`} · <span className="num whitespace-nowrap">{r.tested_on}</span></span></span>
+                    <span className="num shrink-0 whitespace-nowrap font-medium">{bestTrial(r.trials as number[], def.higher_is_better)} {def.unit}</span>
                   </li>
                 );
               })}

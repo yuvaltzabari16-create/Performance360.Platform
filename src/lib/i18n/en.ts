@@ -2,6 +2,10 @@ const en = {
   brand: "Performance360",
   tagline: "Assess · Plan · Train · Monitor · Analyze · Adapt · Perform",
   common: {
+    exSession: "Lower body strength",
+    exPhase: "General preparation",
+    exBattery: "Football U18 preseason",
+    exConditions: "Indoor, synthetic track, 22°C",
     save: "Save",
     saving: "Saving…",
     cancel: "Cancel",
