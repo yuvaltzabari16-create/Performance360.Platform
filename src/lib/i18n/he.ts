@@ -4,6 +4,10 @@ const he: Dictionary = {
   brand: "Performance360",
   tagline: "הערכה · תכנון · אימון · ניטור · ניתוח · התאמה · ביצוע",
   common: {
+    exSession: "כוח פלג גוף תחתון",
+    exPhase: "הכנה כללית",
+    exBattery: "כדורגל נוער טרום עונה",
+    exConditions: "אולם, מסלול סינתטי, 22°C",
     save: "שמירה",
     saving: "שומר…",
     cancel: "ביטול",

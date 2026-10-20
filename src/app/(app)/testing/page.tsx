@@ -68,7 +68,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
                 <tr key={r.id}>
                   <Td><span className="num">{r.tested_on}</span></Td>
                   <Td><Link href={`/testing?athlete=${r.athlete_id}`} className="font-medium hover:text-brand-700">{(r.athletes as unknown as { full_name: string }).full_name}</Link></Td>
-                  <Td>{def.name}{r.side !== "both" && ` · ${tt.sides[r.side as "left" | "right"]}`}</Td>
+                  <Td><bdi>{def.name}</bdi>{r.side !== "both" && ` · ${tt.sides[r.side as "left" | "right"]}`}</Td>
                   <Td><span className="num font-medium">{bestTrial(r.trials as number[], def.higher_is_better)} {def.unit}</span></Td>
                   <Td className="text-ink-soft">{r.method ?? "—"}</Td>
                 </tr>

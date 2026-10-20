@@ -70,7 +70,7 @@ export default async function RecordTestPage({ searchParams }: { searchParams: P
                 {(["good", "questionable", "poor"] as const).map((q) => <option key={q} value={q}>{tt.qualities[q]}</option>)}
               </Select>
             </Field>
-            <Field label={tt.conditions} className="sm:col-span-2"><Input name="conditions" placeholder="Indoor, synthetic track, 22°C" /></Field>
+            <Field label={tt.conditions} className="sm:col-span-2"><Input name="conditions" placeholder={t.common.exConditions} /></Field>
             <div className="flex items-end pb-2"><Checkbox name="is_baseline" label={tt.baseline} /></div>
           </div>
         </Card>

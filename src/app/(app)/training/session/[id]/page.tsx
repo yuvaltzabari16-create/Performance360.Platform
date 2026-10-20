@@ -73,7 +73,7 @@ export default async function LogSessionPage({ params, searchParams }: { params:
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <label className="flex items-center gap-2 text-sm font-medium">
                         <input type="checkbox" name={`done_${e.id}`} defaultChecked={l ? l.done : true} className="size-4 accent-brand-600" />
-                        {e.exercise_name}
+                        <bdi>{e.exercise_name}</bdi>
                         <Badge>{tt.sections[e.section as SessionSection]}</Badge>
                       </label>
                       <span className="num text-xs text-muted">
