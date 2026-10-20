@@ -1,4 +1,4 @@
-"""Generates supabase/migrations/*_reference_data.sql from the tables below.
+"""Generates supabase/migrations/20261020195707_reference_data.sql from the tables below.
 Content is original, plain-language exercise and test descriptions. No videos
 are bundled, and the tests carry no normative values."""
 import pathlib
@@ -97,5 +97,5 @@ for t in TESTS:
         "insert into public.test_definitions (owner_id, name, short_name, category, unit, higher_is_better, bilateral, protocol, default_trials) values ("
         + ", ".join(["null", q(name), q(short), q(cat), q(unit), q(hib), q(bil), q(proto), q(trials)]) + ");")
 root = pathlib.Path(__file__).resolve().parent.parent
-(root / "supabase/migrations/20261020000002_reference_data.sql").write_text("\n".join(out) + "\n")
+(root / "supabase/migrations/20261020195707_reference_data.sql").write_text("\n".join(out) + "\n")
 print(len(EX), "exercises,", len(TESTS), "tests")

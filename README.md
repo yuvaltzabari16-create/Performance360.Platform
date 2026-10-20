@@ -47,7 +47,12 @@ cp .env.example .env.local      # fill in your Supabase URL + publishable key
 npm run dev
 ```
 
-In Supabase Auth settings, add `<site>/auth/callback` to the redirect URLs.
+In Supabase Auth settings, set the Site URL to your deployed domain and add
+`<site>/auth/callback` to the redirect URLs.
+
+The Supabase project `Performance360` (`https://ioimovfpzgohjzwkshev.supabase.co`)
+already has all migrations in `supabase/migrations` applied. Migration file names
+match the project's migration history, so `supabase db push` only sends new ones.
 
 ## Tests
 
