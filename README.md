@@ -19,7 +19,9 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
 | Teams/groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
-| AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, rehab module, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
+| Messages between connected coach and athlete (read receipts, in-app notification) | Database tested; UI built, awaiting review |
+| Return-to-play plans: phases, criteria, exercises, recorded professional clearance | Database tested; UI built, awaiting review |
+| AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
 
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
