@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Avatar, ErrorBox, Loading, ReadyPill, StatusPill } from "../../components/ui";
-import { loadCheckins, loadClub } from "../../lib/data";
-import { fmtDay, isoDate } from "../../lib/dates";
+import { loadCheckins, loadClub, loadRpe } from "../../lib/data";
+import { addDays, fmtDay, isoDate } from "../../lib/dates";
+import { summarize } from "../../lib/load";
 import { useI18n } from "../../lib/i18n";
 import { navigate } from "../../lib/router";
 import { useSession } from "../../lib/session";
@@ -14,9 +15,10 @@ export function Overview() {
   const [squad, setSquad] = useState<string>("all");
 
   const q = useAsync(async () => {
-    const c = await loadClub(club!.id);
-    const checkins = await loadCheckins(club!.id, today, today);
-    return { ...c, checkins };
+    const [c, checkins, rpe] = await Promise.all([
+      loadClub(club!.id), loadCheckins(club!.id, today, today), loadRpe(club!.id, addDays(today, -27), today),
+    ]);
+    return { ...c, checkins, rpe };
   }, [club?.id, today]);
 
   const view = useMemo(() => {
@@ -32,6 +34,9 @@ export function Overview() {
         if (r.p.status !== "available") reasons.push(t.status[r.p.status]);
         if (r.c && r.c.readiness < 50) reasons.push(t.lowReady);
         if (r.c?.pain) reasons.push(t.pain + (r.c.pain_area ? `: ${r.c.pain_area}` : ""));
+        const { acwr } = summarize(q.data!.rpe.filter((x) => x.player_id === r.p.id), today);
+        if (acwr != null && acwr > 1.5) reasons.push(`${t.loadSpike} (${t.acwr} ${acwr.toFixed(2)})`);
+        else if (acwr != null && acwr < 0.8 && r.p.status === "available") reasons.push(`${t.underloaded} (${t.acwr} ${acwr.toFixed(2)})`);
         return { ...r, reasons };
       })
       .filter((r) => r.reasons.length);
@@ -43,7 +48,7 @@ export function Overview() {
       available: players.filter((p) => p.status === "available").length,
       checked: checked.length,
     };
-  }, [q.data, squad, t]);
+  }, [q.data, squad, t, today]);
 
   if (q.loading && !q.data) return <Loading />;
   if (q.error) return <ErrorBox message={q.error} onRetry={q.reload} />;

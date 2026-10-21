@@ -94,3 +94,51 @@ export interface PlayerNote {
 
 export const WELLNESS_KEYS = ["sleep", "energy", "freshness", "calm", "mood"] as const;
 export type WellnessKey = (typeof WELLNESS_KEYS)[number];
+
+export type SessionType = "pitch" | "match" | "gym" | "recovery";
+
+export interface TrainingSession {
+  id: string;
+  club_id: string;
+  squad_id: string | null;
+  session_date: string;
+  type: SessionType;
+  title: string | null;
+  duration_min: number;
+  notes: string | null;
+  created_by: string | null;
+}
+
+export interface SessionRpe {
+  id: string;
+  session_id: string;
+  player_id: string;
+  club_id: string;
+  session_date: string;
+  rpe: number;
+  minutes: number;
+  load: number;
+}
+
+export interface TestDef {
+  id: string;
+  club_id: string | null;
+  key: string | null;
+  name_en: string;
+  name_he: string;
+  unit: string;
+  higher_is_better: boolean;
+  decimals: number;
+  sort: number;
+  archived_at: string | null;
+}
+
+export interface TestResult {
+  id: string;
+  club_id: string;
+  player_id: string;
+  test_id: string;
+  tested_on: string;
+  value: number;
+  notes: string | null;
+}

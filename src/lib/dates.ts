@@ -34,3 +34,10 @@ export function readinessTone(v: number | null | undefined): "good" | "warn" | "
   if (v == null) return "na";
   return v >= 70 ? "good" : v >= 50 ? "warn" : "bad";
 }
+
+/** Sunday-start week (Israeli football week) containing the given date. */
+export function weekStart(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return addDays(iso, -dt.getDay());
+}

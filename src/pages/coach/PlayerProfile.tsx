@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { ReadinessChart } from "../../components/ReadinessChart";
 import { Avatar, ConfirmButton, ErrorBox, Field, Loading, ReadyPill, StatusPill, useAction, useToast } from "../../components/ui";
-import { displayName, inviteUrl, isLiveInvite, loadCheckins, loadClub, loadNotes } from "../../lib/data";
+import { LoadPanel, TestsPanel } from "../../components/PlayerPanels";
+import { displayName, inviteUrl, isLiveInvite, loadCheckins, loadClub, loadNotes, loadResults, loadRpe, loadTestDefs } from "../../lib/data";
 import { addDays, ageFrom, fmtDay, isoDate } from "../../lib/dates";
 import { useI18n } from "../../lib/i18n";
 import { navigate } from "../../lib/router";
@@ -18,14 +19,20 @@ export function PlayerProfile({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
 
   const q = useAsync(async () => {
-    const [c, checkins, notes, invites] = await Promise.all([
+    const [c, checkins, notes, invites, rpe, defs, results] = await Promise.all([
       loadClub(club!.id),
       loadCheckins(club!.id, addDays(today, -27), today, id),
       loadNotes(id),
       supabase.from("invites").select("*").eq("player_id", id).order("created_at", { ascending: false }),
+      loadRpe(club!.id, addDays(today, -27), today, id),
+      loadTestDefs(),
+      loadResults(club!.id, id),
     ]);
     const player = c.players.find((p) => p.id === id) ?? null;
-    return { ...c, player, checkins, notes, invites: (must(invites) as Invite[]).filter(isLiveInvite) };
+    return {
+      ...c, player, checkins, notes, invites: (must(invites) as Invite[]).filter(isLiveInvite),
+      rpe, defs: defs.filter((d) => !d.club_id || d.club_id === club!.id), results,
+    };
   }, [club?.id, id, today]);
 
   if (q.loading && !q.data) return <Loading />;
@@ -60,6 +67,7 @@ export function PlayerProfile({ id }: { id: string }) {
       </div>
 
       <div className="grid2">
+        <div className="stack">
         <section className="panel">
           <h2>{t.readiness14}</h2>
           <ReadinessChart values={values} days={14} />
@@ -80,6 +88,9 @@ export function PlayerProfile({ id }: { id: string }) {
             </div>
           )}
         </section>
+        <LoadPanel rpe={q.data.rpe} />
+        <TestsPanel defs={q.data.defs} results={q.data.results} />
+        </div>
 
         <div className="stack">
           <section className="panel">

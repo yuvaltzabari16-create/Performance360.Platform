@@ -16,6 +16,8 @@ import { PlayerProfile } from "./pages/coach/PlayerProfile";
 import { Players } from "./pages/coach/Players";
 import { Squads } from "./pages/coach/Squads";
 import { Staff } from "./pages/coach/Staff";
+import { Testing } from "./pages/coach/Testing";
+import { Training } from "./pages/coach/Training";
 
 export function App() {
   const path = useRoute();
@@ -57,6 +59,8 @@ function route(path: string, role: "director" | "coach" | "athlete") {
   if (p) return <PlayerProfile id={p.id} />;
   if (path === "/players") return <Players />;
   if (path === "/squads") return <Squads />;
+  if (path === "/training") return <Training />;
+  if (path === "/testing") return <Testing />;
   if (path === "/staff" && role === "director") return <Staff />;
   if (path !== "/overview" && isStaff(role)) navigate("/overview");
   return <Overview />;

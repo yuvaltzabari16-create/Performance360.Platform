@@ -166,3 +166,19 @@ textarea{min-height:64px;resize:vertical}
   .ends{grid-column:1}
   .hide-sm{display:none}
 }
+
+/* stage 2 */
+.tag.match{background:var(--fg);color:var(--bg)}
+.delta{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)} .delta.flat{color:var(--muted)}
+.rpe{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.rpe button{all:unset;cursor:pointer;text-align:center;border:1px solid var(--line);border-radius:6px;padding:9px 0;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums;background:var(--surface)}
+.rpe button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.rpe button:focus-visible{outline:2px solid var(--accent)}
+.seg{max-width:100%}
+@media (max-width:820px){
+  .tabbar{overflow-x:auto}
+  .rpe{grid-template-columns:repeat(6,1fr)}
+}
+/* keep signed numbers like +5.6 / −0.09 intact inside RTL text */
+.delta,.num{unicode-bidi:isolate}

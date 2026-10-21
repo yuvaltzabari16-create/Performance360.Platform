@@ -6,6 +6,7 @@ import { useSession } from "../../lib/session";
 import { must, supabase } from "../../lib/supabase";
 import { WELLNESS_KEYS, type Checkin, type WellnessKey } from "../../lib/types";
 import { useAsync } from "../../lib/useAsync";
+import { RateSessions } from "./RateSessions";
 
 type Form = Record<WellnessKey, number | null> & { sleep_hours: string; pain: boolean; pain_area: string; notes: string };
 const blank: Form = { sleep: null, energy: null, freshness: null, calm: null, mood: null, sleep_hours: "", pain: false, pain_area: "", notes: "" };
@@ -113,6 +114,7 @@ export function Today() {
           </div>
         </form>
       )}
+      <RateSessions />
     </>
   );
 }

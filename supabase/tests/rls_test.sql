@@ -55,6 +55,30 @@ begin
   begin perform public.accept_invite(ta); r := r || 'FAIL reused invite'::text; exception when others then r := r || ('reused invite blocked: '||sqlerrm); end;
   reset role;
 
+  -- ===== Stage 2: sessions, RPE, tests
+  declare ses1 uuid; ses2 uuid; tdef uuid;
+  begin
+    select id into tdef from public.test_definitions where key = 'cmj' and club_id is null;
+    perform set_config('request.jwt.claims', json_build_object('sub',D,'role','authenticated')::text, true); set local role authenticated;
+    insert into public.training_sessions(club_id,squad_id,session_date,type,duration_min) values (club1,s1,current_date,'pitch',90) returning id into ses1;
+    insert into public.training_sessions(club_id,squad_id,session_date,type,duration_min) values (club1,s2,current_date,'pitch',90) returning id into ses2;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',C,'role','authenticated')::text, true); set local role authenticated;
+    begin insert into public.training_sessions(club_id,squad_id,session_date,duration_min) values (club1,s2,current_date,60); r := r || 'FAIL C planned other squad session'::text; exception when others then r := r || 'C session for other squad blocked'::text; end;
+    begin insert into public.training_sessions(club_id,squad_id,session_date,duration_min) values (club1,null,current_date,60); r := r || 'FAIL C planned club-wide session'::text; exception when others then r := r || 'C club-wide session blocked'::text; end;
+    begin insert into public.test_results(player_id,test_id,value) values (p1,tdef,40.5); r := r || 'C test result own squad OK'::text; exception when others then r := r || ('FAIL C test result: '||sqlerrm); end;
+    begin insert into public.test_results(player_id,test_id,value) values (p2,tdef,40.5); r := r || 'FAIL C test result other squad'::text; exception when others then r := r || 'C test result other squad blocked'::text; end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',A,'role','authenticated')::text, true); set local role authenticated;
+    insert into public.session_rpe(session_id,player_id,rpe,minutes) values (ses1,p1,7,80) returning load into n;
+    r := r || ('A rates own session, load='||n||' (expect 560)');
+    begin insert into public.session_rpe(session_id,player_id,rpe,minutes) values (ses2,p1,7,80); r := r || 'FAIL A rated other squad session'::text; exception when others then r := r || 'A rating other squad session blocked'::text; end;
+    begin insert into public.session_rpe(session_id,player_id,rpe,minutes) values (ses1,p2,7,80); r := r || 'FAIL A rated for another player'::text; exception when others then r := r || 'A rating for another player blocked'::text; end;
+    select count(*) into n from public.test_results; r := r || ('A sees test results: '||n||' (expect 1, own)');
+    begin insert into public.test_results(player_id,test_id,value) values (p1,tdef,99); r := r || 'FAIL A wrote own test result'::text; exception when others then r := r || 'A test result write blocked'::text; end;
+    reset role;
+  end;
+
   -- outsider X and another club's director D2
   perform set_config('request.jwt.claims', json_build_object('sub',X,'role','authenticated')::text, true); set local role authenticated;
   select (select count(*) from public.players)+(select count(*) from public.clubs)+(select count(*) from public.wellness_checkins)+(select count(*) from public.player_notes)+(select count(*) from public.profiles where id<>X) into n;

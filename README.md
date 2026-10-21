@@ -2,7 +2,9 @@
 
 Football performance management for clubs and academies — one app for club directors, coaches and athletes, in Hebrew and English.
 
-**Phase 1 (this release):** club accounts and roles, squads, player profiles, invite links, athlete daily wellness check-in with a readiness score, coach notes, and a daily readiness overview.
+**Stage 1:** club accounts and roles, squads, player profiles, invite links, athlete daily wellness check-in with a readiness score, coach notes, and a daily readiness overview.
+
+**Stage 2:** weekly training calendar per squad, session RPE from athletes (or entered by staff), training load (sRPE = RPE × minutes) with acute 7-day / chronic 28-day averages and ACWR flags, and physical testing (6 built-in tests, batch result entry, latest vs previous vs best, team trend).
 
 ## Stack
 
@@ -62,8 +64,11 @@ supabase/
 
 Open the Supabase SQL editor, paste `supabase/tests/rls_test.sql`, run it. It creates throwaway users, checks ~30 access rules, and rolls everything back; the error message it ends with is the report — every line should match its "(expect …)" and none should say FAIL.
 
-## Next phases
+## Training load
 
-2. Training sessions & load (session RPE, ACWR), physical testing
+Athletes rate each session on the CR10 scale (0–10) with minutes taken part; they can rate sessions up to 3 days back. Daily load is summed per day. ACWR = mean daily load over 7 days ÷ mean over 28 days; 0.8–1.3 is green, 1.3–1.5 or below 0.8 amber, above 1.5 red and listed under "Needs attention".
+
+## Next stages
+
 3. Workout planner + exercise library (AI-assisted), assignments to athletes
 4. Injuries & return-to-play board, messaging, notifications
