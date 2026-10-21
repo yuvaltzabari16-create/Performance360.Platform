@@ -87,6 +87,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    // the next person to sign in on this device starts from their home screen
+    if (window.location.hash && window.location.hash !== "#/") window.location.hash = "#/";
   }, []);
 
   const value = useMemo<SessionState>(() => ({

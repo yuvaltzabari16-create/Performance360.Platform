@@ -147,9 +147,47 @@ try { const saved = JSON.parse(store.get(STORE) || "null"); if (saved && saved.v
 applyHebrew();
 let saveTimer;
 const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => store.set(STORE, JSON.stringify({ v: 1, db: DB })), 150); };
+// Username + PIN logins (production: supabase/functions/player-login). PINs are kept here only because this is a demo.
+const PLAYER_DOMAIN = "player.performance360.example.com";
+DB.player_logins ??= [{ player_id: "p-0", club_id: club, user_id: U.ath, username: "noam.levi", created_by: U.coach, created_at: ago(20, 10), pin_reset_at: null }];
+DB.player_pins ??= { "noam.levi": "482915" };
+const weakPin = (pin) => /^(\d)\1{5}$/.test(pin) || (() => { const d = [...pin].map(Number); const st = d[1] - d[0]; return Math.abs(st) === 1 && d.every((x, i) => i === 0 || x - d[i - 1] === st); })();
+async function playerLogin(b) {
+  const fail = (error) => ({ data: { error }, error: { message: error, context: new Response(JSON.stringify({ error }), { status: 400 }) } });
+  const me = DB.club_members.find((m) => m.user_id === who());
+  const player = DB.players.find((p) => p.id === b.player_id);
+  if (!me || me.role === "athlete" || !player) return fail("forbidden");
+  if (me.role === "coach" && !DB.squad_staff.some((s) => s.squad_id === player.squad_id && s.user_id === who())) return fail("forbidden");
+  const login = DB.player_logins.find((l) => l.player_id === player.id);
+  persist();
+  if (b.action === "create") {
+    const u = String(b.username ?? "").trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(u)) return fail("bad_username");
+    if (!/^\d{6}$/.test(b.pin) || weakPin(b.pin)) return fail("bad_pin");
+    if (player.user_id || login) return fail("already_has_account");
+    if (DB.player_logins.some((l) => l.username === u)) return fail("username_taken");
+    const id = "u-" + u;
+    DB.profiles.push({ id, full_name: player.full_name, locale: "he" });
+    DB.club_members.push({ club_id: player.club_id, user_id: id, role: "athlete" });
+    player.user_id = id;
+    DB.player_logins.push({ player_id: player.id, club_id: player.club_id, user_id: id, username: u, created_by: who(), created_at: new Date().toISOString(), pin_reset_at: null });
+    DB.player_pins[u] = b.pin; persist();
+    return { data: { username: u }, error: null };
+  }
+  if (!login) return fail("no_login");
+  if (b.action === "reset_pin") {
+    if (!/^\d{6}$/.test(b.pin) || weakPin(b.pin)) return fail("bad_pin");
+    DB.player_pins[login.username] = b.pin; login.pin_reset_at = new Date().toISOString(); persist();
+    return { data: { ok: true }, error: null };
+  }
+  DB.player_logins = DB.player_logins.filter((l) => l !== login); delete DB.player_pins[login.username];
+  DB.club_members = DB.club_members.filter((m) => m.user_id !== login.user_id); player.user_id = null; persist();
+  return { data: { ok: true }, error: null };
+}
+
 window.__p360demo = { reset() { store.del(STORE); store.set("mock.user", "u-dir"); location.hash = "#/"; location.reload(); } };
 
-let currentUser = store.get("mock.user") || "u-dir";
+let currentUser = store.get("mock.user") === "none" ? null : store.get("mock.user") || "u-dir";
 const who = () => currentUser;
 const sess = () => (who() ? { user: { id: who(), email: who() + "@example.com" } } : null);
 const listeners = new Set();
@@ -241,7 +279,7 @@ class Q {
 export function createClient() {
   return {
     from: (t) => new Q(t),
-    functions: { invoke: async (name, { body }) => aiWorkout(body) },
+    functions: { invoke: async (name, { body }) => (name === "player-login" ? playerLogin(body) : aiWorkout(body)) },
     rpc: async (name, a) => {
       if (name === "preview_invite") { const i = DB.invites.find((x) => x.token === a.p_token); if (!i) return { data: null, error: null };
         return { data: { club: DB.clubs[0].name, role: i.role, player: DB.players.find((p) => p.id === i.player_id)?.full_name ?? null, squad: null, valid: !i.accepted_at && !i.revoked_at }, error: null }; }
@@ -253,9 +291,20 @@ export function createClient() {
     auth: {
       getSession: async () => ({ data: { session: sess() } }),
       onAuthStateChange: (cb) => { listeners.add(cb); return { data: { subscription: { unsubscribe: () => listeners.delete(cb) } } }; },
-      signInWithPassword: async ({ email }) => { const u = email.split("@")[0]; currentUser = U[u] ?? u; store.set("mock.user", currentUser); if (!DB.profiles.some((p) => p.id === who())) DB.profiles.push({ id: who(), full_name: "New User", locale: "he" }); listeners.forEach((l) => l("SIGNED_IN", sess())); return { data: { session: sess() }, error: null }; },
+      signInWithPassword: async ({ email, password }) => {
+        let id;
+        if (email.endsWith("@" + PLAYER_DOMAIN)) {
+          const u = email.split("@")[0];
+          const l = DB.player_logins.find((x) => x.username === u);
+          if (!l || DB.player_pins[u] !== password) return { data: { session: null }, error: { message: "Invalid login credentials" } };
+          id = l.user_id;
+        } else { const u = email.split("@")[0]; id = U[u] ?? u; }
+        currentUser = id; store.set("mock.user", currentUser);
+        if (!DB.profiles.some((p) => p.id === who())) DB.profiles.push({ id: who(), full_name: "New User", locale: "he" });
+        listeners.forEach((l) => l("SIGNED_IN", sess())); return { data: { session: sess() }, error: null };
+      },
       signUp: async () => ({ data: { session: null }, error: null }),
-      signOut: async () => { currentUser = "u-dir"; store.set("mock.user", currentUser); listeners.forEach((l) => l("SIGNED_OUT", null)); return { error: null }; },
+      signOut: async () => { currentUser = null; store.set("mock.user", "none"); listeners.forEach((l) => l("SIGNED_OUT", null)); return { error: null }; },
     },
   };
 }

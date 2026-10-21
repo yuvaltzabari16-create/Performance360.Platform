@@ -14,6 +14,12 @@ Football performance management for clubs and academies — one app for club dir
 
 Staff who can edit a player log injuries (area, side, type, mechanism, severity, expected return). Moving an injury through the stages is logged automatically, and the player's availability follows their open injuries: rest/rehab → injured, running/modified → rehab, full training/cleared → available. Athletes see their own stage and expected return on Today. Notifications are created by database triggers, so they also fire for changes made outside the app.
 
+## Player logins (username + PIN)
+Players don't need an email. On a player's profile a coach (director, or coach of that squad) taps **Create username & PIN**; the player signs in on the **Player** tab of the sign-in screen. Coaches can reset the PIN (a new one is shown once) or remove the login. Email invite links still work for older players.
+- `supabase/functions/player-login`: creates / resets / removes the account with the service role after checking `can_edit_player` with the caller's JWT. Weak PINs (111111, 123456…) are refused.
+- Table `player_logins` (read-only to clients: staff of the club and the player themselves).
+- Under the hood the auth email is `username@player.performance360.example.com` (a reserved domain, never mailed), so Supabase's normal password sign-in and rate limiting apply. Keep the Auth minimum password length at 6 or lower for PINs to be accepted.
+
 ## Exercise movement demos
 Every exercise has an illustrated, looping demo in the brand colours with the working muscles highlighted (library cards, exercise detail, planner, athlete workout). They are generated in the browser, with no video files and no network:
 - `src/lib/anim/rig.ts`: jointed 2D figure (side and front views), forward + 2-bone inverse kinematics, pose interpolation.

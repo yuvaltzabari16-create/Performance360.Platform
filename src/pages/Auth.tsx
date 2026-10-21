@@ -4,9 +4,19 @@ import { Logo } from "../components/Logo";
 import { Field } from "../components/ui";
 import { useI18n } from "../lib/i18n";
 import { supabase } from "../lib/supabase";
+import { DEMO } from "../lib/demo";
+import { normalizeUsername, playerEmail } from "../lib/playerLogin";
+
+type Tab = "player" | "staff";
+const TAB_KEY = "p360.authTab";
+const savedTab = (): Tab => { try { return localStorage.getItem(TAB_KEY) === "staff" ? "staff" : "player"; } catch { return "player"; } };
 
 export function AuthPage({ notice }: { notice?: string }) {
   const { t, lang } = useI18n();
+  const [tab, setTabState] = useState<Tab>(savedTab);
+  const setTab = (x: Tab) => { setTabState(x); setErr(null); setInfo(null); try { localStorage.setItem(TAB_KEY, x); } catch { /* ignore */ } };
+  const [username, setUsername] = useState("");
+  const [pin, setPin] = useState("");
   const [mode, setMode] = useState<"in" | "up">("in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,6 +24,19 @@ export function AuthPage({ notice }: { notice?: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+
+  async function submitPlayer(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: playerEmail(username), password: pin });
+      if (error) throw new Error(/invalid|credentials/i.test(error.message) ? t.wrongPin : error.message);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -51,6 +74,32 @@ export function AuthPage({ notice }: { notice?: string }) {
         </div>
         <p className="sub" style={{ margin: 0 }}>{t.authTagline}</p>
         {notice && <div className="info">{notice}</div>}
+        <div className="seg auth-tabs" role="tablist">
+          {(["player", "staff"] as const).map((x) => (
+            <button key={x} role="tab" aria-selected={tab === x} className={tab === x ? "on" : ""} onClick={() => setTab(x)}>
+              {x === "player" ? t.playerTab : t.staffTab}
+            </button>
+          ))}
+        </div>
+        {tab === "player" ? (
+          <div className="panel">
+            <h2>{t.signIn}</h2>
+            <p className="muted" style={{ margin: 0 }}>{t.playerSignInHint}</p>
+            <form onSubmit={submitPlayer}>
+              <Field label={t.username}>
+                <input type="text" required dir="ltr" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  value={username} onChange={(e) => setUsername(e.target.value)} onBlur={() => setUsername(normalizeUsername(username))} />
+              </Field>
+              <Field label={`${t.pin} · ${t.pinHint}`}>
+                <input type="password" required dir="ltr" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="current-password"
+                  className="pin-input" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} />
+              </Field>
+              {err && <div className="err" role="alert">{err}</div>}
+              <button className="btn block" disabled={busy || pin.length !== 6 || !username.trim()}>{t.signIn}</button>
+            </form>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t.forgotPin}</p>
+          </div>
+        ) : (
         <div className="panel">
           <h2>{mode === "in" ? t.signIn : t.signUp}</h2>
           <form onSubmit={submit}>
@@ -78,6 +127,14 @@ export function AuthPage({ notice }: { notice?: string }) {
             </button>
           </div>
         </div>
+        )}
+        {DEMO && (
+          <div className="info demo-logins">
+            <b>{t.demoLogins}</b>
+            <span>{t.demoPlayerLogin}: <bdi dir="ltr">noam.levi · 482915</bdi></span>
+            <span className="muted" style={{ fontSize: 12 }}>{t.staffTab}: <bdi dir="ltr">coach@demo · demo</bdi></span>
+          </div>
+        )}
       </div>
     </div>
   );

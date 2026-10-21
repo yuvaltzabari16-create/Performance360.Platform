@@ -489,3 +489,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .exdemo-video[open] summary{margin-bottom:8px}
 .thumbimg.anim{width:48px;height:36px}
 .exgrid .thumbimg.anim{width:100%;height:auto;aspect-ratio:4/3}
+/* player / staff sign-in */
+.auth-tabs{display:flex;width:100%;border-radius:10px}
+.auth-tabs button{flex:1;text-align:center;padding:10px 12px;font-size:14px}
+.auth-tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.pin-input{letter-spacing:.5em;font-family:"IBM Plex Mono",monospace;font-size:20px;text-align:center}
+.demo-logins{display:flex;flex-direction:column;gap:2px;font-size:13px}
+.creds{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:12px;border-radius:10px;background:var(--accent-soft);border:1px dashed var(--accent)}
+.creds b{font-family:"IBM Plex Mono",monospace;font-size:18px;direction:ltr;text-align:start;unicode-bidi:isolate}

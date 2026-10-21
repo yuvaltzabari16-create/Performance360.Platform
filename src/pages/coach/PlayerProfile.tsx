@@ -11,6 +11,7 @@ import { useSession } from "../../lib/session";
 import { must, supabase } from "../../lib/supabase";
 import type { Foot, Invite, Player, PlayerStatus, Position } from "../../lib/types";
 import { useAsync } from "../../lib/useAsync";
+import { PIN_RE, USERNAME_RE, isWeakPin, normalizeUsername, playerLoginAction, randomPin, suggestUsername, type PlayerLogin } from "../../lib/playerLogin";
 
 export function PlayerProfile({ id }: { id: string }) {
   const { t, lang } = useI18n();
@@ -20,7 +21,7 @@ export function PlayerProfile({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
 
   const q = useAsync(async () => {
-    const [c, checkins, notes, invites, rpe, defs, results] = await Promise.all([
+    const [c, checkins, notes, invites, rpe, defs, results, login] = await Promise.all([
       loadClub(club!.id),
       loadCheckins(club!.id, addDays(today, -27), today, id),
       loadNotes(id),
@@ -28,11 +29,13 @@ export function PlayerProfile({ id }: { id: string }) {
       loadRpe(club!.id, addDays(today, -27), today, id),
       loadTestDefs(),
       loadResults(club!.id, id),
+      supabase.from("player_logins").select("*").eq("player_id", id).maybeSingle(),
     ]);
     const player = c.players.find((p) => p.id === id) ?? null;
     return {
       ...c, player, checkins, notes, invites: (must(invites) as Invite[]).filter(isLiveInvite),
       rpe, defs: defs.filter((d) => !d.club_id || d.club_id === club!.id), results,
+      login: (login.data ?? null) as PlayerLogin | null,
     };
   }, [club?.id, id, today]);
 
@@ -136,7 +139,7 @@ export function PlayerProfile({ id }: { id: string }) {
 
           <PlayerInjuries player={player} canEdit={canEdit} profiles={q.data.profiles} onChanged={q.reload} />
 
-          <AthleteAccess player={player} invites={q.data.invites} canInvite={canEdit} onChange={q.reload} />
+          <AthleteAccess player={player} invites={q.data.invites} login={q.data.login} canInvite={canEdit} onChange={q.reload} />
 
           <Notes
             playerId={player.id}
@@ -233,41 +236,153 @@ function EditPlayer({ player, squads, allowNoSquad, onSave, onCancel }: {
   );
 }
 
-function AthleteAccess({ player, invites, canInvite, onChange }: { player: Player; invites: Invite[]; canInvite: boolean; onChange: () => void }) {
+function AthleteAccess({ player, invites, login, canInvite, onChange }: { player: Player; invites: Invite[]; login: PlayerLogin | null; canInvite: boolean; onChange: () => void }) {
   const { t } = useI18n();
   const { club } = useSession();
   const act = useAction();
   const live = invites[0];
+  const [creating, setCreating] = useState(false);
+  const [shown, setShown] = useState<{ username: string; pin: string } | null>(null);
+  const errText = (e: unknown) => new Error(t.loginErr[e instanceof Error ? e.message : ""] ?? t.loginErr.failed);
+
+  async function resetPin() {
+    if (!login) return;
+    const pin = randomPin();
+    const ok = await act(async () => {
+      try { await playerLoginAction({ action: "reset_pin", player_id: player.id, pin }); } catch (e) { throw errText(e); }
+    }, t.pinReset);
+    if (ok) setShown({ username: login.username, pin });
+  }
 
   return (
     <section className="panel">
       <h2>{t.athleteApp}</h2>
-      {player.user_id ? (
-        <p className="row" style={{ margin: 0 }}><span className="pill good">{t.linked}</span><span className="muted">{t.linkedNote}</span></p>
-      ) : live ? (
+      {shown && <Credentials username={shown.username} pin={shown.pin} onDone={() => { setShown(null); onChange(); }} />}
+      {login ? (
         <>
-          <p className="muted" style={{ margin: 0 }}>{t.inviteNote}</p>
-          <CopyLink url={inviteUrl(live.token)} />
-          {canInvite && (
-            <div>
-              <button className="btn sm danger" onClick={() => act(async () => {
-                must(await supabase.from("invites").update({ revoked_at: new Date().toISOString() }).eq("id", live.id));
+          <p className="row" style={{ margin: 0 }}>
+            <span className="pill good">{t.linked}</span>
+            <span className="muted">{t.usernameLogin}:</span> <b dir="ltr">{login.username}</b>
+          </p>
+          {canInvite && !shown && (
+            <div className="row">
+              <button className="btn sm" onClick={resetPin}>{t.resetPin}</button>
+              <ConfirmButton label={t.removeLogin} confirmLabel={t.confirmRemoveLogin} onConfirm={() => act(async () => {
+                try { await playerLoginAction({ action: "remove", player_id: player.id }); } catch (e) { throw errText(e); }
                 onChange();
-              }, t.revoked)}>{t.revoke}</button>
+              }, t.loginRemoved)} />
             </div>
           )}
         </>
-      ) : canInvite ? (
-        <div>
-          <button className="btn" onClick={() => act(async () => {
-            must(await supabase.from("invites").insert({ club_id: club!.id, role: "athlete", player_id: player.id }));
-            onChange();
-          })}>{t.createInvite}</button>
-        </div>
-      ) : (
+      ) : player.user_id ? (
+        !shown && <p className="row" style={{ margin: 0 }}><span className="pill good">{t.linked}</span><span className="muted">{t.linkedNote}</span></p>
+      ) : !canInvite ? (
         <p className="empty">{t.notLinked}</p>
+      ) : creating ? (
+        <CreateLogin player={player} onCancel={() => setCreating(false)} onCreated={(c) => { setCreating(false); setShown(c); onChange(); }} errText={errText} />
+      ) : (
+        <>
+          <div className="stack" style={{ gap: 6 }}>
+            <div><button className="btn" onClick={() => setCreating(true)}>{t.loginCreate}</button></div>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t.loginCreateSub}</p>
+          </div>
+          <details className="exdemo-video">
+            <summary>{t.orInvite}</summary>
+            {live ? (
+              <>
+                <p className="muted" style={{ margin: "0 0 8px" }}>{t.inviteNote}</p>
+                <CopyLink url={inviteUrl(live.token)} />
+                <div style={{ marginTop: 8 }}>
+                  <button className="btn sm danger" onClick={() => act(async () => {
+                    must(await supabase.from("invites").update({ revoked_at: new Date().toISOString() }).eq("id", live.id));
+                    onChange();
+                  }, t.revoked)}>{t.revoke}</button>
+                </div>
+              </>
+            ) : (
+              <button className="btn sm ghost" onClick={() => act(async () => {
+                must(await supabase.from("invites").insert({ club_id: club!.id, role: "athlete", player_id: player.id }));
+                onChange();
+              })}>{t.createInvite}</button>
+            )}
+          </details>
+        </>
       )}
     </section>
+  );
+}
+
+function CreateLogin({ player, onCancel, onCreated, errText }: {
+  player: Player; onCancel: () => void; onCreated: (c: { username: string; pin: string }) => void; errText: (e: unknown) => Error;
+}) {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [username, setUsername] = useState(() => suggestUsername(player.full_name));
+  const [pin, setPin] = useState(randomPin);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const u = normalizeUsername(username);
+  const valid = USERNAME_RE.test(u) && PIN_RE.test(pin) && !isWeakPin(pin);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    try {
+      await playerLoginAction({ action: "create", player_id: player.id, username: u, pin });
+      toast(t.loginCreated);
+      onCreated({ username: u, pin });
+    } catch (e2) {
+      setErr(errText(e2).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="stack" style={{ gap: 10 }} onSubmit={submit}>
+      <div className="grid2">
+        <Field label={t.username}>
+          <input type="text" dir="ltr" required autoCapitalize="none" autoCorrect="off" spellCheck={false} value={username}
+            onChange={(e) => setUsername(e.target.value)} onBlur={() => setUsername(u)} aria-invalid={!USERNAME_RE.test(u)} />
+        </Field>
+        <Field label={`${t.pin} · ${t.pinHint}`}>
+          <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+            <input type="text" dir="ltr" inputMode="numeric" className="pin-input" maxLength={6} value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} aria-invalid={!PIN_RE.test(pin) || isWeakPin(pin)} />
+            <button type="button" className="btn sm ghost" onClick={() => setPin(randomPin())}>{t.newPin}</button>
+          </div>
+        </Field>
+      </div>
+      {!USERNAME_RE.test(u) && username && <div className="muted" style={{ fontSize: 12 }}>{t.loginErr.bad_username}</div>}
+      {PIN_RE.test(pin) && isWeakPin(pin) && <div className="muted" style={{ fontSize: 12 }}>{t.loginErr.bad_pin}</div>}
+      {err && <div className="err" role="alert">{err}</div>}
+      <div className="row">
+        <button className="btn" disabled={busy || !valid}>{t.loginCreate}</button>
+        <button type="button" className="btn ghost" onClick={onCancel}>{t.cancel}</button>
+      </div>
+    </form>
+  );
+}
+
+/** Shown once after creating a login or resetting the PIN. */
+function Credentials({ username, pin, onDone }: { username: string; pin: string; onDone: () => void }) {
+  const { t } = useI18n();
+  const toast = useToast();
+  const url = `${window.location.origin}${window.location.pathname}`;
+  const text = t.loginText.replace("{url}", url).replace("{u}", username).replace("{p}", pin);
+  return (
+    <div className="stack" style={{ gap: 8 }}>
+      <b>{t.loginDetails}</b>
+      <div className="creds">
+        <span className="muted">{t.username}</span><b>{username}</b>
+        <span className="muted">{t.pin}</span><b>{pin}</b>
+      </div>
+      <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t.pinShownOnce}</p>
+      <div className="row">
+        <button className="btn sm" onClick={async () => { try { await navigator.clipboard.writeText(text); toast(t.detailsCopied); } catch { /* blocked */ } }}>{t.copyDetails}</button>
+        <button className="btn sm ghost" onClick={onDone}>{t.gotIt}</button>
+      </div>
+    </div>
   );
 }
 
