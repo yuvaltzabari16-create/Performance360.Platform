@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Badge, ButtonLink, Card, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { requireProfile } from "@/lib/auth";
-import { embedUrl, type ExerciseCategory } from "@/lib/catalog";
+import { embedUrl, type ExerciseCategory, youtubeInfo } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
 import type { Exercise } from "@/lib/types";
 import { archiveExercise, duplicateExercise, toggleFavorite } from "../actions";
@@ -20,6 +20,9 @@ export default async function ExercisePage({ params, searchParams }: { params: P
   const isPro = profile.role !== "athlete";
   const { data: fav } = await supabase.from("exercise_favorites").select("exercise_id").eq("exercise_id", id).eq("user_id", user.id).maybeSingle();
   const media = embedUrl(e.video_url);
+  // Only verified HTTPS YouTube links are rendered as links (source is free text).
+  const explainerUrl = e.source?.match(/^Detailed explanation: (\S+)$/)?.[1] ?? null;
+  const explainer = explainerUrl && youtubeInfo(explainerUrl) ? explainerUrl : null;
 
   return (
     <>
@@ -59,9 +62,15 @@ export default async function ExercisePage({ params, searchParams }: { params: P
         <div className="space-y-6 lg:col-span-3">
           <Card>
             {media?.kind === "iframe" ? (
-              <div className="aspect-video overflow-hidden rounded-lg bg-black">
-                <iframe src={media.src} title={e.name} className="size-full" allow="encrypted-media; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
-              </div>
+              <>
+                <div className={media.vertical ? "mx-auto aspect-[9/16] max-h-[70vh] overflow-hidden rounded-lg bg-black" : "aspect-video overflow-hidden rounded-lg bg-black"}>
+                  <iframe src={media.src} title={e.name} className="size-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                  <span>{te.embedNote}</span>
+                  <a href={e.video_url!} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} ↗</a>
+                </div>
+              </>
             ) : media?.kind === "video" ? (
               <video src={media.src} controls preload="metadata" playsInline className="aspect-video w-full rounded-lg bg-black" poster={e.thumbnail_url ?? undefined} />
             ) : media?.kind === "link" ? (
@@ -90,7 +99,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
                 [te.regressions, e.regressions],
                 [te.progressions, e.progressions],
                 [te.modNotes, e.modification_notes],
-                [te.source, e.source],
+                [te.source, explainer ? <a key="src" className="text-brand-700 hover:underline" href={explainer} target="_blank" rel="noopener noreferrer">{te.openOnYouTube} ↗</a> : e.source],
               ]}
             />
           </Card>

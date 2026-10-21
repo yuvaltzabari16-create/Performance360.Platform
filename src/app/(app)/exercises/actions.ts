@@ -95,3 +95,13 @@ export async function toggleFavorite(formData: FormData) {
   revalidatePath("/exercises");
   redirect(back && back.startsWith("/exercises") ? back : `/exercises/${id}`);
 }
+
+/** Favorite toggle for client components (no redirect). Returns the new state. */
+export async function setFavorite(exerciseId: string, on: boolean): Promise<boolean> {
+  const { supabase, user } = await requireProfile();
+  if (!isUuid(exerciseId)) return !on;
+  const { error } = on
+    ? await supabase.from("exercise_favorites").upsert({ exercise_id: exerciseId, user_id: user.id }, { onConflict: "user_id,exercise_id", ignoreDuplicates: true })
+    : await supabase.from("exercise_favorites").delete().eq("exercise_id", exerciseId).eq("user_id", user.id);
+  return error ? !on : on;
+}

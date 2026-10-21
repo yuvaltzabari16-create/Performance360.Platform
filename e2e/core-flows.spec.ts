@@ -113,7 +113,7 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
 
     await page.getByText("+ Add exercise").click();
-    await page.locator('select[name="exercise_id"]').selectOption({ label: "10 m Acceleration Sprint" });
+    await page.locator('select[name="exercise_id"]').selectOption({ label: "Goblet Squat" });
     await page.locator('form:has(button:text("Add exercise")) input[name="sets"]').fill("6");
     await page.locator('form:has(button:text("Add exercise")) input[name="reps"]').fill("1");
     await page.locator('form:has(button:text("Add exercise")) input[name="rest_s"]').fill("120");
@@ -147,6 +147,23 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page.getByText("Countermovement Jump")).toBeVisible();
     await expect(page.locator("dd", { hasText: "39.4" }).first()).toBeVisible();
     await snap(page, "06-testing");
+  });
+
+  test("exercise library has the coach list with a video for every exercise", async ({ browser }) => {
+    const page = await login(browser, coach);
+    await page.goto("/exercises");
+    await expect(page.getByText(/^(3[4-9]\d|[4-9]\d\d) videos$/)).toBeVisible();
+    await page.getByPlaceholder("Search exercises…").fill("Zercher");
+    await page.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("link", { name: /Zercher Squat/ }).click();
+    await expect(page.locator('iframe[src^="https://www.youtube-nocookie.com/embed/EuDizUUiHEo"]')).toHaveCount(1);
+    await expect(page.getByRole("link", { name: "Open on YouTube ↗" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=EuDizUUiHEo");
+
+    await page.goto("/exercises/feed?category=rehab");
+    await expect(page.locator("iframe")).toHaveCount(0); // thumbnails only until tapped
+    await page.getByRole("button", { name: /Tap to play: Knee Flexion Range of Motion/ }).click();
+    await expect(page.locator('iframe[src*="kF_CyoZihCE"][src*="start=115"][src*="autoplay=1"]')).toHaveCount(1);
+    await snap(page, "05b-video-feed");
   });
 
   test("athlete sees training, logs a session, checks in and sees results", async ({ browser }) => {
