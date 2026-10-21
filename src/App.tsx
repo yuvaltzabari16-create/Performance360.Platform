@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+import { DemoBar } from "./components/DemoBar";
 import { Shell } from "./components/Shell";
+import { DEMO } from "./lib/demo";
 import { Loading } from "./components/ui";
 import { useI18n } from "./lib/i18n";
 import { match, navigate, useRoute } from "./lib/router";
@@ -47,7 +49,7 @@ export function App() {
   if (token) return <InvitePage token={token} />;
   if (!s.memberships.length || !s.role) return <Onboarding />;
 
-  return <Shell path={path}>{route(path, s.role)}</Shell>;
+  return <><Shell path={path}>{route(path, s.role)}</Shell>{DEMO && <DemoBar />}</>;
 }
 
 function route(path: string, role: "director" | "coach" | "athlete") {

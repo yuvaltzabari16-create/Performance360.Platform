@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { LangToggle } from "../components/LangToggle";
+import { Logo } from "../components/Logo";
 import { Field, useAction } from "../components/ui";
 import { useI18n } from "../lib/i18n";
 import { useSession } from "../lib/session";
@@ -28,7 +29,7 @@ export function Onboarding() {
     <div className="auth">
       <div className="card">
         <div className="spread">
-          <div className="brand">Performance<span>360</span></div>
+          <Logo size={40} />
           <LangToggle />
         </div>
         <h1>{t.welcome}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}</h1>

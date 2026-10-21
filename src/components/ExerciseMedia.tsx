@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DEMO, ytWatch } from "../lib/demo";
 import { useI18n } from "../lib/i18n";
 import { ytEmbed, ytThumb, type Exercise } from "../lib/workout";
 
@@ -6,6 +7,15 @@ import { ytEmbed, ytThumb, type Exercise } from "../lib/workout";
 export function ExerciseVideo({ ex, autoplay = false }: { ex: Pick<Exercise, "video_id" | "video_url" | "name_en">; autoplay?: boolean }) {
   const { t } = useI18n();
   const [play, setPlay] = useState(autoplay);
+  // The demo runs where other sites can't be embedded: open the demo on YouTube instead.
+  if (DEMO && ex.video_id) {
+    return (
+      <a className="video linkout" href={ytWatch(ex.video_id)} target="_blank" rel="noreferrer">
+        <span className="play" aria-hidden="true">▶</span>
+        <span className="linkout-label">{t.watchYoutube} ↗</span>
+      </a>
+    );
+  }
   if (ex.video_id) {
     return play ? (
       <div className="video">
@@ -25,6 +35,7 @@ export function ExerciseVideo({ ex, autoplay = false }: { ex: Pick<Exercise, "vi
 }
 
 export function Thumb({ ex }: { ex: Pick<Exercise, "video_id"> }) {
+  if (DEMO) return <span className={"thumbimg demo" + (ex.video_id ? " has" : "")} aria-hidden="true">▶</span>;
   return ex.video_id
     ? <img className="thumbimg" src={ytThumb(ex.video_id)} alt="" loading="lazy" onError={(e) => e.currentTarget.classList.add("broken")} />
     : <span className="thumbimg empty" aria-hidden="true">▶</span>;

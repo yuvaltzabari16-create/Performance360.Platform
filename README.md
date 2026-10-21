@@ -14,6 +14,10 @@ The assistant runs as the Supabase edge function `ai-workout` (`supabase/functio
 
 **To switch it on:** Supabase dashboard → Edge Functions → Secrets → add `ANTHROPIC_API_KEY` (from console.anthropic.com). Until then the panel shows "AI isn't switched on yet".
 
+## Demo artifact
+
+`node demo/build.mjs` builds `dist-demo/performance360-demo.html`, the same app with a built-in demo backend (`demo/backend.js`: a sample club saved in the browser, a director/coach/athlete switcher, and the AI assistant answered by Claude inside claude.ai). It is published as the Performance360 artifact. Production users still go through Supabase.
+
 ## Stack
 
 - **Frontend:** React 19 + TypeScript + Vite. No UI framework — the design system from the prototype lives in `src/styles.css`.

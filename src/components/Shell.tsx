@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useI18n } from "../lib/i18n";
+import { Logo } from "./Logo";
 import { useSession } from "../lib/session";
 
 const ICON: Record<string, string> = {
@@ -52,7 +53,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
     <div className="app">
       <aside className="rail">
         <div>
-          <div className="brand">Performance<span>360</span></div>
+          <Logo size={32} />
           <div className="club">{club?.name}</div>
         </div>
         <nav className="nav" aria-label="Main">{links}</nav>
@@ -60,7 +61,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       </aside>
       <div className="main">
         <header className="top">
-          <span className="mbrand">P<span>360</span></span>
+          <span className="mbrand"><Logo size={26} /></span>
           <span className="grow muted" style={{ fontSize: 12 }}>{club?.name}</span>
         </header>
         <main className="content">{children}</main>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LangToggle } from "../components/LangToggle";
+import { Logo } from "../components/Logo";
 import { ErrorBox, Loading, useAction } from "../components/ui";
 import { useI18n } from "../lib/i18n";
 import { navigate } from "../lib/router";
@@ -34,7 +35,7 @@ export function InvitePage({ token }: { token: string }) {
     <div className="auth">
       <div className="card">
         <div className="spread">
-          <div className="brand">Performance<span>360</span></div>
+          <Logo size={40} />
           <LangToggle />
         </div>
         {q.loading ? <Loading /> : q.error ? <ErrorBox message={q.error} onRetry={q.reload} /> : !q.data || !q.data.valid ? (

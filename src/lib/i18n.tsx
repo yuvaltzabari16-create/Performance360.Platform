@@ -90,7 +90,7 @@ const en = {
     cable: "Cable", band: "Band", machine: "Machine", box: "Box / hurdle", medball: "Medicine ball", trx: "TRX", slider: "Slider", romanchair: "Roman chair / GHR",
     landmine: "Landmine", pullupbar: "Pull-up bar", bench: "Bench", dowel: "Dowel", bike: "Bike", crutches: "Crutches" } as Record<string, string>,
   cues: "Coaching cues", cuesHint: "One cue per line", addCustomExercise: "Add exercise", exerciseName: "Exercise name", nameHe: "Hebrew name",
-  youtubeUrl: "YouTube link", exerciseAdded: "Exercise added", clubExercise: "Club exercise", openExternal: "Open demo", noVideo: "No video yet",
+  youtubeUrl: "YouTube link", exerciseAdded: "Exercise added", clubExercise: "Club exercise", openExternal: "Open demo", watchYoutube: "Watch on YouTube", noVideo: "No video yet",
   workouts: "Workouts", newWorkout: "New workout", untitled: "Untitled workout", searchWorkouts: "Search workouts", noWorkouts: "No workouts yet. Create one or ask the AI.",
   focus: "Focus", estMinutes: "Est. minutes", description: "Description", addSection: "Add section", sectionTitle: "Section title",
   addExercise: "Add exercise", addToBlock: "Add to superset", single: "Straight sets", superset: "Superset", circuit: "Circuit", rounds: "rounds",
@@ -110,10 +110,13 @@ const en = {
   aiPresets: ["Progress for next week", "Cut volume by 30%", "Make it MD-2 friendly", "Fit into 40 minutes", "Adapt for a hamstring RTP athlete"],
   aiErr: { ai_not_configured: "AI isn't switched on yet: add the Anthropic API key in Supabase.", rate_limited: "Too many AI requests right now. Try again shortly.",
     forbidden: "Only staff can use the assistant.", refused: "The assistant declined this request. Rephrase it.", invalid_json: "The reply couldn't be read. Try again.",
+    demo_unavailable: "The AI assistant works when this page is opened inside Claude.", demo_not_granted: "AI access wasn't allowed for this page.",
     def: "The AI request failed. Try again." } as Record<string, string>,
   // athlete workout
   openWorkout: "Open workout", yourWorkout: "Your workout", done: "Done", finishWorkout: "Finish workout", workoutDone: "Workout completed — your coach can see it",
   howHard: "How hard was it overall?", actual: "Done", completedBy: "completed", tapVideo: "Tap for video",
+  // demo
+  demoLabel: "Demo", demoViewAs: "View as", demoReset: "Reset demo data", demoNote: "Sample club data, saved in this browser only.",
   // settings
   language: "Language", profile: "Profile", activeClub: "Active club", theme: "Theme",
   // generic
@@ -195,7 +198,7 @@ const he: Dict = {
     cable: "כבלים", band: "גומייה", machine: "מכונה", box: "קופסה / משוכה", medball: "כדור כוח", trx: "TRX", slider: "סליידר", romanchair: "כיסא רומי / GHR",
     landmine: "לנדמיין", pullupbar: "מוט מתח", bench: "ספסל", dowel: "מקל", bike: "אופניים", crutches: "קביים" } as Record<string, string>,
   cues: "דגשי ביצוע", cuesHint: "דגש אחד בכל שורה", addCustomExercise: "הוספת תרגיל", exerciseName: "שם התרגיל", nameHe: "שם בעברית",
-  youtubeUrl: "קישור YouTube", exerciseAdded: "התרגיל נוסף", clubExercise: "תרגיל מועדון", openExternal: "פתיחת הדגמה", noVideo: "אין עדיין וידאו",
+  youtubeUrl: "קישור YouTube", exerciseAdded: "התרגיל נוסף", clubExercise: "תרגיל מועדון", openExternal: "פתיחת הדגמה", watchYoutube: "צפייה ב-YouTube", noVideo: "אין עדיין וידאו",
   workouts: "אימונים", newWorkout: "אימון חדש", untitled: "אימון ללא שם", searchWorkouts: "חיפוש אימונים", noWorkouts: "אין עדיין אימונים. צרו אחד או בקשו מה-AI.",
   focus: "מיקוד", estMinutes: "דקות משוערות", description: "תיאור", addSection: "הוספת חלק", sectionTitle: "שם החלק",
   addExercise: "הוספת תרגיל", addToBlock: "הוספה לסופרסט", single: "סטים רגילים", superset: "סופרסט", circuit: "מעגל", rounds: "סבבים",
@@ -213,9 +216,11 @@ const he: Dict = {
   aiPresets: ["התקדמות לשבוע הבא", "הורדת נפח ב-30%", "התאמה ליומיים לפני משחק", "להכניס ל-40 דקות", "התאמה לשיקום ירך אחורית"],
   aiErr: { ai_not_configured: "ה-AI עדיין לא הופעל: יש להוסיף מפתח Anthropic API ב-Supabase.", rate_limited: "יותר מדי בקשות AI כרגע. נסו שוב בעוד רגע.",
     forbidden: "רק אנשי צוות יכולים להשתמש בעוזר.", refused: "העוזר סירב לבקשה. נסחו אותה מחדש.", invalid_json: "לא הצלחנו לקרוא את התשובה. נסו שוב.",
+    demo_unavailable: "עוזר ה-AI פועל כשהדף פתוח בתוך Claude.", demo_not_granted: "לא אושרה גישת AI לדף הזה.",
     def: "בקשת ה-AI נכשלה. נסו שוב." } as Record<string, string>,
   openWorkout: "פתיחת האימון", yourWorkout: "האימון שלך", done: "בוצע", finishWorkout: "סיום האימון", workoutDone: "האימון הושלם — המאמן רואה אותו",
   howHard: "כמה קשה היה באופן כללי?", actual: "בוצע", completedBy: "השלימו", tapVideo: "הקישו לווידאו",
+  demoLabel: "הדגמה", demoViewAs: "צפייה בתור", demoReset: "איפוס נתוני הדגמה", demoNote: "נתוני מועדון לדוגמה, נשמרים בדפדפן זה בלבד.",
   language: "שפה", profile: "פרופיל", activeClub: "מועדון פעיל", theme: "ערכת נושא",
   loading: "טוען…", error: "משהו השתבש", retry: "נסו שוב", none: "—",
 };

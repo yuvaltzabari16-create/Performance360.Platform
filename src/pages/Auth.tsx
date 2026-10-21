@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { LangToggle } from "../components/LangToggle";
+import { Logo } from "../components/Logo";
 import { Field } from "../components/ui";
 import { useI18n } from "../lib/i18n";
 import { supabase } from "../lib/supabase";
@@ -45,7 +46,7 @@ export function AuthPage({ notice }: { notice?: string }) {
     <div className="auth">
       <div className="card">
         <div className="spread">
-          <div className="brand">Performance<span>360</span></div>
+          <Logo size={40} />
           <LangToggle />
         </div>
         <p className="sub" style={{ margin: 0 }}>{t.authTagline}</p>
