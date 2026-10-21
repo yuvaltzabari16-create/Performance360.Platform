@@ -8,6 +8,12 @@ Football performance management for clubs and academies — one app for club dir
 
 **Stage 3:** exercise library (348 exercises from the club's PDF, each with its YouTube demo; club exercises can be added), a three-pane workout planner (saved workouts · editor with sections, supersets/circuits, editable set fields and coaching notes · AI assistant), assigning a workout to a squad or one athlete, and an athlete workout view to tick sets, log reps/load, finish and rate it.
 
+**Stage 4:** injuries and a six-step return-to-play board (rest → rehab → running → modified training → full training → cleared) with a timeline of every stage change, coach–athlete messaging, in-app notifications (new messages, injuries, stage changes, assigned workouts, pain reported in check-ins), a month view of the training calendar, Hebrew names for the whole exercise library, and a Hebrew/English switch in the top bar.
+
+## Injuries & return to play
+
+Staff who can edit a player log injuries (area, side, type, mechanism, severity, expected return). Moving an injury through the stages is logged automatically, and the player's availability follows their open injuries: rest/rehab → injured, running/modified → rehab, full training/cleared → available. Athletes see their own stage and expected return on Today. Notifications are created by database triggers, so they also fire for changes made outside the app.
+
 ## AI workout assistant
 
 The assistant runs as the Supabase edge function `ai-workout` (`supabase/functions/ai-workout`). It uses Claude Sonnet 5.5 with structured JSON output and may only use exercises from the club's library. It can also take a squad's readiness and availability into account. Only staff can call it; it is limited to 100 requests per club per day (usage is logged in `ai_usage`).
@@ -66,7 +72,8 @@ src/
   components/   app shell, UI primitives, readiness chart
   pages/        Auth, Onboarding, Invite, Settings
   pages/coach/  Overview, Players, PlayerProfile, Squads, Staff
-  pages/athlete/Today (check-in), Progress, Notes
+  pages/athlete/Today (check-in, return to play), Progress, Notes, Workout
+  pages/        Messages (coach + athlete), coach/Injuries (RTP board)
 supabase/
   migrations/   the exact SQL applied to the database, in order
   tests/        rls_test.sql — permissions test (rolls itself back)
@@ -82,4 +89,4 @@ Athletes rate each session on the CR10 scale (0–10) with minutes taken part; t
 
 ## Next stages
 
-4. Injuries & return-to-play board, messaging, notifications
+5. Reports & exports (squad PDF/CSV), parent access, push/email notifications, movement analysis

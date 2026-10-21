@@ -38,6 +38,7 @@ function Sessions() {
   const [squad, setSquad] = useState("all");
   const [adding, setAdding] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
+  const [mode, setMode] = useState<"week" | "month">("week");
   const end = addDays(week, 6);
 
   const q = useAsync(async () => {
@@ -62,7 +63,8 @@ function Sessions() {
   const d = q.data;
   const squadName = (id: string | null, playerId?: string | null) =>
     playerId ? d.players.find((p) => p.id === playerId)?.full_name ?? "" : id ? d.squads.find((s) => s.id === id)?.name ?? "" : t.wholeClub;
-  const visible = d.sessions.filter((s) => squad === "all" || s.squad_id === squad || s.squad_id === null);
+  const squadOf = (s: TrainingSession) => (s.player_id ? d.players.find((p) => p.id === s.player_id)?.squad_id ?? null : s.squad_id);
+  const visible = d.sessions.filter((s) => squad === "all" || squadOf(s) === squad || (s.squad_id === null && !s.player_id));
   const canManage = (s: TrainingSession) => role === "director" || (!!s.squad_id && manageable.some((m) => m.id === s.squad_id));
   const expected = (s: TrainingSession) => s.player_id ? 1 : d.players.filter((p) => !s.squad_id || p.squad_id === s.squad_id).length;
   const sessionPlayers = (s: TrainingSession) => d.players.filter((p) => (s.player_id ? p.id === s.player_id : !s.squad_id || p.squad_id === s.squad_id));
@@ -70,10 +72,16 @@ function Sessions() {
   return (
     <>
       <div className="row">
-        <button className="btn sm ghost" onClick={() => setWeek(addDays(week, -7))}>{lang === "he" ? "→" : "←"} {t.prevWeek}</button>
-        <button className="btn sm ghost" onClick={() => setWeek(weekStart(today))}>{t.thisWeek}</button>
-        <button className="btn sm ghost" onClick={() => setWeek(addDays(week, 7))}>{t.nextWeek} {lang === "he" ? "←" : "→"}</button>
-        <span className="muted">{fmtDay(week, lang)} – {fmtDay(end, lang)}</span>
+        <div className="seg" role="group" aria-label={t.week + " / " + t.month}>
+          <button aria-pressed={mode === "week"} onClick={() => setMode("week")}>{t.week}</button>
+          <button aria-pressed={mode === "month"} onClick={() => setMode("month")}>{t.month}</button>
+        </div>
+        {mode === "week" && <>
+          <button className="btn sm ghost" onClick={() => setWeek(addDays(week, -7))}>{lang === "he" ? "→" : "←"} {t.prevWeek}</button>
+          <button className="btn sm ghost" onClick={() => setWeek(weekStart(today))}>{t.thisWeek}</button>
+          <button className="btn sm ghost" onClick={() => setWeek(addDays(week, 7))}>{t.nextWeek} {lang === "he" ? "←" : "→"}</button>
+          <span className="muted">{fmtDay(week, lang)} – {fmtDay(end, lang)}</span>
+        </>}
         <span style={{ flex: 1 }} />
         {d.squads.length > 0 && (
           <select value={squad} onChange={(e) => setSquad(e.target.value)} style={{ width: "auto" }} aria-label={t.squad}>
@@ -98,7 +106,9 @@ function Sessions() {
         />
       )}
 
-      <section className="panel">
+      {mode === "month" ? (
+        <MonthView anchor={week} squad={squad} players={d.players} onPickDay={(day) => { setWeek(weekStart(day)); setMode("week"); }} />
+      ) : <section className="panel">
         {Array.from({ length: 7 }, (_, i) => addDays(week, i)).map((day) => {
           const list = visible.filter((s) => s.session_date === day);
           return (
@@ -143,8 +153,59 @@ function Sessions() {
             </div>
           );
         })}
-      </section>
+      </section>}
     </>
+  );
+}
+
+/** Month grid (Sunday-first). Each day lists its sessions as coloured chips; tap a day to open that week. */
+function MonthView({ anchor, squad, players, onPickDay }: {
+  anchor: string; squad: string; players: { id: string; squad_id: string | null }[]; onPickDay: (day: string) => void;
+}) {
+  const { t, lang } = useI18n();
+  const { club } = useSession();
+  const today = isoDate();
+  const [month, setMonth] = useState(anchor.slice(0, 7) + "-01");
+  const [y, m] = month.split("-").map(Number);
+  const first = month;
+  const last = isoDate(new Date(y, m, 0));
+  const gridStart = weekStart(first);
+  const weeks = Math.ceil((Number(last.slice(8)) + new Date(y, m - 1, 1).getDay()) / 7);
+  const q = useAsync(() => loadSessions(club!.id, gridStart, addDays(gridStart, weeks * 7 - 1)), [club?.id, month]);
+  const shift = (n: number) => setMonth(isoDate(new Date(y, m - 1 + n, 1)));
+  const squadOf = (s: TrainingSession) => (s.player_id ? players.find((p) => p.id === s.player_id)?.squad_id ?? null : s.squad_id);
+  const list = (q.data ?? []).filter((s) => squad === "all" || squadOf(s) === squad || (s.squad_id === null && !s.player_id));
+  const weekdays = Array.from({ length: 7 }, (_, i) => fmtDay(addDays(gridStart, i), lang, { weekday: "short" }));
+
+  return (
+    <section className="panel">
+      <div className="spread">
+        <button className="btn sm ghost" onClick={() => shift(-1)} aria-label={t.prevWeek}>{lang === "he" ? "→" : "←"}</button>
+        <h2>{new Intl.DateTimeFormat(lang === "he" ? "he-IL" : "en-GB", { month: "long", year: "numeric" }).format(new Date(y, m - 1, 1))}</h2>
+        <button className="btn sm ghost" onClick={() => shift(1)} aria-label={t.nextWeek}>{lang === "he" ? "←" : "→"}</button>
+      </div>
+      {q.error && <ErrorBox message={q.error} onRetry={q.reload} />}
+      <div className="month" role="grid">
+        {weekdays.map((w) => <div key={w} className="mhead" role="columnheader">{w}</div>)}
+        {Array.from({ length: weeks * 7 }, (_, i) => addDays(gridStart, i)).map((day) => {
+          const items = list.filter((s) => s.session_date === day);
+          const inMonth = day.slice(0, 7) === month.slice(0, 7);
+          return (
+            <button key={day} role="gridcell" className={"mday" + (inMonth ? "" : " out") + (day === today ? " today" : "")} onClick={() => onPickDay(day)}
+              aria-label={`${fmtDay(day, lang, { weekday: "long", day: "numeric", month: "long" })}: ${items.length} ${t.sessionsCount}`}>
+              <span className="mnum">{Number(day.slice(8))}</span>
+              {items.slice(0, 3).map((s) => (
+                <span key={s.id} className={"mchip " + s.type}>{s.workout_snapshot?.title ?? s.title ?? t.sessionType[s.type]}</span>
+              ))}
+              {items.length > 3 && <span className="mmore">+{items.length - 3}</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className="row muted" style={{ fontSize: 12, gap: 12 }}>
+        {(["pitch", "match", "gym", "recovery"] as const).map((k) => <span key={k} className="row" style={{ gap: 4 }}><span className={"mchip-dot " + k} />{t.sessionType[k]}</span>)}
+      </div>
+    </section>
   );
 }
 

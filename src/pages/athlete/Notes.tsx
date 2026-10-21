@@ -29,7 +29,7 @@ export function AthleteNotes() {
         {q.data!.notes.length === 0 ? <p className="empty">{t.noSharedNotes}</p> : q.data!.notes.map((n) => (
           <div key={n.id} className="note">
             <span className="muted" style={{ fontSize: 12 }}>{displayName(q.data!.authors.get(n.author_id))} · {fmtDay(n.created_at.slice(0, 10), lang)}</span>
-            <p>{n.body}</p>
+            <p dir="auto">{n.body}</p>
           </div>
         ))}
       </section>

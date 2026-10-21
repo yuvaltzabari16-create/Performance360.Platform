@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useI18n } from "../lib/i18n";
+import { LangToggle } from "./LangToggle";
 import { Logo } from "./Logo";
+import { NotificationBell } from "./NotificationBell";
 import { useSession } from "../lib/session";
 
 const ICON: Record<string, string> = {
@@ -13,6 +15,8 @@ const ICON: Record<string, string> = {
   planner: "M3 5h12v2H3zm0 6h12v2H3zm0 6h8v2H3zm15-4 1.1 2.4 2.4 1.1-2.4 1.1L18 21l-1.1-2.4-2.4-1.1 2.4-1.1zM19 3l.8 1.7 1.7.8-1.7.8L19 8l-.8-1.7-1.7-.8 1.7-.8z",
   library: "M4 4h4v16H4zm6 0h4v16h-4zm5.6 1.3 3.9-1 4 15.4-3.9 1z",
   testing: "M13 2 4 14h7l-1 8 9-12h-7z",
+  injuries: "M12 21s-7-4.4-9.3-9C1 8.5 3 5 6.5 5c2 0 3.5 1.2 4.5 2.6h2C14 6.2 15.5 5 17.5 5 21 5 23 8.5 21.3 12 19 16.6 12 21 12 21zm-1-12v3H8v2h3v3h2v-3h3v-2h-3V9z",
+  messages: "M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2zm3 5v2h10V9zm0 4v2h7v-2z",
   today: "M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z",
   progress: "M3 17l6-6 4 4 8-8v4h2V3h-8v2h4l-6 6-4-4-8 8z",
   notes: "M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z",
@@ -27,6 +31,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       ? [
           { to: "/today", key: "today", label: t.today },
           { to: "/progress", key: "progress", label: t.progress },
+          { to: "/messages", key: "messages", label: t.messages },
           { to: "/notes", key: "notes", label: t.notesNav },
           { to: "/settings", key: "settings", label: t.settings },
         ]
@@ -34,6 +39,8 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
           { to: "/overview", key: "overview", label: t.overview },
           { to: "/players", key: "players", label: t.players },
           { to: "/training", key: "training", label: t.training },
+          { to: "/injuries", key: "injuries", label: t.injuries },
+          { to: "/messages", key: "messages", label: t.messages },
           { to: "/planner", key: "planner", label: t.planner },
           { to: "/library", key: "library", label: t.library },
           { to: "/testing", key: "testing", label: t.testing },
@@ -44,7 +51,7 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
 
   const links = items.map((it) => (
     <a key={it.key} href={"#" + it.to} aria-current={path === it.to || path.startsWith(it.to + "/") ? "page" : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICON[it.key]} /></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d={ICON[it.key]} /></svg>
       <span>{it.label}</span>
     </a>
   ));
@@ -62,7 +69,9 @@ export function Shell({ path, children }: { path: string; children: ReactNode })
       <div className="main">
         <header className="top">
           <span className="mbrand"><Logo size={26} /></span>
-          <span className="grow muted" style={{ fontSize: 12 }}>{club?.name}</span>
+          <span className="grow muted top-club" style={{ fontSize: 12 }}>{club?.name}</span>
+          <LangToggle compact />
+          <NotificationBell />
         </header>
         <main className="content">{children}</main>
       </div>

@@ -145,3 +145,54 @@ export interface TestResult {
   value: number;
   notes: string | null;
 }
+
+export type Severity = "minor" | "moderate" | "severe";
+
+export interface Injury {
+  id: string;
+  club_id: string;
+  player_id: string;
+  reported_on: string;
+  body_area: string;
+  side: "left" | "right" | "both" | null;
+  kind: string | null;
+  mechanism: string | null;
+  severity: Severity;
+  /** 0 rest · 1 rehab · 2 running · 3 modified training · 4 full training · 5 cleared */
+  stage: number;
+  expected_return: string | null;
+  diagnosis: string | null;
+  notes: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InjuryUpdate {
+  id: string;
+  injury_id: string;
+  stage: number;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface Message {
+  id: string;
+  club_id: string;
+  player_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  club_id: string | null;
+  kind: string;
+  data: Record<string, string | number | null>;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}

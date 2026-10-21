@@ -6,6 +6,7 @@ import { useSession } from "../../lib/session";
 import { must, supabase } from "../../lib/supabase";
 import { WELLNESS_KEYS, type Checkin, type WellnessKey } from "../../lib/types";
 import { useAsync } from "../../lib/useAsync";
+import { AthleteRtpCard } from "../../components/InjuryPanels";
 import { RateSessions } from "./RateSessions";
 
 type Form = Record<WellnessKey, number | null> & { sleep_hours: string; pain: boolean; pain_area: string; notes: string };
@@ -60,8 +61,10 @@ export function Today() {
     <>
       <div>
         <h1>{t.today}</h1>
-        <p className="sub">{myPlayer.full_name} ·{fmtDay(today, lang, { weekday: "long", day: "numeric", month: "long" })}</p>
+        <p className="sub">{myPlayer.full_name} · {fmtDay(today, lang, { weekday: "long", day: "numeric", month: "long" })}</p>
       </div>
+
+      <AthleteRtpCard player={myPlayer} />
 
       {done ? (
         <section className="panel" style={{ alignItems: "flex-start" }}>

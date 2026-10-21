@@ -104,6 +104,34 @@ begin
     reset role;
   end;
 
+  -- ===== Stage 4: injuries, messages, notifications
+  declare inj uuid; st text;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub',C,'role','authenticated')::text, true); set local role authenticated;
+    insert into public.injuries(player_id,body_area,severity,stage) values (p1,'hamstring','moderate',0) returning id into inj;
+    select status into st from public.players where id=p1; r := r || ('C logs injury own squad OK, player status='||st||' (expect injured)');
+    begin insert into public.injuries(player_id,body_area) values (p2,'ankle'); r := r || 'FAIL C logged injury other squad'::text; exception when others then r := r || 'C injury other squad blocked'::text; end;
+    update public.injuries set stage=2 where id=inj;
+    select status into st from public.players where id=p1; r := r || ('C moves to running, status='||st||' (expect rehab)');
+    select count(*) into n from public.injury_updates where injury_id=inj; r := r || ('injury timeline rows: '||n||' (expect 2)');
+    begin insert into public.messages(player_id,body) values (p2,'hi'); r := r || 'FAIL C messaged other-squad athlete'::text; exception when others then r := r || 'C message other squad blocked'::text; end;
+    insert into public.messages(player_id,body) values (p1,'Well done today');
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',A,'role','authenticated')::text, true); set local role authenticated;
+    select count(*) into n from public.injuries; r := r || ('A sees own injuries: '||n||' (expect 1)');
+    begin insert into public.injuries(player_id,body_area) values (p1,'knee'); r := r || 'FAIL A logged own injury'::text; exception when others then r := r || 'A injury insert blocked'::text; end;
+    select count(*) into n from public.notifications where kind in ('injury_stage','message_from_staff'); r := r || ('A notifications (stage + message): '||n||' (expect 2)');
+    insert into public.messages(player_id,body) values (p1,'Thanks coach');
+    begin insert into public.messages(player_id,body) values (p2,'spam'); r := r || 'FAIL A messaged as another athlete'::text; exception when others then r := r || 'A message to other thread blocked'::text; end;
+    begin insert into public.notifications(user_id,kind) values (C,'fake'); r := r || 'FAIL A forged a notification'::text; exception when others then r := r || 'A notification insert blocked'::text; end;
+    update public.notifications set read_at=now(); get diagnostics n = row_count; r := r || ('A marks own notifications read: '||n||' (expect 3: workout, stage, message)');
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',C,'role','authenticated')::text, true); set local role authenticated;
+    select count(*) into n from public.notifications where kind='message_from_athlete'; r := r || ('C notified of athlete message: '||n||' (expect 1)');
+    update public.notifications set read_at=now() where user_id=A; get diagnostics n = row_count; r := r || ('C edits athlete notifications: '||n||' (expect 0)');
+    reset role;
+  end;
+
   -- outsider X and another club's director D2
   perform set_config('request.jwt.claims', json_build_object('sub',X,'role','authenticated')::text, true); set local role authenticated;
   select (select count(*) from public.players)+(select count(*) from public.clubs)+(select count(*) from public.wellness_checkins)+(select count(*) from public.player_notes)+(select count(*) from public.profiles where id<>X) into n;

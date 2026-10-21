@@ -13,6 +13,8 @@ import { Settings } from "./pages/Settings";
 import { AthleteNotes } from "./pages/athlete/Notes";
 import { Progress } from "./pages/athlete/Progress";
 import { Today } from "./pages/athlete/Today";
+import { Messages } from "./pages/Messages";
+import { Injuries } from "./pages/coach/Injuries";
 import { AthleteWorkout } from "./pages/athlete/Workout";
 import { Library } from "./pages/coach/Library";
 import { Planner } from "./pages/coach/Planner";
@@ -57,6 +59,7 @@ function route(path: string, role: "director" | "coach" | "athlete") {
   if (role === "athlete") {
     if (path === "/progress") return <Progress />;
     if (path === "/notes") return <AthleteNotes />;
+    if (path === "/messages") return <Messages playerId={null} />;
     const w = match("/workout/:id", path);
     if (w) return <AthleteWorkout sessionId={w.id} />;
     if (path !== "/today") navigate("/today");
@@ -69,6 +72,10 @@ function route(path: string, role: "director" | "coach" | "athlete") {
   if (path === "/training") return <Training />;
   if (path === "/testing") return <Testing />;
   if (path === "/library") return <Library />;
+  if (path === "/injuries") return <Injuries />;
+  if (path === "/messages") return <Messages playerId={null} />;
+  const msg = match("/messages/:id", path);
+  if (msg) return <Messages playerId={msg.id} />;
   if (path === "/planner") return <Planner id={null} />;
   const pl = match("/planner/:id", path);
   if (pl) return <Planner id={pl.id} />;

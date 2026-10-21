@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../lib/i18n";
 import {
-  codes, FIELD_KEYS, newItem, uid,
+  codes, exName, FIELD_KEYS, newItem, uid,
   type BlockKind, type Exercise, type FieldKey, type WorkoutBlock, type WorkoutContent, type WorkoutItem,
 } from "../lib/workout";
 import { ExerciseBrowser } from "./ExerciseBrowser";
@@ -128,7 +128,7 @@ function BlockView({ block, code, byId, onKind, onItem, onRemoveItem, onMoveItem
 function ItemView({ item, code, ex, onChange, onRemove, onMove, onVideo }: {
   item: WorkoutItem; code: string; ex?: Exercise; onChange: (v: WorkoutItem) => void; onRemove: () => void; onMove: (d: number) => void; onVideo: (e: Exercise) => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const set = (patch: Partial<WorkoutItem>) => onChange({ ...item, ...patch });
   const unused = FIELD_KEYS.filter((f) => !item.fields.includes(f));
   const setCell = (row: number, f: FieldKey, v: string) => set({ sets: item.sets.map((r, i) => (i === row ? { ...r, [f]: v } : r)) });
@@ -139,7 +139,7 @@ function ItemView({ item, code, ex, onChange, onRemove, onMove, onVideo }: {
         <span className="code">{code}</span>
         {ex ? <button className="thumbbtn" onClick={() => onVideo(ex)} aria-label={t.video}><Thumb ex={ex} /></button> : <span className="thumbimg empty" aria-hidden="true">•</span>}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {ex ? <button className="exn" onClick={() => onVideo(ex)}>{item.name}</button> : <input value={item.name} onChange={(e) => set({ name: e.target.value })} aria-label={t.exerciseName} />}
+          {ex ? <button className="exn" onClick={() => onVideo(ex)}>{exName(ex, lang, item.name)}</button> : <input value={item.name} onChange={(e) => set({ name: e.target.value })} aria-label={t.exerciseName} />}
           <input className="inote" placeholder={t.note} value={item.note ?? ""} onChange={(e) => set({ note: e.target.value })} aria-label={t.note} />
         </div>
         <span className="iacts">

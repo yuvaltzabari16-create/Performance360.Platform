@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { ReadinessChart } from "../../components/ReadinessChart";
 import { Avatar, ConfirmButton, ErrorBox, Field, Loading, ReadyPill, StatusPill, useAction, useToast } from "../../components/ui";
+import { PlayerInjuries } from "../../components/InjuryPanels";
 import { LoadPanel, TestsPanel } from "../../components/PlayerPanels";
 import { displayName, inviteUrl, isLiveInvite, loadCheckins, loadClub, loadNotes, loadResults, loadRpe, loadTestDefs } from "../../lib/data";
 import { addDays, ageFrom, fmtDay, isoDate } from "../../lib/dates";
@@ -61,6 +62,7 @@ export function PlayerProfile({ id }: { id: string }) {
           </div>
         </div>
         <div className="row">
+          {canEdit && <a className="btn sm ghost" href={`#/messages/${player.id}`}>✉ {t.messageBtn}</a>}
           <StatusPill status={player.status} />
           {latest?.entry_date === today && <ReadyPill value={latest.readiness} />}
         </div>
@@ -80,7 +82,7 @@ export function PlayerProfile({ id }: { id: string }) {
                     <b>{fmtDay(c.entry_date, lang, { weekday: "short", day: "numeric", month: "short" })}</b>
                     <span className="muted"> · {t.sleepHours} {c.sleep_hours ?? t.none}</span>
                     {c.pain && <span className="pill bad" style={{ marginInlineStart: 6 }}>{t.pain}{c.pain_area ? `: ${c.pain_area}` : ""}</span>}
-                    {c.notes && <><br /><span className="muted" style={{ whiteSpace: "normal" }}>“{c.notes}”</span></>}
+                    {c.notes && <><br /><span className="muted" dir="auto" style={{ whiteSpace: "normal" }}>“{c.notes}”</span></>}
                   </span>
                   <ReadyPill value={c.readiness} />
                 </div>
@@ -131,6 +133,8 @@ export function PlayerProfile({ id }: { id: string }) {
               </div>
             )}
           </section>
+
+          <PlayerInjuries player={player} canEdit={canEdit} profiles={q.data.profiles} onChanged={q.reload} />
 
           <AthleteAccess player={player} invites={q.data.invites} canInvite={canEdit} onChange={q.reload} />
 
@@ -325,7 +329,7 @@ function Notes({ playerId, notes, authorName, me, onChange }: {
               )}
             </span>
           </div>
-          <p>{n.body}</p>
+          <p dir="auto">{n.body}</p>
         </div>
       ))}
     </section>
