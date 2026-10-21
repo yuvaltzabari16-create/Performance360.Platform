@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { DEMO, ytWatch } from "../lib/demo";
 import { useI18n } from "../lib/i18n";
-import { ytEmbed, ytThumb, type Exercise } from "../lib/workout";
+import { ytEmbed, type Exercise } from "../lib/workout";
+import { animFor } from "../lib/anim/catalog";
+import { renderSVG } from "../lib/anim/engine";
 
 /** Thumbnail that turns into the embedded YouTube player on tap (no third-party load until then). */
 export function ExerciseVideo({ ex, autoplay = false }: { ex: Pick<Exercise, "video_id" | "video_url" | "name_en">; autoplay?: boolean }) {
@@ -34,9 +36,13 @@ export function ExerciseVideo({ ex, autoplay = false }: { ex: Pick<Exercise, "vi
   return <div className="video empty">{t.noVideo}</div>;
 }
 
-export function Thumb({ ex }: { ex: Pick<Exercise, "video_id"> }) {
-  if (DEMO) return <span className={"thumbimg demo" + (ex.video_id ? " has" : "")} aria-hidden="true">▶</span>;
-  return ex.video_id
-    ? <img className="thumbimg" src={ytThumb(ex.video_id)} alt="" loading="lazy" onError={(e) => e.currentTarget.classList.add("broken")} />
-    : <span className="thumbimg empty" aria-hidden="true">▶</span>;
+type ExLike = Pick<Exercise, "category" | "name_en" | "equipment">;
+const stillCache = new Map<string, string>();
+
+/** Still frame of the exercise's movement illustration (thumbnails and lists; no network needed). */
+export function Thumb({ ex, className = "thumbimg anim" }: { ex: ExLike; className?: string }) {
+  const key = `${ex.category}|${ex.name_en}|${(ex.equipment ?? []).join()}`;
+  let svg = stillCache.get(key);
+  if (!svg) { svg = renderSVG(animFor(ex), { animate: false }); stillCache.set(key, svg); }
+  return <span className={className} aria-hidden="true" dangerouslySetInnerHTML={{ __html: svg }} />;
 }

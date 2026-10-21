@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ExerciseVideo } from "../../components/ExerciseMedia";
+import { ExerciseDemo } from "../../components/ExerciseAnimation";
 import { ErrorBox, Loading, useAction } from "../../components/ui";
 import { fmtDay } from "../../lib/dates";
 import { useExercises } from "../../lib/exercises";
@@ -93,10 +93,10 @@ export function AthleteWorkout({ sessionId }: { sessionId: string }) {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <button className="exn" onClick={() => setOpenVideo(showVideo ? null : it.id)} aria-expanded={showVideo}>{name}</button>
                         {it.note && <div className="muted" style={{ fontSize: 13 }}>{it.note}</div>}
-                        {e && !showVideo && (e.video_id || e.video_url) && <div className="muted" style={{ fontSize: 11 }}>▶ {t.tapVideo}</div>}
+                        {e && !showVideo && <div className="muted" style={{ fontSize: 11 }}>▶ {t.tapVideo}</div>}
                       </div>
                     </div>
-                    {showVideo && e && <ExerciseVideo ex={e} autoplay />}
+                    {showVideo && e && <ExerciseDemo ex={e} />}
                     <div className="tbl-wrap">
                       <table className="sets">
                         <thead><tr><th>{t.set}</th>{it.fields.map((f) => <th key={f}>{t.fields[f]}</th>)}<th>{t.fields.reps}</th><th>{t.fields.load}</th><th>{t.actual}</th></tr></thead>

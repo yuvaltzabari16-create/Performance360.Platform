@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { ExerciseBrowser } from "../../components/ExerciseBrowser";
-import { ExerciseVideo } from "../../components/ExerciseMedia";
+import { ExerciseDemo } from "../../components/ExerciseAnimation";
 import { Modal } from "../../components/Modal";
 import { ErrorBox, Field, Loading, useAction } from "../../components/ui";
 import { CATEGORIES, CATEGORY_REGION, categoryName, loadExercises, useExercises, youtubeId } from "../../lib/exercises";
@@ -48,7 +48,7 @@ export function ExerciseDetail({ ex, onSaved }: { ex: Exercise; onSaved?: (e: Ex
   const canEdit = !!ex.club_id && (role === "director" || role === "coach");
   return (
     <div className="stack" style={{ gap: 12 }}>
-      <ExerciseVideo ex={ex} />
+      <ExerciseDemo ex={ex} />
       <div className="row">
         <span className="tag">{t.region[ex.region as keyof typeof t.region] ?? ex.region}</span>
         <span className="tag">{categoryName(ex.category, lang)}</span>

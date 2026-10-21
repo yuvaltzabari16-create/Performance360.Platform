@@ -91,6 +91,7 @@ const en = {
     landmine: "Landmine", pullupbar: "Pull-up bar", bench: "Bench", dowel: "Dowel", bike: "Bike", crutches: "Crutches" } as Record<string, string>,
   cues: "Coaching cues", cuesHint: "One cue per line", addCustomExercise: "Add exercise", exerciseName: "Exercise name", nameHe: "Hebrew name",
   youtubeUrl: "YouTube link", exerciseAdded: "Exercise added", clubExercise: "Club exercise", openExternal: "Open demo", watchYoutube: "Watch on YouTube", noVideo: "No video yet",
+  movementDemo: "Movement demo", workingMuscles: "Working muscles", realVideo: "Real video", play: "Play", pause: "Pause",
   workouts: "Workouts", newWorkout: "New workout", untitled: "Untitled workout", searchWorkouts: "Search workouts", noWorkouts: "No workouts yet. Create one or ask the AI.",
   focus: "Focus", estMinutes: "Est. minutes", description: "Description", addSection: "Add section", sectionTitle: "Section title",
   addExercise: "Add exercise", addToBlock: "Add to superset", single: "Straight sets", superset: "Superset", circuit: "Circuit", rounds: "rounds",
@@ -114,7 +115,7 @@ const en = {
     def: "The AI request failed. Try again." } as Record<string, string>,
   // athlete workout
   openWorkout: "Open workout", yourWorkout: "Your workout", done: "Done", finishWorkout: "Finish workout", workoutDone: "Workout completed — your coach can see it",
-  howHard: "How hard was it overall?", actual: "Done", completedBy: "completed", tapVideo: "Tap for video",
+  howHard: "How hard was it overall?", actual: "Done", completedBy: "completed", tapVideo: "Tap for the demo",
   // demo
   demoLabel: "Demo", demoViewAs: "View as", demoReset: "Reset demo data", demoNote: "Sample club data, saved in this browser only.",
   // stage 4 — injuries, messages, notifications, calendar
@@ -222,6 +223,7 @@ const he: Dict = {
     landmine: "לנדמיין", pullupbar: "מוט מתח", bench: "ספסל", dowel: "מקל", bike: "אופניים", crutches: "קביים" } as Record<string, string>,
   cues: "דגשי ביצוע", cuesHint: "דגש אחד בכל שורה", addCustomExercise: "הוספת תרגיל", exerciseName: "שם התרגיל", nameHe: "שם בעברית",
   youtubeUrl: "קישור YouTube", exerciseAdded: "התרגיל נוסף", clubExercise: "תרגיל מועדון", openExternal: "פתיחת הדגמה", watchYoutube: "צפייה ב-YouTube", noVideo: "אין עדיין וידאו",
+  movementDemo: "הדגמת תנועה", workingMuscles: "שרירים עובדים", realVideo: "וידאו אמיתי", play: "הפעלה", pause: "השהיה",
   workouts: "אימונים", newWorkout: "אימון חדש", untitled: "אימון ללא שם", searchWorkouts: "חיפוש אימונים", noWorkouts: "אין עדיין אימונים. צרו אחד או בקשו מה-AI.",
   focus: "מיקוד", estMinutes: "דקות משוערות", description: "תיאור", addSection: "הוספת חלק", sectionTitle: "שם החלק",
   addExercise: "הוספת תרגיל", addToBlock: "הוספה לסופרסט", single: "סטים רגילים", superset: "סופרסט", circuit: "מעגל", rounds: "סבבים",
@@ -242,7 +244,7 @@ const he: Dict = {
     demo_unavailable: "עוזר ה-AI פועל כשהדף פתוח בתוך Claude.", demo_not_granted: "לא אושרה גישת AI לדף הזה.",
     def: "בקשת ה-AI נכשלה. נסו שוב." } as Record<string, string>,
   openWorkout: "פתיחת האימון", yourWorkout: "האימון שלך", done: "בוצע", finishWorkout: "סיום האימון", workoutDone: "האימון הושלם — המאמן רואה אותו",
-  howHard: "כמה קשה היה באופן כללי?", actual: "בוצע", completedBy: "השלימו", tapVideo: "הקישו לווידאו",
+  howHard: "כמה קשה היה באופן כללי?", actual: "בוצע", completedBy: "השלימו", tapVideo: "הקישו להדגמה",
   injuries: "פציעות", rtpBoard: "לוח חזרה למשחק", logInjury: "רישום פציעה", openInjuries: "פציעות פתוחות",
   unavailableK: "לא זמינים כעת", backThisWeek: "חוזרים תוך 7 ימים", avgDaysOut: "ממוצע ימי היעדרות",
   rtpStages: ["מנוחה", "שיקום", "ריצה", "אימון מותאם", "אימון מלא", "כשיר"],

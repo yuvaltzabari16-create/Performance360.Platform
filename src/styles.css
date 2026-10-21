@@ -470,3 +470,22 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
   .rtpcol:not(:has(.rtpcard)){padding:8px 10px}
   .rtpcol:not(:has(.rtpcard)) header small{display:none}
 }
+
+/* ---------- exercise movement illustrations ---------- */
+:root{--an-body:#DCE4DF;--an-body2:#C4D0C9;--an-edge:#9AAAA1;--an-muscle:#3FAE4F;--an-muscle2:#2E8C3E;--an-prop:#3B4A42;--an-plate:#56665D;--an-pad:#0B5A3A;--an-pad2:#A9B8B0;--an-boxc:#E9EFEB;--an-band:#7BC86C;--an-cable:#56665D;--an-ball:#0B5A3A;--an-floor:#EEF4F0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--an-body:#3A4840;--an-body2:#2C3832;--an-edge:#62756B;--an-muscle:#4CC35C;--an-muscle2:#3BA14A;--an-prop:#A9BAB0;--an-plate:#7D8E85;--an-pad:#3FAE4F;--an-pad2:#3E4E45;--an-boxc:#22322A;--an-cable:#8FA096;--an-ball:#3FAE4F;--an-floor:#16241C}}
+:root[data-theme="dark"]{--an-body:#3A4840;--an-body2:#2C3832;--an-edge:#62756B;--an-muscle:#4CC35C;--an-muscle2:#3BA14A;--an-prop:#A9BAB0;--an-plate:#7D8E85;--an-pad:#3FAE4F;--an-pad2:#3E4E45;--an-boxc:#22322A;--an-cable:#8FA096;--an-ball:#3FAE4F;--an-floor:#16241C}
+.thumbimg.anim{background:var(--surface,#fff);border:1px solid var(--line,#E3EAE6);overflow:hidden;display:block}
+.thumbimg.anim svg{display:block;width:100%;height:100%;overflow:visible}
+.exdemo{display:flex;flex-direction:column;gap:10px}
+.exdemo-stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line,#E3EAE6);background:var(--surface,#fff)}
+.exdemo-svg svg{display:block;width:100%;height:auto;max-height:46vh;overflow:visible}
+.exdemo-toggle{position:absolute;inset-inline-end:8px;bottom:8px;background:var(--surface,#fff)}
+.exdemo-toggle svg{width:16px;height:16px;fill:currentColor}
+.exdemo-muscles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px}
+.muscle-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:var(--chip);font-weight:500}
+.muscle-chip i{width:8px;height:8px;border-radius:50%;background:var(--an-muscle)}
+.exdemo-video summary{cursor:pointer;font-size:13px;color:var(--muted);padding:4px 0}
+.exdemo-video[open] summary{margin-bottom:8px}
+.thumbimg.anim{width:48px;height:36px}
+.exgrid .thumbimg.anim{width:100%;height:auto;aspect-ratio:4/3}

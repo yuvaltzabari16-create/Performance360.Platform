@@ -14,6 +14,14 @@ Football performance management for clubs and academies — one app for club dir
 
 Staff who can edit a player log injuries (area, side, type, mechanism, severity, expected return). Moving an injury through the stages is logged automatically, and the player's availability follows their open injuries: rest/rehab → injured, running/modified → rehab, full training/cleared → available. Athletes see their own stage and expected return on Today. Notifications are created by database triggers, so they also fire for changes made outside the app.
 
+## Exercise movement demos
+Every exercise has an illustrated, looping demo in the brand colours with the working muscles highlighted (library cards, exercise detail, planner, athlete workout). They are generated in the browser, with no video files and no network:
+- `src/lib/anim/rig.ts`: jointed 2D figure (side and front views), forward + 2-bone inverse kinematics, pose interpolation.
+- `src/lib/anim/draw.ts` + `engine.ts`: body and muscle shapes; frames combined into one SVG with SMIL animation (plays as an `<img>` or inline, pausable).
+- `src/lib/anim/p_*.ts`: ~70 movement patterns with variants (load, single-leg, isometric, machine, band, etc.). `props.ts` draws the equipment.
+- `src/lib/anim/catalog.ts`: keyword rules mapping category + name + equipment to a pattern and muscles. Club-added exercises get a demo automatically (category fallback when no rule matches).
+The YouTube video, when there is one, stays available under "Real video". Colours follow the `--an-*` CSS variables, including dark mode; `prefers-reduced-motion` starts the demo paused.
+
 ## AI workout assistant
 
 The assistant runs as the Supabase edge function `ai-workout` (`supabase/functions/ai-workout`). It uses Claude Sonnet 5.5 with structured JSON output and may only use exercises from the club's library. It can also take a squad's readiness and availability into account. Only staff can call it; it is limited to 100 requests per club per day (usage is logged in `ai_usage`).
