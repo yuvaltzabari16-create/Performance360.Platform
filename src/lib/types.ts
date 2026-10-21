@@ -107,6 +107,9 @@ export interface TrainingSession {
   duration_min: number;
   notes: string | null;
   created_by: string | null;
+  workout_id?: string | null;
+  player_id?: string | null;
+  workout_snapshot?: { title: string; focus: string | null; content: import("./workout").WorkoutContent } | null;
 }
 
 export interface SessionRpe {

@@ -6,6 +6,14 @@ Football performance management for clubs and academies — one app for club dir
 
 **Stage 2:** weekly training calendar per squad, session RPE from athletes (or entered by staff), training load (sRPE = RPE × minutes) with acute 7-day / chronic 28-day averages and ACWR flags, and physical testing (6 built-in tests, batch result entry, latest vs previous vs best, team trend).
 
+**Stage 3:** exercise library (348 exercises from the club's PDF, each with its YouTube demo; club exercises can be added), a three-pane workout planner (saved workouts · editor with sections, supersets/circuits, editable set fields and coaching notes · AI assistant), assigning a workout to a squad or one athlete, and an athlete workout view to tick sets, log reps/load, finish and rate it.
+
+## AI workout assistant
+
+The assistant runs as the Supabase edge function `ai-workout` (`supabase/functions/ai-workout`). It uses Claude Sonnet 5.5 with structured JSON output and may only use exercises from the club's library. It can also take a squad's readiness and availability into account. Only staff can call it; it is limited to 100 requests per club per day (usage is logged in `ai_usage`).
+
+**To switch it on:** Supabase dashboard → Edge Functions → Secrets → add `ANTHROPIC_API_KEY` (from console.anthropic.com). Until then the panel shows "AI isn't switched on yet".
+
 ## Stack
 
 - **Frontend:** React 19 + TypeScript + Vite. No UI framework — the design system from the prototype lives in `src/styles.css`.
@@ -70,5 +78,4 @@ Athletes rate each session on the CR10 scale (0–10) with minutes taken part; t
 
 ## Next stages
 
-3. Workout planner + exercise library (AI-assisted), assignments to athletes
 4. Injuries & return-to-play board, messaging, notifications

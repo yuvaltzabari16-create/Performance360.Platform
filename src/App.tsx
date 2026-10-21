@@ -11,6 +11,9 @@ import { Settings } from "./pages/Settings";
 import { AthleteNotes } from "./pages/athlete/Notes";
 import { Progress } from "./pages/athlete/Progress";
 import { Today } from "./pages/athlete/Today";
+import { AthleteWorkout } from "./pages/athlete/Workout";
+import { Library } from "./pages/coach/Library";
+import { Planner } from "./pages/coach/Planner";
 import { Overview } from "./pages/coach/Overview";
 import { PlayerProfile } from "./pages/coach/PlayerProfile";
 import { Players } from "./pages/coach/Players";
@@ -52,6 +55,8 @@ function route(path: string, role: "director" | "coach" | "athlete") {
   if (role === "athlete") {
     if (path === "/progress") return <Progress />;
     if (path === "/notes") return <AthleteNotes />;
+    const w = match("/workout/:id", path);
+    if (w) return <AthleteWorkout sessionId={w.id} />;
     if (path !== "/today") navigate("/today");
     return <Today />;
   }
@@ -61,6 +66,10 @@ function route(path: string, role: "director" | "coach" | "athlete") {
   if (path === "/squads") return <Squads />;
   if (path === "/training") return <Training />;
   if (path === "/testing") return <Testing />;
+  if (path === "/library") return <Library />;
+  if (path === "/planner") return <Planner id={null} />;
+  const pl = match("/planner/:id", path);
+  if (pl) return <Planner id={pl.id} />;
   if (path === "/staff" && role === "director") return <Staff />;
   if (path !== "/overview" && isStaff(role)) navigate("/overview");
   return <Overview />;

@@ -1,0 +1,167 @@
+{
+ "regions": {
+  "lower": {
+   "en": "Lower Body",
+   "he": "פלג גוף תחתון"
+  },
+  "upper": {
+   "en": "Upper Body",
+   "he": "פלג גוף עליון"
+  },
+  "core": {
+   "en": "Trunk / Core / Abs",
+   "he": "ליבה"
+  },
+  "rehab": {
+   "en": "Post-Op Knee Rehab",
+   "he": "שיקום ברך לאחר ניתוח"
+  }
+ },
+ "categories": [
+  {
+   "key": "squat",
+   "en": "Squat & lunge patterns",
+   "he": "סקוואט ולאנג'"
+  },
+  {
+   "key": "hinge",
+   "en": "Hinge patterns",
+   "he": "הינג' (כפיפת ירך)"
+  },
+  {
+   "key": "quad",
+   "en": "Quad isolation",
+   "he": "בידוד ארבע-ראשי"
+  },
+  {
+   "key": "hamstring",
+   "en": "Hamstring (knee flexion)",
+   "he": "ירך אחורית (כפיפת ברך)"
+  },
+  {
+   "key": "adductor",
+   "en": "Adductors",
+   "he": "מקרבים"
+  },
+  {
+   "key": "abductor",
+   "en": "Abductors / side planks",
+   "he": "מרחיקים / פלאנק צד"
+  },
+  {
+   "key": "calf",
+   "en": "Calves",
+   "he": "תאומים"
+  },
+  {
+   "key": "plyo",
+   "en": "Jumps & plyometrics",
+   "he": "קפיצות ופליומטריקה"
+  },
+  {
+   "key": "cod",
+   "en": "Change of direction",
+   "he": "שינוי כיוון"
+  },
+  {
+   "key": "hpress",
+   "en": "Horizontal press",
+   "he": "דחיקה אופקית"
+  },
+  {
+   "key": "hrow",
+   "en": "Horizontal row",
+   "he": "משיכה אופקית (חתירה)"
+  },
+  {
+   "key": "vpress",
+   "en": "Vertical / incline press",
+   "he": "דחיקה אנכית / משופעת"
+  },
+  {
+   "key": "vpull",
+   "en": "Vertical pull",
+   "he": "משיכה אנכית"
+  },
+  {
+   "key": "arms",
+   "en": "Biceps / triceps",
+   "he": "יד קדמית / יד אחורית"
+  },
+  {
+   "key": "forearm",
+   "en": "Forearm / elbow",
+   "he": "אמה / מרפק"
+  },
+  {
+   "key": "shoulder",
+   "en": "Shoulder / rotator cuff / chest / upper back",
+   "he": "כתף / שרוול מסובב / חזה / גב עליון"
+  },
+  {
+   "key": "rom",
+   "en": "Range of motion (elbow, shoulder, thoracic, neck)",
+   "he": "טווחי תנועה (מרפק, כתף, חזה, צוואר)"
+  },
+  {
+   "key": "iso",
+   "en": "Shoulder & neck isometrics",
+   "he": "איזומטריות כתף וצוואר"
+  },
+  {
+   "key": "medball",
+   "en": "Medicine ball throws",
+   "he": "זריקות כדור כוח"
+  },
+  {
+   "key": "plank",
+   "en": "Planks",
+   "he": "פלאנק"
+  },
+  {
+   "key": "sidebend",
+   "en": "Side bend / lateral flexion",
+   "he": "כפיפה צידית"
+  },
+  {
+   "key": "flexpelvis",
+   "en": "Flexion / extension (pelvis)",
+   "he": "כפיפה ויישור (אגן)"
+  },
+  {
+   "key": "flexrib",
+   "en": "Flexion / extension (ribcage)",
+   "he": "כפיפה ויישור (בית חזה)"
+  },
+  {
+   "key": "rotation",
+   "en": "Rotation",
+   "he": "רוטציה"
+  },
+  {
+   "key": "knee_flex",
+   "en": "Knee rehab: flexion range",
+   "he": "שיקום ברך: טווח כפיפה"
+  },
+  {
+   "key": "knee_ext",
+   "en": "Knee rehab: extension range",
+   "he": "שיקום ברך: טווח יישור"
+  },
+  {
+   "key": "quad_start",
+   "en": "Knee rehab: quad activation",
+   "he": "שיקום ברך: הפעלת ארבע-ראשי"
+  },
+  {
+   "key": "gait",
+   "en": "Knee rehab: gait & crutches",
+   "he": "שיקום ברך: הליכה וקביים"
+  },
+  {
+   "key": "rehab_other",
+   "en": "Knee rehab: general",
+   "he": "שיקום ברך: כללי"
+  }
+ ]
+}

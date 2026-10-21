@@ -42,7 +42,11 @@ function Sessions() {
 
   const q = useAsync(async () => {
     const [c, sessions, rpe] = await Promise.all([loadClub(club!.id), loadSessions(club!.id, week, end), loadRpe(club!.id, week, end)]);
-    return { ...c, sessions, rpe };
+    const withWorkout = sessions.filter((s) => s.workout_snapshot).map((s) => s.id);
+    const logs = withWorkout.length
+      ? must(await supabase.from("workout_logs").select("session_id, completed_at").in("session_id", withWorkout)) as { session_id: string; completed_at: string | null }[]
+      : [];
+    return { ...c, sessions, rpe, logs };
   }, [club?.id, week]);
 
   const manageable = useMemo(() => {
@@ -56,10 +60,12 @@ function Sessions() {
   if (q.error) return <ErrorBox message={q.error} onRetry={q.reload} />;
   if (!q.data) return null;
   const d = q.data;
-  const squadName = (id: string | null) => (id ? d.squads.find((s) => s.id === id)?.name ?? "" : t.wholeClub);
+  const squadName = (id: string | null, playerId?: string | null) =>
+    playerId ? d.players.find((p) => p.id === playerId)?.full_name ?? "" : id ? d.squads.find((s) => s.id === id)?.name ?? "" : t.wholeClub;
   const visible = d.sessions.filter((s) => squad === "all" || s.squad_id === squad || s.squad_id === null);
   const canManage = (s: TrainingSession) => role === "director" || (!!s.squad_id && manageable.some((m) => m.id === s.squad_id));
-  const expected = (s: TrainingSession) => d.players.filter((p) => !s.squad_id || p.squad_id === s.squad_id).length;
+  const expected = (s: TrainingSession) => s.player_id ? 1 : d.players.filter((p) => !s.squad_id || p.squad_id === s.squad_id).length;
+  const sessionPlayers = (s: TrainingSession) => d.players.filter((p) => (s.player_id ? p.id === s.player_id : !s.squad_id || p.squad_id === s.squad_id));
 
   return (
     <>
@@ -114,15 +120,17 @@ function Sessions() {
                       <span className="row">
                         <span className={"tag" + (s.type === "match" ? " match" : "")}>{t.sessionType[s.type]}</span>
                         <b>{s.title || t.sessionType[s.type]}</b>
-                        <span className="muted">{squadName(s.squad_id)} · {s.duration_min}′</span>
+                        <span className="muted">{squadName(s.squad_id, s.player_id)} · {s.duration_min}′</span>
+                        {s.workout_snapshot && <span className="tag">▤ {s.workout_snapshot.title}</span>}
                       </span>
                       <span className="row muted" style={{ fontSize: 12 }}>
                         <span>{t.responses} {replies.length}/{expected(s)}</span>
+                        {s.workout_snapshot && <span>✓ {d.logs.filter((l) => l.session_id === s.id && l.completed_at).length}/{expected(s)} {t.completedBy}</span>}
                         {avg != null && <span>{t.avgRpe} {avg.toFixed(1)}</span>}
                       </span>
                     </button>
                     {isOpen && (
-                      <RpeEditor session={s} players={d.players.filter((p) => !s.squad_id || p.squad_id === s.squad_id)}
+                      <RpeEditor session={s} players={sessionPlayers(s)}
                         rpe={replies} editable={editablePlayerIds(d, role, userId)} onSaved={q.reload}
                         onDelete={canManage(s) ? async () => {
                           const ok = await act(async () => { must(await supabase.from("training_sessions").delete().eq("id", s.id)); }, t.sessionDeleted);

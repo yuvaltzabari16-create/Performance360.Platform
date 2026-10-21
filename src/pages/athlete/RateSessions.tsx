@@ -41,8 +41,8 @@ export function RateSessions() {
   );
 }
 
-function SessionCard({ s, mine, playerId, lang, onSaved }: {
-  s: TrainingSession; mine?: SessionRpe; playerId: string; lang: "he" | "en"; onSaved: () => void;
+export function SessionCard({ s, mine, playerId, lang, onSaved, hideOpen = false }: {
+  s: TrainingSession; mine?: SessionRpe; playerId: string; lang: "he" | "en"; onSaved: () => void; hideOpen?: boolean;
 }) {
   const { t } = useI18n();
   const act = useAction();
@@ -69,6 +69,7 @@ function SessionCard({ s, mine, playerId, lang, onSaved }: {
           <b>{s.title || t.sessionType[s.type]}</b>
           <span className="muted">{fmtDay(s.session_date, lang, { weekday: "short", day: "numeric", month: "short" })} · {s.duration_min}′</span>
         </span>
+        {s.workout_snapshot && !hideOpen && <a className="btn sm" href={`#/workout/${s.id}`}>{t.openWorkout}</a>}
         {mine && !editing && (
           <span className="row">
             <span className="pill good">{t.rated} · {mine.rpe}</span>

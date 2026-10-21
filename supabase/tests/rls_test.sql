@@ -79,6 +79,31 @@ begin
     reset role;
   end;
 
+  -- ===== Stage 3: workouts, individual sessions, logs, library
+  declare wk uuid; ind1 uuid; ind2 uuid;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub',C,'role','authenticated')::text, true); set local role authenticated;
+    insert into public.workouts(club_id,title,content) values (club1,'W','{"sections":[]}') returning id into wk;
+    insert into public.training_sessions(club_id,player_id,session_date,type,duration_min,workout_id,workout_snapshot)
+      values (club1,p1,current_date,'gym',45,wk,'{"title":"W","content":{"sections":[]}}') returning id into ind1;
+    r := r || 'C assigns workout to own-squad athlete OK'::text;
+    begin insert into public.training_sessions(club_id,player_id,session_date,duration_min) values (club1,p2,current_date,45); r := r || 'FAIL C assigned other-squad athlete'::text; exception when others then r := r || 'C assign to other-squad athlete blocked'::text; end;
+    begin insert into public.exercises(club_id,region,category,name_en) values (club1,'lower','squat','Club Squat'); r := r || 'C adds club exercise OK'::text; exception when others then r := r || ('FAIL C club exercise: '||sqlerrm); end;
+    begin update public.exercises set name_en='hack' where club_id is null; get diagnostics n = row_count; r := r || ('C edits built-in exercises: '||n||' (expect 0)'); end;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',D,'role','authenticated')::text, true); set local role authenticated;
+    insert into public.training_sessions(club_id,player_id,session_date,duration_min) values (club1,p2,current_date,30) returning id into ind2;
+    reset role;
+    perform set_config('request.jwt.claims', json_build_object('sub',A,'role','authenticated')::text, true); set local role authenticated;
+    select count(*) into n from public.workouts; r := r || ('A sees club workout library: '||n||' (expect 0)');
+    select count(*) into n from public.training_sessions where id in (ind1, ind2); r := r || ('A sees individual sessions: '||n||' (expect 1, own)');
+    select count(*) into n from public.exercises; r := r || ('A sees exercises: '||n||' (expect built-in + 1 club)');
+    begin insert into public.workout_logs(session_id,player_id,log,completed_at) values (ind1,p1,'{}',now()); r := r || 'A logs own workout OK'::text; exception when others then r := r || ('FAIL A log: '||sqlerrm); end;
+    begin insert into public.workout_logs(session_id,player_id,log) values (ind2,p1,'{}'); r := r || 'FAIL A logged another athlete session'::text; exception when others then r := r || 'A log on other athlete session blocked'::text; end;
+    begin insert into public.ai_usage(club_id,kind) values (club1,'create'); r := r || 'FAIL athlete wrote ai_usage'::text; exception when others then r := r || 'athlete ai_usage blocked'::text; end;
+    reset role;
+  end;
+
   -- outsider X and another club's director D2
   perform set_config('request.jwt.claims', json_build_object('sub',X,'role','authenticated')::text, true); set local role authenticated;
   select (select count(*) from public.players)+(select count(*) from public.clubs)+(select count(*) from public.wellness_checkins)+(select count(*) from public.player_notes)+(select count(*) from public.profiles where id<>X) into n;
