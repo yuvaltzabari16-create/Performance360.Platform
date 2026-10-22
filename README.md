@@ -14,11 +14,11 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Role onboarding (7 roles), enforced in the database | Working |
 | Athlete management: profiles, search/filter, archive, notes, flags | Working |
 | Personal coach codes, invitation links, confirmed connect, coach transfer | Working |
-| Exercise library: 45 system exercises, custom exercises, favorites, video links | Working |
+| Exercise library: 347 system exercises with video links (from the coach-provided list), custom exercises, favorites | Working (live) |
 | Training planner: programs → phases → weeks → sessions → exercises, copy/duplicate, templates, versions, assignment, athlete logging, planned vs completed | Working |
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
-| Team accounts (director, staff roles, invitations, consented roster), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
+| Team accounts (director, staff roles, invitations, consented roster; live on the Supabase project since 2026-10-22), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
 | AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, rehab module, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
 
 There are no fake metrics. Every dashboard number is counted from database rows,
