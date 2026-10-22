@@ -202,8 +202,7 @@ create policy org_codes_select on public.organization_codes for select to authen
   using (public.is_org_director(org_id) or public.is_platform_admin());
 
 -- Profiles: also visible between colleagues, from staff to roster athletes, and from athletes to their team's staff.
-drop policy profiles_select on public.profiles;
-create policy profiles_select on public.profiles for select to authenticated using (
+alter policy profiles_select on public.profiles using (
   id = auth.uid()
   or public.is_platform_admin()
   or exists (
