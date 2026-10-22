@@ -13,13 +13,19 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const { t, user } = await getSession();
   const next = safeNext(sp.next, "/onboarding");
   if (user) redirect(next);
-  const inviteCode = next.match(/code=(P360-[A-Z0-9]{6})/i)?.[1];
+  const accountType = next.match(/type=(team|independent|athlete)/)?.[1] as "team" | "independent" | "athlete" | undefined;
+  const inviteCode = next.match(/code=((?:P360|TEAM|STAFF)-[A-Z0-9]{6})/i)?.[1];
   return (
     <>
       <h1 className="mb-6 text-2xl font-semibold tracking-tight text-ink">{t.auth.signupTitle}</h1>
       {inviteCode && (
         <p className="mb-4 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-800">
           {t.auth.joinWithCode} <span className="num font-semibold">{inviteCode.toUpperCase()}</span>
+        </p>
+      )}
+      {accountType && !inviteCode && (
+        <p className="mb-4 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-800">
+          {t.landing.signUpAs} <span className="font-semibold">{t.accountTypes[accountType].title}</span>
         </p>
       )}
       <FlashMessage error={sp.error} />

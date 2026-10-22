@@ -2,18 +2,18 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Logo } from "@/components/ui";
 import type { Dictionary } from "@/lib/i18n";
-import type { Profile, UserRole } from "@/lib/types";
+import type { OrgMembership, Profile, UserRole } from "@/lib/types";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { NavLinks } from "./NavLinks";
 import { navFor } from "./nav";
 
-export function AppShell({ profile, t, unread, children }: { profile: Profile & { role: UserRole }; t: Dictionary; unread: number; children: React.ReactNode }) {
-  const items = navFor(profile.role, t);
+export function AppShell({ profile, org, t, unread, children }: { profile: Profile & { role: UserRole }; org: OrgMembership | null; t: Dictionary; unread: number; children: React.ReactNode }) {
+  const items = navFor(profile.role, t, org?.org_role ?? null);
   const userBlock = (
     <div className="border-t border-white/10 p-3">
       <div className="px-3 pb-2">
         <div className="truncate text-sm font-medium text-white">{profile.full_name || profile.email}</div>
-        <div className="truncate text-xs text-white/50">{t.roles[profile.role]}</div>
+        <div className="truncate text-xs text-white/50">{org ? `${t.orgRoles[org.org_role]} · ${org.org_name}` : t.roles[profile.role]}</div>
       </div>
       <div className="flex items-center justify-between px-1 text-white">
         <LanguageSwitch locale={profile.locale} />

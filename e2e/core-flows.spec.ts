@@ -42,9 +42,15 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Fathletes/);
   });
 
-  test("coach registers, onboards and gets a personal code", async ({ page }) => {
-    await signup(page, coach);
-    await page.getByLabel("Strength & Conditioning Coach").check();
+  test("coach registers as a Personal Trainer account and gets a personal code", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("[data-account-type]")).toHaveCount(3); // Team, Personal Trainer, Athlete
+    await page.locator('[data-account-type="independent"]').click();
+    await page.waitForURL(/\/signup/);
+    await expect(page.getByText("Account type")).toBeVisible();
+    await signup(page, coach, page.url());
+    await expect(page).toHaveURL(/type=independent/);
+    await page.getByLabel("Your profession").selectOption("sc_coach");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/dashboard/);
     await expect(page.getByText("Active athletes")).toBeVisible();
@@ -79,7 +85,7 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.goto(`/join/${code}`);
     await expect(page.getByText(code)).toBeVisible();
     await signup(page, athlete, page.url());
-    await expect(page.getByLabel("Athlete")).toBeChecked();
+    await expect(page.getByLabel("Your full name")).toHaveValue("Dana Athlete");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/connect\?code=/);
     await expect(page.getByText("Coach Alpha")).toBeVisible();
@@ -205,8 +211,8 @@ test.describe.serial("Performance360 core workflows", () => {
   });
 
   test("a different coach cannot see or open the first coach's athletes", async ({ page }) => {
-    await signup(page, other);
-    await page.getByLabel("Athletic Performance Coach").check();
+    await signup(page, other, "/signup?next=%2Fonboarding%3Ftype%3Dindependent");
+    await page.getByLabel("Your profession").selectOption("performance_coach");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/dashboard/);
     await page.goto("/athletes");

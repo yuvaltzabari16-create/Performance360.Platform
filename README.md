@@ -18,11 +18,27 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Training planner: programs → phases → weeks → sessions → exercises, copy/duplicate, templates, versions, assignment, athlete logging, planned vs completed | Working |
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
-| Teams/groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
+| Team accounts (director, staff roles, invitations, consented roster), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
 | AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, rehab module, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
 
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
+
+## Account types
+
+Sign-up offers three paths (`/` and `/onboarding`):
+
+| Account | Who | What they get |
+| --- | --- | --- |
+| **Team** | A club or staff group | The creator becomes the **director** and the team gets an athlete code (`TEAM-XXXXXX`). The director invites each staff member with a single-use, 14-day invitation (`STAFF-XXXXXX`) that fixes their role: head coach, head of performance, assistant coach, physiotherapist, sports scientist or other staff. Everyone has their own login. |
+| **Personal Trainer** | An independent practitioner | Own roster, personal coach code (`P360-XXXXXX`) and programs. Can choose a profession (personal trainer, S&C coach, performance coach, physiotherapist, sports scientist). |
+| **Athlete** | The person being coached | Connects to a coach (`P360-`) or joins a team roster (`TEAM-`) after seeing who they are connecting with. Can leave at any time. |
+
+Team permissions: staff (everyone except the director) work with the athletes on the team roster; head coach and
+head of performance can also edit and archive athlete profiles. The **director sees the roster list and aggregated
+totals only, never individual athlete records.** Roster membership needs the athlete's own consent; staff can add an
+athlete who has no account yet, and that assertion is recorded. A removed member or a departing athlete loses access
+immediately.
 
 ## Security model
 
@@ -59,8 +75,8 @@ match the project's migration history, so `supabase db push` only sends new ones
 | Command | What it checks |
 | --- | --- |
 | `npm run test` | Unit tests for metrics, form parsing and video embedding (Vitest) |
-| `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission and training-function suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
-| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, Hebrew RTL, mobile menu |
+| `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission, training-function and team-permission suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
+| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, the three account types, team roles and roster consent, Hebrew RTL, mobile menu |
 | `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
 ## Project layout

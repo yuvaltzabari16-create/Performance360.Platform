@@ -25,6 +25,40 @@ export const ONBOARDING_ROLES: UserRole[] = [
   "org_admin",
 ];
 
+export type OrgRole =
+  | "director"
+  | "head_coach"
+  | "head_of_performance"
+  | "assistant_coach"
+  | "physiotherapist"
+  | "sports_scientist"
+  | "other_staff";
+
+export const ORG_ROLES: OrgRole[] = [
+  "director",
+  "head_coach",
+  "head_of_performance",
+  "assistant_coach",
+  "physiotherapist",
+  "sports_scientist",
+  "other_staff",
+];
+
+/** Independent practitioners (Personal Trainer account type) choose a profession. */
+export const INDEPENDENT_ROLES: UserRole[] = [
+  "personal_trainer",
+  "sc_coach",
+  "performance_coach",
+  "physiotherapist",
+  "sports_scientist",
+];
+
+export interface OrgMembership {
+  org_id: string;
+  org_name: string;
+  org_role: OrgRole;
+}
+
 export type Locale = "en" | "he";
 export type Units = "metric" | "imperial";
 

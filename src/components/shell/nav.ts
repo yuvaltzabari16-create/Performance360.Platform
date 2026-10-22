@@ -1,8 +1,8 @@
 import type { Dictionary } from "@/lib/i18n";
-import type { UserRole } from "@/lib/types";
+import type { OrgRole, UserRole } from "@/lib/types";
 
 export type NavIcon =
-  | "home" | "users" | "group" | "calendar" | "library" | "chart" | "pulse" | "key" | "link" | "bell" | "settings";
+  | "home" | "team" | "users" | "group" | "calendar" | "library" | "chart" | "pulse" | "key" | "link" | "bell" | "settings";
 
 export interface NavItem {
   href: string;
@@ -11,7 +11,7 @@ export interface NavItem {
 }
 
 /** Navigation per role. Only shipped, working modules are listed. */
-export function navFor(role: UserRole, t: Dictionary): NavItem[] {
+export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null): NavItem[] {
   if (role === "athlete") {
     return [
       { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
@@ -24,8 +24,18 @@ export function navFor(role: UserRole, t: Dictionary): NavItem[] {
       { href: "/settings", label: t.nav.settings, icon: "settings" },
     ];
   }
+  if (orgRole === "director") {
+    // The director runs the team; individual athlete records are not part of this role.
+    return [
+      { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
+      { href: "/team", label: t.nav.team, icon: "team" },
+      { href: "/notifications", label: t.nav.notifications, icon: "bell" },
+      { href: "/settings", label: t.nav.settings, icon: "settings" },
+    ];
+  }
   return [
     { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
+    ...(orgRole ? [{ href: "/team", label: t.nav.team, icon: "team" as const }] : []),
     { href: "/athletes", label: t.nav.athletes, icon: "users" },
     { href: "/teams", label: t.nav.teams, icon: "group" },
     { href: "/training", label: t.nav.training, icon: "calendar" },

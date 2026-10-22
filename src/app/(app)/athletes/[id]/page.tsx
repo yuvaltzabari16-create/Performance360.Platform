@@ -9,11 +9,12 @@ import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, welln
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
+import { addToRoster, removeFromRoster } from "../../team/actions";
 
 export default async function AthletePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireProfile();
+  const { supabase, user, profile, org, t } = await requireProfile();
   if (!isUuid(id)) notFound();
 
   const { data } = await supabase.from("athletes").select("*").eq("id", id).maybeSingle();
@@ -36,10 +37,25 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
 
   const relationships = rels.data ?? [];
   const myRel = relationships.find((r) => r.coach_id === user.id);
-  const isPrimary = myRel?.kind === "primary";
+  // Lead access comes from a personal primary relationship or from a lead role on the athlete's team.
+  const { data: primaryFlag } = await supabase.rpc("is_primary_coach", { p_athlete: id });
+  const isPrimary = primaryFlag === true;
+  const { data: rosterRows } = await supabase
+    .from("organization_athletes")
+    .select("org_id, consent_source, consented_at, organizations(name)")
+    .eq("athlete_id", id)
+    .eq("status", "active");
+  const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
+  const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
+  const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
   const isPro = profile.role !== "athlete";
 
-  const coachIds = relationships.map((r) => r.coach_id);
+  // Team staff on the athlete's roster teams (visible to the athlete and to colleagues).
+  const rosterOrgIds = (rosterRows ?? []).map((r) => r.org_id);
+  const { data: teamStaff } = rosterOrgIds.length
+    ? await supabase.from("organization_members").select("user_id, org_id, org_role").in("org_id", rosterOrgIds).eq("status", "active").neq("org_role", "director")
+    : { data: [] };
+  const coachIds = [...new Set([...relationships.map((r) => r.coach_id), ...(teamStaff ?? []).map((m) => m.user_id), ...(notes.data ?? []).map((n) => n.author_id)])];
   const { data: coachProfiles } = coachIds.length
     ? await supabase.from("profiles").select("id, full_name, role").in("id", coachIds)
     : { data: [] };
@@ -256,10 +272,16 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
           </Card>
 
           <Card title={ta.professionals}>
-            {relationships.length === 0 ? (
+            {relationships.length === 0 && (teamStaff ?? []).length === 0 ? (
               <p className="text-sm text-muted">—</p>
             ) : (
               <ul className="space-y-3 text-sm">
+                {(teamStaff ?? []).map((m) => (
+                  <li key={`team-${m.user_id}`}>
+                    <div className="font-medium"><bdi>{nameOf(m.user_id)}</bdi></div>
+                    <div className="text-xs text-muted">{t.orgRoles[m.org_role as keyof typeof t.orgRoles]} · {(rosterRows ?? []).find((r) => r.org_id === m.org_id) && (((rosterRows ?? []).find((r) => r.org_id === m.org_id)?.organizations as unknown as { name: string } | null)?.name)}</div>
+                  </li>
+                ))}
                 {relationships.map((r) => (
                   <li key={r.id} className="flex items-center justify-between gap-2">
                     <div>
@@ -278,6 +300,32 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               </ul>
             )}
           </Card>
+
+          {((rosterRows ?? []).length > 0 || canAddToRoster) && (
+            <Card title={t.team.onRoster}>
+              {(rosterRows ?? []).map((r) => (
+                <div key={r.org_id} className="mb-3 text-sm">
+                  <div className="font-medium"><bdi>{(r.organizations as unknown as { name: string } | null)?.name}</bdi></div>
+                  <div className="text-xs text-muted">{r.consent_source === "athlete" ? t.team.consentAthlete : t.team.consentStaff} · <span className="num">{r.consented_at.slice(0, 10)}</span></div>
+                </div>
+              ))}
+              {isSelf && <ButtonLink variant="secondary" href="/connect">{t.team.leave}</ButtonLink>}
+              {canRemoveFromRoster && (
+                <form action={removeFromRoster}>
+                  <input type="hidden" name="athlete_id" value={a.id} />
+                  <input type="hidden" name="back" value={`/athletes/${a.id}`} />
+                  <ConfirmSubmit variant="danger" message={t.team.removeFromRosterConfirm}>{t.team.removeFromRoster}</ConfirmSubmit>
+                </form>
+              )}
+              {canAddToRoster && (
+                <form action={addToRoster} className="space-y-2">
+                  <input type="hidden" name="athlete_id" value={a.id} />
+                  <p className="text-xs text-muted">{t.team.addToRosterHelp}</p>
+                  <SubmitButton variant="secondary">{t.team.addToRoster}</SubmitButton>
+                </form>
+              )}
+            </Card>
+          )}
 
           <Card title={ta.sections.personal}>
             <DefinitionList

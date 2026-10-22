@@ -7,7 +7,7 @@ export const metadata = { title: "Settings" };
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { profile, t } = await requireProfile();
+  const { profile, org, t } = await requireProfile();
   const ts = t.settings;
   return (
     <>
@@ -44,6 +44,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         </Card>
         <Card title={ts.account}>
           <p className="text-sm"><span className="text-muted">{ts.role}:</span> {t.roles[profile.role]}</p>
+          {org && <p className="mt-1 text-sm"><span className="text-muted">{t.team.yourTeam}:</span> <bdi>{org.org_name}</bdi> · {t.orgRoles[org.org_role]}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <ButtonLink variant="secondary" href="/settings/export" prefetch={false}>{ts.exportData}</ButtonLink>
           </div>
