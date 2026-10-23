@@ -15,7 +15,8 @@ export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = 
   if (role === "athlete") {
     return [
       { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
-      { href: "/training", label: t.nav.myTraining, icon: "calendar" },
+      { href: "/calendar", label: t.nav.calendar, icon: "calendar" },
+      { href: "/training", label: t.nav.myTraining, icon: "library" },
       { href: "/testing", label: t.nav.myResults, icon: "chart" },
       { href: "/readiness", label: t.nav.readiness, icon: "pulse" },
       { href: "/exercises", label: t.nav.exercises, icon: "library" },
@@ -38,7 +39,8 @@ export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = 
     ...(orgRole ? [{ href: "/team", label: t.nav.team, icon: "team" as const }] : []),
     { href: "/athletes", label: t.nav.athletes, icon: "users" },
     { href: "/teams", label: t.nav.teams, icon: "group" },
-    { href: "/training", label: t.nav.training, icon: "calendar" },
+    { href: "/calendar", label: t.nav.calendar, icon: "calendar" },
+    { href: "/training", label: t.nav.training, icon: "chart" },
     { href: "/exercises", label: t.nav.exercises, icon: "library" },
     { href: "/testing", label: t.nav.testing, icon: "chart" },
     { href: "/readiness", label: t.nav.readiness, icon: "pulse" },

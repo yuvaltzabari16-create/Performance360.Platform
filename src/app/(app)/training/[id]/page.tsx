@@ -200,7 +200,10 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                   {t.common.day} {selected.day_number} · <bdi>{selected.title}</bdi>
                   {selected.planned_duration_min ? <span className="text-sm font-normal text-muted"> · {selected.planned_duration_min} {t.common.min}</span> : null}
                 </h2>
+                <div className="flex items-center gap-2">
                 {myAthleteId && <ButtonLink className="px-2.5 py-1 text-xs" href={`/training/session/${selected.id}?athlete=${myAthleteId}`}>{tt.log}</ButtonLink>}
+                <a href="#assign" className="no-print inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"><span aria-hidden>➤</span> {tt.assignTo}</a>
+              </div>
               </div>
               {selected.notes && <p className="whitespace-pre-line text-sm text-ink-soft">{selected.notes}</p>}
               <Builder
@@ -320,7 +323,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
 
         {isOwner && (
           <div className="no-print grid items-start gap-6 lg:grid-cols-2">
-            <Card title={tt.assign}>
+            <div id="assign" className="scroll-mt-6"><Card title={tt.assign}>
               <form action={assignProgram} className="space-y-3">
                 <input type="hidden" name="program_id" value={id} />
                 <Field label={t.nav.athletes}>
@@ -359,7 +362,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                   </ul>
                 )}
               </div>
-            </Card>
+            </Card></div>
 
             <Card title={tt.phases}>
               <ul className="mb-4 space-y-2 text-sm">

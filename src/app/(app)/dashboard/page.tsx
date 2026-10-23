@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { sessionDate } from "@/lib/calendar";
 import { Badge, ButtonLink, Card, EmptyState, FlashMessage, PageHeader, Stat } from "@/components/ui";
 import { getMyAthleteId, requireProfile } from "@/lib/auth";
 import type { Dictionary } from "@/lib/i18n";
@@ -200,7 +201,7 @@ async function AthleteDashboard({ t }: { t: Dictionary }) {
 
   const [{ data: me }, { data: assignments }, { data: todayEntry }, { data: completions }, { data: notes }, { data: tests }, { data: rels }] = await Promise.all([
     supabase.from("athletes").select("short_term_goals, long_term_goals").eq("id", athleteId).single(),
-    supabase.from("program_assignments").select("program_id, training_programs(title)").eq("athlete_id", athleteId).eq("status", "active"),
+    supabase.from("program_assignments").select("program_id, start_date, training_programs(title)").eq("athlete_id", athleteId).eq("status", "active"),
     supabase.from("readiness_entries").select("id").eq("athlete_id", athleteId).eq("entry_date", today).maybeSingle(),
     supabase.from("workout_completions").select("session_id, status").eq("athlete_id", athleteId),
     supabase.from("athlete_notes").select("id, body, created_at").eq("athlete_id", athleteId).eq("shared_with_athlete", true).order("created_at", { ascending: false }).limit(3),
@@ -213,10 +214,37 @@ async function AthleteDashboard({ t }: { t: Dictionary }) {
     : { data: [] };
   const done = new Set((completions ?? []).filter((c) => c.status !== "skipped").map((c) => c.session_id));
   const upcoming = ((sessions ?? []) as TrainingSession[]).filter((s) => !done.has(s.id)).slice(0, 5);
+  // Sessions planned for today (program start date + week/day offset), not yet completed.
+  const startOf = new Map((assignments ?? []).map((a) => [a.program_id as string, a.start_date as string]));
+  const todaySessions = ((sessions ?? []) as TrainingSession[]).filter((s) => {
+    const start = startOf.get(s.program_id);
+    return start && sessionDate(start, s.week_number, s.day_number) === today && !done.has(s.id);
+  });
 
   return (
     <>
       <PageHeader title={`${td.greeting}, ${profile.full_name.split(" ")[0] || ""}`} actions={<ButtonLink variant="secondary" href={`/athletes/${athleteId}`}>{t.athletes.myProfile}</ButtonLink>} />
+      <section aria-label={td.todayWorkout} className="mb-6 rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-brand-700">{td.todayWorkout}</h2>
+        {todaySessions.length === 0 ? (
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-ink-soft">{td.noWorkoutToday}</p>
+            <ButtonLink variant="secondary" href="/calendar">{td.openCalendar}</ButtonLink>
+          </div>
+        ) : (
+          <ul className="mt-2 space-y-3">
+            {todaySessions.map((s) => (
+              <li key={s.id} className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-lg font-semibold text-ink"><bdi>{s.title}</bdi></div>
+                  {s.planned_duration_min ? <div className="num text-xs text-muted">{s.planned_duration_min} {t.common.min}</div> : null}
+                </div>
+                <ButtonLink href={`/training/session/${s.id}?athlete=${athleteId}`}>{td.startWorkout}</ButtonLink>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       {(rels ?? []).length === 0 && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-5 py-4 text-sm text-brand-900">
           {td.notConnected}

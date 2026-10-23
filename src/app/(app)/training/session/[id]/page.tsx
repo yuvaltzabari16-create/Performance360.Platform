@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { Badge, Card, Field, FlashMessage, Input, PageHeader, Select, Textarea } from "@/components/ui";
+import { Card, Field, FlashMessage, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { requireProfile } from "@/lib/auth";
-import type { SessionSection } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
 import { sessionLoad } from "@/lib/metrics";
 import type { SessionExercise, TrainingSession } from "@/lib/types";
 import { logSession } from "../../actions";
+import { WorkoutChecklist } from "./WorkoutChecklist";
 
 export const metadata = { title: "Log session" };
 
@@ -47,6 +47,16 @@ export default async function LogSessionPage({ params, searchParams }: { params:
       <form action={logSession} className="space-y-6">
         <input type="hidden" name="session_id" value={id} />
         <input type="hidden" name="athlete_id" value={athleteId} />
+        {exercises.length > 0 && (
+          <WorkoutChecklist
+            exercises={exercises}
+            logs={Object.fromEntries(logs)}
+            labels={{
+              sections: tt.sections, fields: tt.builder.fields, progress: tt.builder.workoutProgress, details: tt.builder.workoutDetails,
+              actualSets: tt.actualSets, actualReps: tt.actualReps, actualLoad: tt.actualLoad, notes: t.common.notes, markDone: tt.done,
+            }}
+          />
+        )}
         <Card>
           <div className="grid gap-4 sm:grid-cols-4">
             <Field label={tt.completedOn}><Input type="date" name="completed_on" defaultValue={date} required /></Field>
@@ -62,36 +72,6 @@ export default async function LogSessionPage({ params, searchParams }: { params:
             <Field label={tt.feedback} className="sm:col-span-4"><Textarea name="athlete_feedback" rows={2} defaultValue={existing?.athlete_feedback ?? ""} /></Field>
           </div>
         </Card>
-        {exercises.length > 0 && (
-          <Card title={t.training.planVsDone}>
-            <ul className="divide-y divide-line">
-              {exercises.map((e) => {
-                const l = logs.get(e.id);
-                return (
-                  <li key={e.id} className="py-3">
-                    <input type="hidden" name="se_ids" value={e.id} />
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <label className="flex items-center gap-2 text-sm font-medium">
-                        <input type="checkbox" name={`done_${e.id}`} defaultChecked={l ? l.done : true} className="size-4 accent-brand-600" />
-                        <bdi>{e.exercise_name}</bdi>
-                        <Badge>{tt.sections[e.section as SessionSection]}</Badge>
-                      </label>
-                      <span className="num text-xs text-muted">
-                        {[e.sets && e.reps ? `${e.sets} × ${e.reps}` : e.reps, e.load_kg != null ? `${e.load_kg} kg` : null, e.percent_1rm != null ? `${e.percent_1rm}% 1RM` : null, e.rpe != null ? `RPE ${e.rpe}` : null].filter(Boolean).join(" · ")}
-                      </span>
-                    </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                      <Input name={`sets_${e.id}`} type="number" min={0} placeholder={tt.actualSets} aria-label={tt.actualSets} defaultValue={l?.actual_sets ?? ""} />
-                      <Input name={`reps_${e.id}`} placeholder={tt.actualReps} aria-label={tt.actualReps} defaultValue={l?.actual_reps ?? ""} />
-                      <Input name={`load_${e.id}`} type="number" step="0.5" min={0} placeholder={tt.actualLoad} aria-label={tt.actualLoad} defaultValue={l?.actual_load_kg ?? ""} />
-                      <Input name={`fb_${e.id}`} placeholder={t.common.notes} aria-label={t.common.notes} defaultValue={l?.feedback ?? ""} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        )}
         <SubmitButton pendingText={t.common.saving}>{t.common.save}</SubmitButton>
       </form>
 

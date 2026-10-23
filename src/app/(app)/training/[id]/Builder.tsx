@@ -12,6 +12,7 @@ import type { SessionExercise } from "@/lib/types";
 import { cx } from "@/components/ui";
 import { AutosaveStatus } from "@/components/autosave/AutosaveStatus";
 import type { AutosaveStatus as SaveState } from "@/lib/autosave/useAutosave";
+import { AiPanel } from "./AiPanel";
 import { addExerciseToSession, duplicateExercise, patchExerciseField, removeExercise, swapExercises } from "../builder-actions";
 
 export interface LibraryExercise { id: string; name: string; category: string; thumb: string | null }
@@ -37,6 +38,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
   const [extraBlocks, setExtraBlocks] = useState<SessionSection[]>([]);
   const [activeSection, setActiveSection] = useState<SessionSection | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [editing, setEditing] = useState<{ id: string; key: FieldKey } | null>(null);
   const [fieldMenu, setFieldMenu] = useState<string | null>(null);
   const [blockMenu, setBlockMenu] = useState(false);
@@ -111,15 +113,25 @@ export function Builder({ programId, session, exercises, library, tt, categories
       <div className="min-w-0 space-y-4">
         <div className="no-print flex flex-wrap items-center justify-between gap-2">
           <p className="flex items-center gap-3 text-xs text-muted">{b.clickToEdit}<AutosaveStatus status={saveState} labels={{ saving: b.autosaving, saved: b.autosaved, failed: b.autosaveFailed }} /></p>
+          <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setLibraryOpen((v) => !v)}
+            onClick={() => { setAiOpen((v) => !v); setLibraryOpen(false); }}
+            aria-expanded={aiOpen}
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
+          >
+            <span aria-hidden>✦</span> {b.ai.button}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLibraryOpen((v) => !v); setAiOpen(false); }}
             aria-expanded={libraryOpen}
             className={cx("inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
               libraryOpen ? "border-brand-600 bg-brand-600 text-white" : "border-line bg-surface text-ink hover:border-brand-300")}
           >
             <span aria-hidden>▤</span> {b.library}
           </button>
+          </div>
         </div>
 
         {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>}
@@ -280,6 +292,10 @@ export function Builder({ programId, session, exercises, library, tt, categories
           </ol>
         </div>
       </aside>
+
+      {aiOpen && (
+        <AiPanel programId={programId} sessionId={session.id} tt={tt} onClose={() => setAiOpen(false)} onApplied={() => { setAiOpen(false); setSaveState("saved"); router.refresh(); }} />
+      )}
 
       {libraryOpen && (
         <LibraryPanel
