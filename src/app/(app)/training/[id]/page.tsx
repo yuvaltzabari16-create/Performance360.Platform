@@ -3,58 +3,15 @@ import { notFound } from "next/navigation";
 import { Badge, ButtonLink, Card, Checkbox, Field, FlashMessage, Input, PageHeader, Select, Textarea, cx } from "@/components/ui";
 import { ConfirmSubmit, PrintButton, SubmitButton } from "@/components/ui/client";
 import { requireProfile } from "@/lib/auth";
-import { CYCLE_LEVELS, EXERCISE_CATEGORIES, PROGRAM_TYPES, SESSION_SECTIONS, type SessionSection } from "@/lib/catalog";
+import { CYCLE_LEVELS, PROGRAM_TYPES, youtubeThumbnail, type SessionSection } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
-import type { Dictionary } from "@/lib/i18n";
+import { ChipRow } from "@/components/training/chips";
 import type { SessionExercise, TrainingProgram, TrainingSession } from "@/lib/types";
+import { Builder, type LibraryExercise } from "./Builder";
 import {
-  addPhase, addSession, addSessionExercise, assignProgram, cancelAssignment, copySession, deletePhase, deleteSession,
-  deleteSessionExercise, duplicateProgram, duplicateWeek, moveSessionExercise, saveVersion, updateProgram,
-  updateSession, updateSessionExercise,
+  addPhase, addSession, assignProgram, cancelAssignment, copySession, deletePhase, deleteSession,
+  duplicateProgram, duplicateWeek, saveVersion, updateProgram, updateSession,
 } from "../actions";
-
-function prescription(e: SessionExercise, t: Dictionary) {
-  const parts: string[] = [];
-  if (e.sets && e.reps) parts.push(`${e.sets} × ${e.reps}`);
-  else if (e.sets) parts.push(`${e.sets} ${t.training.sets.toLowerCase()}`);
-  else if (e.reps) parts.push(`${e.reps} ${t.training.reps.toLowerCase()}`);
-  if (e.duration_s) parts.push(`${e.duration_s}s`);
-  if (e.distance_m) parts.push(`${e.distance_m} m`);
-  if (e.load_kg != null) parts.push(`${e.load_kg} kg`);
-  if (e.percent_1rm != null) parts.push(`${e.percent_1rm}% 1RM`);
-  if (e.rpe != null) parts.push(`RPE ${e.rpe}`);
-  if (e.rir != null) parts.push(`RIR ${e.rir}`);
-  if (e.tempo) parts.push(`${t.training.tempo} ${e.tempo}`);
-  if (e.rest_s != null) parts.push(`${t.training.rest.split(" ")[0]} ${e.rest_s}s`);
-  if (e.intensity_target) parts.push(e.intensity_target);
-  return parts.join(" · ");
-}
-
-function ExerciseFields({ t, e }: { t: Dictionary; e?: SessionExercise }) {
-  const tt = t.training;
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      <Field label={tt.section}>
-        <Select name="section" defaultValue={e?.section ?? "strength"}>
-          {SESSION_SECTIONS.map((s) => <option key={s} value={s}>{tt.sections[s]}</option>)}
-        </Select>
-      </Field>
-      <Field label={tt.sets}><Input name="sets" type="number" min={1} max={50} defaultValue={e?.sets ?? ""} /></Field>
-      <Field label={tt.reps}><Input name="reps" defaultValue={e?.reps ?? ""} placeholder="5 / 8-10 / AMRAP" /></Field>
-      <Field label={tt.load}><Input name="load_kg" type="number" step="0.5" min={0} defaultValue={e?.load_kg ?? ""} /></Field>
-      <Field label={tt.pct1rm}><Input name="percent_1rm" type="number" step="0.5" min={0} max={120} defaultValue={e?.percent_1rm ?? ""} /></Field>
-      <Field label={tt.rpe}><Input name="rpe" type="number" step="0.5" min={0} max={10} defaultValue={e?.rpe ?? ""} /></Field>
-      <Field label={tt.rir}><Input name="rir" type="number" min={0} max={10} defaultValue={e?.rir ?? ""} /></Field>
-      <Field label={tt.rest}><Input name="rest_s" type="number" min={0} defaultValue={e?.rest_s ?? ""} /></Field>
-      <Field label={tt.tempo}><Input name="tempo" defaultValue={e?.tempo ?? ""} placeholder="3-1-X-0" /></Field>
-      <Field label={tt.durationS}><Input name="duration_s" type="number" min={1} defaultValue={e?.duration_s ?? ""} /></Field>
-      <Field label={tt.distance}><Input name="distance_m" type="number" step="0.5" min={0} defaultValue={e?.distance_m ?? ""} /></Field>
-      <Field label={tt.intensity}><Input name="intensity_target" defaultValue={e?.intensity_target ?? ""} /></Field>
-      <Field label={tt.cues} className="col-span-2"><Input name="cues" defaultValue={e?.cues ?? ""} /></Field>
-      <Field label={tt.modifications} className="col-span-2"><Input name="modifications" defaultValue={e?.modifications ?? ""} /></Field>
-    </div>
-  );
-}
 
 export default async function ProgramPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
@@ -66,6 +23,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
   const program = data as TrainingProgram;
   const isOwner = program.coach_id === user.id;
   const tt = t.training;
+  const sessionParam = sp.session && isUuid(sp.session) ? sp.session : null;
   const week = Math.min(program.num_weeks, Math.max(1, Number(sp.week) || 1));
 
   const [{ data: phases }, { data: sessionsData }, { data: assignments }, { data: versions }] = await Promise.all([
@@ -76,6 +34,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
   ]);
   const sessions = (sessionsData ?? []) as TrainingSession[];
   const weekSessions = sessions.filter((s) => s.week_number === week);
+  const selected = weekSessions.find((s) => s.id === sessionParam) ?? weekSessions[0];
   const { data: exData } = weekSessions.length
     ? await supabase.from("session_exercises").select("*").in("session_id", weekSessions.map((s) => s.id)).order("position")
     : { data: [] };
@@ -87,7 +46,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
   // Owner-only data for editing and assignment.
   const [libRes, athletesRes, teamsRes, completionsRes] = isOwner
     ? await Promise.all([
-        supabase.from("exercises").select("id, name, category").eq("archived", false).order("name").limit(1000),
+        supabase.from("exercises").select("id, name, category, thumbnail_url, video_url").eq("archived", false).order("name").limit(1000),
         supabase.from("athletes").select("id, full_name").eq("status", "active").order("full_name").limit(500),
         supabase.from("teams").select("id, name").eq("owner_id", user.id).eq("status", "active").order("name"),
         sessions.length
@@ -95,7 +54,8 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
           : Promise.resolve({ data: [] }),
       ])
     : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
-  const library = (libRes.data ?? []) as { id: string; name: string; category: string }[];
+  const library: LibraryExercise[] = ((libRes.data ?? []) as { id: string; name: string; category: string; thumbnail_url: string | null; video_url: string | null }[])
+    .map((l) => ({ id: l.id, name: l.name, category: l.category, thumb: l.thumbnail_url ?? youtubeThumbnail(l.video_url) }));
   const assignedIds = new Set((assignments ?? []).map((a) => a.athlete_id));
   const assignable = ((athletesRes.data ?? []) as { id: string; full_name: string }[]).filter((a) => !assignedIds.has(a.id));
   const completedBy = new Map<string, number>();
@@ -152,8 +112,41 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">{tt.assignedEditWarning}</div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="space-y-4 xl:col-span-2">
+      <div className="grid gap-6 xl:grid-cols-[13rem_minmax(0,1fr)]">
+        {/* Program structure (weeks and sessions) */}
+        <aside className="no-print hidden xl:block">
+          <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-line bg-surface p-3">
+            <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted">{tt.builder.structure}</h3>
+            <ol className="space-y-3">
+              {Array.from({ length: program.num_weeks }, (_, i) => i + 1).map((w) => {
+                const ws = sessions.filter((s) => s.week_number === w);
+                return (
+                  <li key={w}>
+                    <Link href={`/training/${id}?week=${w}`} className={cx("block rounded-lg px-2 py-1 text-sm font-medium", w === week ? "text-brand-700" : "text-ink-soft hover:text-ink")}>
+                      {t.common.week} {w}
+                    </Link>
+                    {ws.length > 0 && (
+                      <ul className="ms-2 mt-1 space-y-0.5 border-s border-line ps-2">
+                        {ws.map((s) => (
+                          <li key={s.id}>
+                            <Link
+                              href={`/training/${id}?week=${w}&session=${s.id}`}
+                              className={cx("block truncate rounded-md px-2 py-1 text-xs", w === week && s.id === selected?.id ? "bg-brand-50 font-semibold text-brand-800" : "text-muted hover:bg-canvas")}
+                            >
+                              {t.common.day} {s.day_number} · {s.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </aside>
+
+        <div className="min-w-0 space-y-6">
           {/* Phases strip */}
           {(phases ?? []).length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -166,8 +159,9 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
             </div>
           )}
 
-          {/* Week selector */}
-          <nav className="no-print flex gap-1 overflow-x-auto pb-1" aria-label={t.common.week}>
+
+          {/* Week selector (small screens; wide screens use the structure list) */}
+          <nav className="no-print flex gap-1 overflow-x-auto pb-1 xl:hidden" aria-label={t.common.week}>
             {Array.from({ length: program.num_weeks }, (_, i) => i + 1).map((w) => (
               <Link
                 key={w}
@@ -181,8 +175,86 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
 
           {weekSessions.length === 0 && <Card><p className="text-sm text-muted">{tt.noSessions}</p></Card>}
 
-          {weekSessions.map((s) => {
+          {/* Session tabs */}
+          {weekSessions.length > 0 && isOwner && (
+            <nav className="no-print flex gap-1 overflow-x-auto pb-1" aria-label={tt.builder.selectSession}>
+              {weekSessions.map((s) => (
+                <Link
+                  key={s.id}
+                  href={`/training/${id}?week=${week}&session=${s.id}`}
+                  aria-current={s.id === selected?.id ? "page" : undefined}
+                  className={cx("shrink-0 rounded-lg border px-3 py-1.5 text-sm", s.id === selected?.id ? "border-brand-600 bg-brand-50 font-semibold text-brand-800" : "border-line bg-white text-ink-soft hover:border-brand-300")}
+                >
+                  {t.common.day} {s.day_number} · <bdi>{s.title}</bdi>
+                </Link>
+              ))}
+            </nav>
+          )}
+
+          {/* Owner: the builder for the selected session */}
+          {isOwner && selected && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold text-ink">
+                  {t.common.day} {selected.day_number} · <bdi>{selected.title}</bdi>
+                  {selected.planned_duration_min ? <span className="text-sm font-normal text-muted"> · {selected.planned_duration_min} {t.common.min}</span> : null}
+                </h2>
+                {myAthleteId && <ButtonLink className="px-2.5 py-1 text-xs" href={`/training/session/${selected.id}?athlete=${myAthleteId}`}>{tt.log}</ButtonLink>}
+              </div>
+              {selected.notes && <p className="whitespace-pre-line text-sm text-ink-soft">{selected.notes}</p>}
+              <Builder
+                key={selected.id}
+                programId={id}
+                session={{ id: selected.id, title: selected.title }}
+                exercises={exercisesBySession.get(selected.id) ?? []}
+                library={library}
+                tt={tt}
+                categories={t.exercises.categories}
+                labels={{ remove: t.common.remove, search: t.common.search }}
+              />
+              <div className="no-print">
+                    <details>
+                      <summary className="cursor-pointer text-xs text-ink-soft">{t.common.edit} / {tt.duplicateSession}</summary>
+                      <div className="mt-2 grid gap-3 rounded-lg bg-canvas p-3 lg:grid-cols-2">
+                        <form action={updateSession} className="space-y-2">
+                          <input type="hidden" name="id" value={selected.id} />
+                          <input type="hidden" name="program_id" value={id} />
+                          <Field label={tt.sessionTitle}><Input name="title" defaultValue={selected.title} required /></Field>
+                          <div className="grid grid-cols-3 gap-2">
+                            <Field label={t.common.week}><Input name="week_number" type="number" min={1} max={program.num_weeks} defaultValue={selected.week_number} /></Field>
+                            <Field label={t.common.day}><Input name="day_number" type="number" min={1} max={7} defaultValue={selected.day_number} /></Field>
+                            <Field label={t.common.min}><Input name="planned_duration_min" type="number" min={1} defaultValue={selected.planned_duration_min ?? ""} /></Field>
+                          </div>
+                          <Field label={t.common.notes}><Textarea name="notes" rows={2} defaultValue={selected.notes ?? ""} /></Field>
+                          <SubmitButton variant="secondary" className="text-xs">{t.common.save}</SubmitButton>
+                        </form>
+                        <div className="space-y-3">
+                          <form action={copySession} className="space-y-2">
+                            <input type="hidden" name="id" value={selected.id} />
+                            <input type="hidden" name="program_id" value={id} />
+                            <div className="text-xs font-medium text-ink">{tt.copyTo}</div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input name="target_week" type="number" min={1} max={program.num_weeks} defaultValue={Math.min(program.num_weeks, week + 1)} aria-label={t.common.week} />
+                              <Input name="target_day" type="number" min={1} max={7} defaultValue={selected.day_number} aria-label={t.common.day} />
+                            </div>
+                            <SubmitButton variant="secondary" className="text-xs">{tt.duplicateSession}</SubmitButton>
+                          </form>
+                          <form action={deleteSession}>
+                            {hidden({ id: selected.id })}
+                            <ConfirmSubmit variant="danger" className="text-xs" message={`${t.common.delete} "${selected.title}"?`}>{t.common.delete}</ConfirmSubmit>
+                          </form>
+                        </div>
+                      </div>
+                    </details>
+
+              </div>
+            </div>
+          )}
+
+          {/* Athletes and read-only viewers: sessions as blocks with prescription chips */}
+          {!isOwner && weekSessions.map((s) => {
             const exs = exercisesBySession.get(s.id) ?? [];
+            const sections = [...new Set(exs.map((e) => e.section as SessionSection))];
             return (
               <Card
                 key={s.id}
@@ -191,101 +263,29 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
               >
                 {s.notes && <p className="mb-3 whitespace-pre-line text-sm text-ink-soft">{s.notes}</p>}
                 {exs.length === 0 ? <p className="text-sm text-muted">—</p> : (
-                  <ol className="divide-y divide-line">
-                    {exs.map((e, idx) => (
-                      <li key={e.id} className="py-2.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="num text-xs text-muted">{idx + 1}.</span>
-                              {e.exercise_id ? <Link href={`/exercises/${e.exercise_id}`} className="font-medium hover:text-brand-700"><bdi>{e.exercise_name}</bdi></Link> : <bdi className="font-medium">{e.exercise_name}</bdi>}
-                              <Badge>{tt.sections[e.section as SessionSection]}</Badge>
-                            </div>
-                            <div className="num mt-0.5 text-sm text-ink-soft">{prescription(e, t) || "—"}</div>
-                            {(e.cues || e.modifications) && <div className="mt-0.5 text-xs text-muted">{[e.cues, e.modifications].filter(Boolean).join(" · ")}</div>}
-                          </div>
-                          {isOwner && (
-                            <div className="flex shrink-0 items-center gap-1">
-                              <form action={moveSessionExercise}>{hidden({ id: e.id, dir: -1 })}<button className="rounded px-1.5 text-muted hover:bg-canvas hover:text-ink" aria-label={tt.moveUp} disabled={idx === 0}>↑</button></form>
-                              <form action={moveSessionExercise}>{hidden({ id: e.id, dir: 1 })}<button className="rounded px-1.5 text-muted hover:bg-canvas hover:text-ink" aria-label={tt.moveDown} disabled={idx === exs.length - 1}>↓</button></form>
-                              <form action={deleteSessionExercise}>{hidden({ id: e.id })}<button className="rounded px-1.5 text-red-700 hover:bg-red-50" aria-label={t.common.remove}>×</button></form>
-                            </div>
-                          )}
-                        </div>
-                        {isOwner && (
-                          <details className="no-print mt-2">
-                            <summary className="cursor-pointer text-xs text-brand-700">{t.common.edit}</summary>
-                            <form action={updateSessionExercise} className="mt-2 space-y-2 rounded-lg bg-canvas p-3">
-                              {hidden({ id: e.id })}
-                              <ExerciseFields t={t} e={e} />
-                              <SubmitButton variant="secondary" className="text-xs">{t.common.save}</SubmitButton>
-                            </form>
-                          </details>
-                        )}
-                      </li>
+                  <div className="space-y-4">
+                    {sections.map((section, bi) => (
+                      <section key={section}>
+                        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink">
+                          <span className="grid size-5 place-items-center rounded-full bg-brand-50 text-[11px] text-brand-700" aria-hidden>{bi + 1}</span>
+                          {tt.sections[section]}
+                        </h3>
+                        <ol className="space-y-2">
+                          {exs.filter((e) => e.section === section).map((e, i) => (
+                            <li key={e.id} className="rounded-xl border border-line bg-canvas/60 p-3">
+                              <div className="flex items-start gap-3">
+                                <span className="grid size-6 shrink-0 place-items-center rounded-md border border-line bg-surface text-xs font-semibold text-ink-soft" aria-hidden>{String.fromCharCode(65 + (i % 26))}</span>
+                                <div className="min-w-0 flex-1">
+                                  {e.exercise_id ? <Link href={`/exercises/${e.exercise_id}`} className="font-medium hover:text-brand-700"><bdi>{e.exercise_name}</bdi></Link> : <bdi className="font-medium">{e.exercise_name}</bdi>}
+                                  <ChipRow e={e} labels={tt.builder.fields} className="mt-2" />
+                                  {(e.cues || e.modifications) && <div className="mt-1.5 text-xs text-muted">{[e.cues, e.modifications].filter(Boolean).join(" · ")}</div>}
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </section>
                     ))}
-                  </ol>
-                )}
-
-                {isOwner && (
-                  <div className="no-print mt-4 space-y-2 border-t border-line pt-3">
-                    <details>
-                      <summary className="cursor-pointer text-sm font-medium text-brand-700">+ {tt.addExercise}</summary>
-                      <form action={addSessionExercise} className="mt-3 space-y-3">
-                        {hidden({ session_id: s.id })}
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <Field label={tt.exercise}>
-                            <Select name="exercise_id" defaultValue="">
-                              <option value="">{tt.pickExercise}</option>
-                              {EXERCISE_CATEGORIES.map((c) => {
-                                const items = library.filter((l) => l.category === c);
-                                return items.length ? (
-                                  <optgroup key={c} label={t.exercises.categories[c]}>
-                                    {items.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                  </optgroup>
-                                ) : null;
-                              })}
-                            </Select>
-                          </Field>
-                          <Field label={tt.customName}><Input name="exercise_name" maxLength={160} /></Field>
-                        </div>
-                        <ExerciseFields t={t} />
-                        <SubmitButton variant="secondary">{tt.addExercise}</SubmitButton>
-                      </form>
-                    </details>
-                    <details>
-                      <summary className="cursor-pointer text-xs text-ink-soft">{t.common.edit} / {tt.duplicateSession}</summary>
-                      <div className="mt-2 grid gap-3 rounded-lg bg-canvas p-3 lg:grid-cols-2">
-                        <form action={updateSession} className="space-y-2">
-                          <input type="hidden" name="id" value={s.id} />
-                          <input type="hidden" name="program_id" value={id} />
-                          <Field label={tt.sessionTitle}><Input name="title" defaultValue={s.title} required /></Field>
-                          <div className="grid grid-cols-3 gap-2">
-                            <Field label={t.common.week}><Input name="week_number" type="number" min={1} max={program.num_weeks} defaultValue={s.week_number} /></Field>
-                            <Field label={t.common.day}><Input name="day_number" type="number" min={1} max={7} defaultValue={s.day_number} /></Field>
-                            <Field label={t.common.min}><Input name="planned_duration_min" type="number" min={1} defaultValue={s.planned_duration_min ?? ""} /></Field>
-                          </div>
-                          <Field label={t.common.notes}><Textarea name="notes" rows={2} defaultValue={s.notes ?? ""} /></Field>
-                          <SubmitButton variant="secondary" className="text-xs">{t.common.save}</SubmitButton>
-                        </form>
-                        <div className="space-y-3">
-                          <form action={copySession} className="space-y-2">
-                            <input type="hidden" name="id" value={s.id} />
-                            <input type="hidden" name="program_id" value={id} />
-                            <div className="text-xs font-medium text-ink">{tt.copyTo}</div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input name="target_week" type="number" min={1} max={program.num_weeks} defaultValue={Math.min(program.num_weeks, week + 1)} aria-label={t.common.week} />
-                              <Input name="target_day" type="number" min={1} max={7} defaultValue={s.day_number} aria-label={t.common.day} />
-                            </div>
-                            <SubmitButton variant="secondary" className="text-xs">{tt.duplicateSession}</SubmitButton>
-                          </form>
-                          <form action={deleteSession}>
-                            {hidden({ id: s.id })}
-                            <ConfirmSubmit variant="danger" className="text-xs" message={`${t.common.delete} "${s.title}"?`}>{t.common.delete}</ConfirmSubmit>
-                          </form>
-                        </div>
-                      </div>
-                    </details>
                   </div>
                 )}
               </Card>
@@ -318,10 +318,12 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
               </Card>
             </div>
           )}
+
         </div>
+      </div>
 
         {isOwner && (
-          <div className="no-print space-y-6">
+          <div className="no-print grid items-start gap-6 lg:grid-cols-2">
             <Card title={tt.assign}>
               <form action={assignProgram} className="space-y-3">
                 <input type="hidden" name="program_id" value={id} />
@@ -438,7 +440,6 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
             </Card>
           </div>
         )}
-      </div>
     </>
   );
 }

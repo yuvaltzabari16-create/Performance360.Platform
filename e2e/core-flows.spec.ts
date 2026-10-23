@@ -116,20 +116,30 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.getByPlaceholder("Lower body strength").fill("Speed day");
     await page.getByLabel("Planned duration (min)").fill("60");
     await page.getByRole("button", { name: "Add session" }).click();
-    await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Day 1 · Speed day/ })).toBeVisible();
 
-    await page.getByText("+ Add exercise").click();
-    await page.locator('select[name="exercise_id"]').selectOption({ label: "Goblet Squat" });
-    await page.locator('form:has(button:text("Add exercise")) input[name="sets"]').fill("6");
-    await page.locator('form:has(button:text("Add exercise")) input[name="reps"]').fill("1");
-    await page.locator('form:has(button:text("Add exercise")) input[name="rest_s"]').fill("120");
-    await page.getByRole("button", { name: "Add exercise" }).click();
-    await expect(page.getByText("6 × 1")).toBeVisible();
+    // Builder: add a block, pick an exercise from the library, fill prescription chips.
+    await page.getByRole("button", { name: "+ Add block" }).click();
+    await page.getByRole("menuitem", { name: "Strength" }).click();
+    await page.getByLabel("Search exercises…").fill("Goblet Squat");
+    await page.getByRole("button", { name: /^(\+ Add )?Goblet Squat$/ }).click();
+    await page.getByRole("button", { name: "Close library" }).click();
+    await expect(page.getByRole("link", { name: "Goblet Squat" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Field" }).click();
+    await page.getByRole("menuitem", { name: "Reps" }).click();
+    await page.getByLabel("Reps", { exact: true }).fill("6x1");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: /Reps\s*6x1/ })).toBeVisible();
+    await page.getByRole("button", { name: "+ Field" }).click();
+    await page.getByRole("menuitem", { name: "Rest" }).click();
+    await page.getByLabel("Rest", { exact: true }).fill("2:00");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: /Rest\s*120s/ })).toBeVisible();
 
     await page.getByLabel("Copy this week to week").fill("2");
     await page.getByRole("button", { name: "Duplicate week" }).click();
     await page.waitForURL(/week=2/);
-    await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Day 1 · Speed day/ })).toBeVisible();
 
     await page.goto(programUrl);
     await page.locator('select[name="athlete_ids"]').selectOption({ label: "Dana Athlete" });
