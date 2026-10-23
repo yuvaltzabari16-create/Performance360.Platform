@@ -112,6 +112,12 @@ const en = {
     roleLocked: "Your role can't be changed later without contacting support.",
   },
   landing: {
+    academy: "Performance360 Academy",
+    heroTitle: "Performance isn't an accident. It's built.",
+    heroSub: "Performance360 Academy connects coaches, practitioners and athletes in one complete process, from the first assessment to performance on the field.",
+    join: "Join the Academy",
+    meet: "Meet the Academy",
+    wheelLabel: "The Performance360 method in seven stages",
     headline: "The performance operating system for coaches and athletes",
     sub: "Centralize assessment, planning, training, testing and monitoring in one secure platform.",
     getStarted: "Get started",

@@ -19,6 +19,9 @@
   --color-surface: #ffffff;
   --color-canvas: #f7f9f8;
   --color-charcoal: #1f2624;
+  /* Exact greens from the Performance360 logo. */
+  --color-forest: #0e5a38;
+  --color-lime: #3eb04e;
   --font-sans: "Inter", "Heebo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
