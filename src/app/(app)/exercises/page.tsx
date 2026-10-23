@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { EXERCISE_CATEGORIES, type ExerciseCategory, youtubeThumbnail } from "@/lib/catalog";
+import { containsPattern, sanitizeSearchTerm } from "@/lib/security/query";
 import type { Exercise } from "@/lib/types";
 
 export const metadata = { title: "Exercise Library" };
@@ -26,7 +27,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
     .select("id, owner_id, name, category, difficulty, equipment, primary_objective, movement_pattern, thumbnail_url, video_url", { count: "exact" })
     .eq("archived", false)
     .order("name");
-  if (q) query = query.ilike("name", `%${q.replace(/[%_\\]/g, "")}%`);
+  if (sanitizeSearchTerm(q)) query = query.ilike("name", containsPattern(sanitizeSearchTerm(q)));
   if (category) query = query.eq("category", category);
   if (equipment) query = query.contains("equipment", [equipment]);
   if (scope === "mine") query = query.eq("owner_id", user.id);

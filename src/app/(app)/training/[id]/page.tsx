@@ -8,9 +8,10 @@ import { isUuid } from "@/lib/forms";
 import { ChipRow } from "@/components/training/chips";
 import type { SessionExercise, TrainingProgram, TrainingSession } from "@/lib/types";
 import { Builder, type LibraryExercise } from "./Builder";
+import { SessionMetaForm } from "./SessionMetaForm";
 import {
   addPhase, addSession, assignProgram, cancelAssignment, copySession, deletePhase, deleteSession,
-  duplicateProgram, duplicateWeek, saveVersion, updateProgram, updateSession,
+  duplicateProgram, duplicateWeek, saveVersion, updateProgram,
 } from "../actions";
 
 export default async function ProgramPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
@@ -216,18 +217,13 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                     <details>
                       <summary className="cursor-pointer text-xs text-ink-soft">{t.common.edit} / {tt.duplicateSession}</summary>
                       <div className="mt-2 grid gap-3 rounded-lg bg-canvas p-3 lg:grid-cols-2">
-                        <form action={updateSession} className="space-y-2">
-                          <input type="hidden" name="id" value={selected.id} />
-                          <input type="hidden" name="program_id" value={id} />
-                          <Field label={tt.sessionTitle}><Input name="title" defaultValue={selected.title} required /></Field>
-                          <div className="grid grid-cols-3 gap-2">
-                            <Field label={t.common.week}><Input name="week_number" type="number" min={1} max={program.num_weeks} defaultValue={selected.week_number} /></Field>
-                            <Field label={t.common.day}><Input name="day_number" type="number" min={1} max={7} defaultValue={selected.day_number} /></Field>
-                            <Field label={t.common.min}><Input name="planned_duration_min" type="number" min={1} defaultValue={selected.planned_duration_min ?? ""} /></Field>
-                          </div>
-                          <Field label={t.common.notes}><Textarea name="notes" rows={2} defaultValue={selected.notes ?? ""} /></Field>
-                          <SubmitButton variant="secondary" className="text-xs">{t.common.save}</SubmitButton>
-                        </form>
+                        <SessionMetaForm
+                          key={selected.id}
+                          programId={id}
+                          session={selected}
+                          maxWeek={program.num_weeks}
+                          labels={{ title: tt.sessionTitle, week: t.common.week, day: t.common.day, minutes: t.common.min, notes: t.common.notes, saving: tt.builder.autosaving, saved: tt.builder.autosaved, failed: tt.builder.autosaveFailed }}
+                        />
                         <div className="space-y-3">
                           <form action={copySession} className="space-y-2">
                             <input type="hidden" name="id" value={selected.id} />

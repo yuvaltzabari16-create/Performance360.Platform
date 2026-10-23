@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { LOCALE_COOKIE } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/forms";
+import { getSession } from "@/lib/auth";
 
 export async function setLocale(formData: FormData) {
   const locale = formData.get("locale") === "he" ? "he" : "en";
@@ -29,4 +30,12 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+/** Automatic sign-out after inactivity: ends the session and explains why on the login page. */
+export async function signOutIdle() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  const { t } = await getSession();
+  redirect(`/login?ok=${encodeURIComponent(t.settings.idleSignedOut)}`);
 }

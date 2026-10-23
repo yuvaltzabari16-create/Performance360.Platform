@@ -22,7 +22,7 @@ export default async function Landing() {
           <ButtonLink href="/login" variant="ghost">{t.landing.signIn}</ButtonLink>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6 sm:pt-20">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6 sm:pt-20">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">{t.tagline}</p>
         <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{t.landing.headline}</h1>
         <p className="mt-5 max-w-2xl text-lg text-ink-soft">{t.landing.sub}</p>

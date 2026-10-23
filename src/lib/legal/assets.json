@@ -1,0 +1,32 @@
+{
+  "fonts": [
+    {
+      "name": "Inter and Heebo (named in the CSS font stack only)",
+      "license": "OFL-1.1",
+      "source": "https://github.com/rsms/inter · https://fonts.google.com/specimen/Heebo",
+      "usage": "No font files are bundled or downloaded. The names are a preference: they are used only if already installed on the visitor's device."
+    }
+  ],
+  "icons": [
+    {
+      "name": "Navigation and interface icons",
+      "license": "MIT",
+      "source": "https://github.com/feathericons/feather",
+      "usage": "Inline SVG paths. Some shapes follow the Feather icon set (MIT License, © Cole Bemis); others were drawn for this project."
+    },
+    {
+      "name": "Performance360 logo mark",
+      "license": "Proprietary",
+      "proprietary": true,
+      "source": "Created for this project",
+      "usage": "Project-owned artwork."
+    }
+  ],
+  "reviewedExceptions": [
+    {
+      "match": "@img/sharp",
+      "license": "LGPL-3.0-or-later (libvips, shared library)",
+      "reason": "Optional image-optimisation binaries pulled in by Next.js. Used unmodified as a separately loaded library; LGPL allows this. Not shipped to browsers."
+    }
+  ]
+}

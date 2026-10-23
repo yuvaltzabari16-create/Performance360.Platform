@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select, Table, Td } from "@/components/ui";
 import { requireProfessional } from "@/lib/auth";
 import { ageFromDob } from "@/lib/metrics";
+import { containsPattern, sanitizeSearchTerm } from "@/lib/security/query";
 import type { Athlete } from "@/lib/types";
 
 export const metadata = { title: "Athletes" };
@@ -23,9 +24,9 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
     .select("id, full_name, email, sport, team_name, position, date_of_birth, status, user_id, competitive_level, updated_at", { count: "exact" })
     .eq("status", status);
   if (q) {
-    // PostgREST filter values are escaped by stripping characters with syntax meaning.
-    const safe = q.replace(/[,()*%\\]/g, " ");
-    query = query.or(`full_name.ilike.%${safe}%,sport.ilike.%${safe}%,team_name.ilike.%${safe}%,position.ilike.%${safe}%,email.ilike.%${safe}%`);
+    // Only plain text reaches the filter string: PostgREST syntax and LIKE wildcards are stripped/escaped.
+    const safe = containsPattern(sanitizeSearchTerm(q));
+    if (safe !== "%%") query = query.or(`full_name.ilike.${safe},sport.ilike.${safe},team_name.ilike.${safe},position.ilike.${safe},email.ilike.${safe}`);
   }
   if (sport) query = query.eq("sport", sport);
   if (team) query = query.eq("team_name", team);

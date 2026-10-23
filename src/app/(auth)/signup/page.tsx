@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotGuardFields } from "@/components/security/BotGuardFields";
 import { redirect } from "next/navigation";
 import { Field, FlashMessage, Input } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -30,6 +31,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       )}
       <FlashMessage error={sp.error} />
       <form action={signup} className="space-y-4">
+        <BotGuardFields />
         <input type="hidden" name="next" value={next} />
         <Field label={t.auth.fullName}><Input name="full_name" autoComplete="name" required maxLength={120} /></Field>
         <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>

@@ -12,6 +12,10 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // XSS guard: raw HTML injection is never allowed; React escapes everything else.
+    rules: { "react/no-danger": "error" },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",

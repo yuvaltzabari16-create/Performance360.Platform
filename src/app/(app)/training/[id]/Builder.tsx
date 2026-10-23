@@ -10,6 +10,8 @@ import { SESSION_SECTIONS, type SessionSection } from "@/lib/catalog";
 import type { Dictionary } from "@/lib/i18n";
 import type { SessionExercise } from "@/lib/types";
 import { cx } from "@/components/ui";
+import { AutosaveStatus } from "@/components/autosave/AutosaveStatus";
+import type { AutosaveStatus as SaveState } from "@/lib/autosave/useAutosave";
 import { addExerciseToSession, duplicateExercise, patchExerciseField, removeExercise, swapExercises } from "../builder-actions";
 
 export interface LibraryExercise { id: string; name: string; category: string; thumb: string | null }
@@ -39,6 +41,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
   const [fieldMenu, setFieldMenu] = useState<string | null>(null);
   const [blockMenu, setBlockMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const b = tt.builder;
 
   useEffect(() => setItems(exercises), [exercises]);
@@ -57,10 +60,13 @@ export function Builder({ programId, session, exercises, library, tt, categories
 
   const target: SessionSection = activeSection ?? blocks[0]?.section ?? "strength";
 
+  /** Runs a save, reflecting progress in the status indicator; failures revert to the server state. */
   const run = (job: () => Promise<{ ok: boolean; error?: string }>) =>
     startTransition(async () => {
+      setSaveState("saving");
       const r = await job();
-      if (!r.ok) { setError(r.error ?? b.saveFailed); router.refresh(); }
+      if (!r.ok) { setError(r.error ?? b.saveFailed); setSaveState("error"); router.refresh(); }
+      else setSaveState("saved");
     });
 
   const commit = (id: string, key: FieldKey, value: string) => {
@@ -104,7 +110,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
       <div className="min-w-0 space-y-4">
         <div className="no-print flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted">{b.clickToEdit}</p>
+          <p className="flex items-center gap-3 text-xs text-muted">{b.clickToEdit}<AutosaveStatus status={saveState} labels={{ saving: b.autosaving, saved: b.autosaved, failed: b.autosaveFailed }} /></p>
           <button
             type="button"
             onClick={() => setLibraryOpen((v) => !v)}

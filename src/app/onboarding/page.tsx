@@ -42,7 +42,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         <Logo className="text-lg text-ink" />
         <LanguageSwitch locale={locale} next={here} className="text-ink-soft" />
       </header>
-      <main className="mx-auto max-w-3xl px-4 pb-16 pt-6">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-4 pb-16 pt-6">
         <h1 className="text-2xl font-semibold tracking-tight text-ink">{t.onboarding.title}</h1>
         <p className="mt-2 text-sm text-ink-soft">{type ? t.onboarding.subtitle : t.onboarding.chooseType}</p>
         <div className="mt-6"><FlashMessage error={sp.error} /></div>

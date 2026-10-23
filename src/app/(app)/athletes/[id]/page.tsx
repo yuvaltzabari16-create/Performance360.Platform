@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { DraftTextarea } from "@/components/autosave/DraftTextarea";
+import { escapeLike } from "@/lib/security/query";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Card, Checkbox, DefinitionList, FlashMessage, PageHeader, Textarea } from "@/components/ui";
+import { Badge, ButtonLink, Card, Checkbox, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { TrendChart } from "@/components/charts/TrendChart";
 import { requireProfile } from "@/lib/auth";
@@ -31,7 +33,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
     supabase.from("readiness_entries").select("*").eq("athlete_id", id).order("entry_date", { ascending: false }).limit(28),
     supabase.from("athlete_notes").select("id, body, shared_with_athlete, created_at, author_id").eq("athlete_id", id).order("created_at", { ascending: false }).limit(30),
     a.email && !isSelf
-      ? supabase.from("athletes").select("id").ilike("email", a.email).neq("id", id).limit(1)
+      ? supabase.from("athletes").select("id").ilike("email", escapeLike(a.email)).neq("id", id).limit(1)
       : Promise.resolve({ data: [] as { id: string }[] }),
   ]);
 
@@ -203,7 +205,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             {isPro && (
               <form action={addNote} className="mb-5 space-y-2">
                 <input type="hidden" name="athlete_id" value={a.id} />
-                <Textarea name="body" required maxLength={5000} placeholder={ta.addNote} />
+                <DraftTextarea draftKey={`note:${id}`} restoredLabel={t.settings.draftRestored} name="body" required maxLength={5000} placeholder={ta.addNote} rows={3} className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
                 <div className="flex items-center justify-between">
                   <Checkbox name="shared" label={ta.shareWithAthlete} />
                   <SubmitButton variant="secondary">{ta.addNote}</SubmitButton>

@@ -54,6 +54,29 @@ Authorization lives in Postgres row level security, not in the UI:
 - Codes are invitations, not credentials. Regenerating a code keeps existing connections.
 - Sensitive actions (connections, code changes, assignments, onboarding) are written to `audit_log`.
 
+## Security and compliance
+
+Each concern is its own small module with comments and tests, so it can be changed in isolation.
+
+| Concern | Where | What it does |
+| --- | --- | --- |
+| Encrypted transport | `src/lib/security/https.ts`, `headers.ts` | Production http requests are redirected to https; HSTS header; `upgrade-insecure-requests` |
+| XSS | `src/lib/security/headers.ts`, `url.ts`; eslint `react/no-danger` | Per-request nonce Content-Security-Policy (inline scripts blocked), frame/object/form-action lockdown, safe URL checks, no raw HTML injection allowed |
+| SQL / filter injection | `src/lib/security/query.ts` | The Supabase client binds every value as a parameter; search text is additionally stripped of filter syntax and LIKE wildcards |
+| Request flooding | `src/lib/security/rate-limit.ts`, `policy.ts` | Per-IP limits, strictest on sign-in/sign-up (429 + Retry-After). In-memory per instance: use a shared store when running several instances |
+| Bots | `src/lib/security/bot-guard.ts`, `components/security/BotGuardFields.tsx` | Honeypot, signed time trap, optional Cloudflare Turnstile on login, sign-up and password reset |
+| Two-factor sign-in | `settings/security/*`, `(auth)/login/mfa`, `supabase/middleware.ts` | Authenticator-app (TOTP) codes; a password-only session cannot reach the app once 2FA is on |
+| Auto sign-out | `components/security/IdleLogout.tsx`, `lib/security/idle.ts` | Warns, then signs out after inactivity (choose Never/15/30/60/120 min in Settings; default 60) |
+| Delete account | `supabase/migrations/*_delete_account.sql`, `settings/security/actions.ts` | Permanent deletion after typing the email and password; last-director guard; audited |
+| Autosave | `lib/autosave/*`, `components/autosave/*` | Debounced autosave with status, flush on tab hide, and local drafts for unsent notes |
+| Payments | `lib/payments/*`, `/billing` | External hosted checkout only; a test fails the build if card fields appear in the source |
+| Affiliate disclosure | `lib/legal/affiliate.ts`, `components/legal/ExternalLink.tsx`, `/disclosure` | Affiliate links get `rel="sponsored"` and a visible "Affiliate link" label automatically |
+| Font and icon licenses | `src/lib/legal/assets.json`, `scripts/check-licenses.mjs`, `/licenses` | `npm run check:licenses` fails on undeclared fonts/icons or disallowed dependency licenses |
+| Accessibility statement | `/accessibility` | Public statement; skip link, visible focus and reduced-motion support in the UI. Fill in the coordinator contact (see `.env.example`) before launch |
+
+Honest limits: the accessibility statement is based on an internal review, not an independent audit; an Israeli
+legal statement should be confirmed by a qualified accessibility consultant. Legal pages are product text, not legal advice.
+
 ## Getting started
 
 ```bash

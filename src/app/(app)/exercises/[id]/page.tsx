@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ExternalLink } from "@/components/legal/ExternalLink";
 import { Badge, ButtonLink, Card, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { requireProfile } from "@/lib/auth";
@@ -68,13 +69,13 @@ export default async function ExercisePage({ params, searchParams }: { params: P
                 </div>
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span>{te.embedNote}</span>
-                  <a href={e.video_url!} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} ↗</a>
+                  <ExternalLink href={e.video_url} className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} ↗</ExternalLink>
                 </div>
               </>
             ) : media?.kind === "video" ? (
               <video src={media.src} controls preload="metadata" playsInline className="aspect-video w-full rounded-lg bg-black" poster={e.thumbnail_url ?? undefined} />
             ) : media?.kind === "link" ? (
-              <a href={media.src} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-700 hover:underline">{te.video} ↗</a>
+              <ExternalLink href={media.src} className="text-sm text-brand-700 hover:underline">{te.video} ↗</ExternalLink>
             ) : (
               <p className="text-sm text-muted">{te.noVideo}</p>
             )}
@@ -99,7 +100,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
                 [te.regressions, e.regressions],
                 [te.progressions, e.progressions],
                 [te.modNotes, e.modification_notes],
-                [te.source, explainer ? <a key="src" className="text-brand-700 hover:underline" href={explainer} target="_blank" rel="noopener noreferrer">{te.openOnYouTube} ↗</a> : e.source],
+                [te.source, explainer ? <ExternalLink key="src" className="text-brand-700 hover:underline" href={explainer}>{te.openOnYouTube} ↗</ExternalLink> : e.source],
               ]}
             />
           </Card>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { safeInternalPath } from "@/lib/security/url";
 import { revalidatePath } from "next/cache";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -48,9 +49,9 @@ export default async function NotificationsPage() {
                   <div className="num mt-0.5 text-xs text-muted">{new Date(n.created_at).toLocaleString(profile.locale)}</div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {n.link && (
+                  {safeInternalPath(n.link) && (
                     n.read_at
-                      ? <Link href={n.link} className="text-xs text-brand-700 hover:underline">{t.common.open}</Link>
+                      ? <Link href={safeInternalPath(n.link)!} className="text-xs text-brand-700 hover:underline">{t.common.open}</Link>
                       : (
                         <form action={markRead}>
                           <input type="hidden" name="id" value={n.id} />

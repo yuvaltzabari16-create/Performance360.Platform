@@ -1,6 +1,11 @@
 import { ButtonLink, Card, Checkbox, Field, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
+import { cookies } from "next/headers";
 import { requireProfile } from "@/lib/auth";
+import { IDLE_COOKIE, parseIdleMinutes } from "@/lib/security/idle";
+import { DeleteAccountCard } from "./security/DeleteAccountCard";
+import { IdleTimeoutCard } from "./security/IdleTimeoutCard";
+import { TwoFactorCard } from "./security/TwoFactorCard";
 import { deactivateAccount, updateSettings } from "./actions";
 
 export const metadata = { title: "Settings" };
@@ -42,17 +47,21 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <Card title={ts.security}>
           <ButtonLink variant="secondary" href="/auth/update-password">{ts.changePassword}</ButtonLink>
         </Card>
+        <TwoFactorCard t={t} />
+        <IdleTimeoutCard t={t} minutes={parseIdleMinutes((await cookies()).get(IDLE_COOKIE)?.value)} />
         <Card title={ts.account}>
           <p className="text-sm"><span className="text-muted">{ts.role}:</span> {t.roles[profile.role]}</p>
           {org && <p className="mt-1 text-sm"><span className="text-muted">{t.team.yourTeam}:</span> <bdi>{org.org_name}</bdi> · {t.orgRoles[org.org_role]}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <ButtonLink variant="secondary" href="/settings/export" prefetch={false}>{ts.exportData}</ButtonLink>
+            <ButtonLink variant="secondary" href="/billing">{t.legal.billing.title}</ButtonLink>
           </div>
           <form action={deactivateAccount} className="mt-6 border-t border-line pt-4">
             <p className="mb-3 text-xs text-muted">{ts.deactivateHelp}</p>
             <ConfirmSubmit variant="danger" message={ts.deactivateConfirm}>{ts.deactivate}</ConfirmSubmit>
           </form>
         </Card>
+        <div className="lg:col-span-2"><DeleteAccountCard t={t} /></div>
       </div>
     </>
   );

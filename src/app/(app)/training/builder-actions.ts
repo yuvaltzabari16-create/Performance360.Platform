@@ -91,3 +91,24 @@ export async function swapExercises(input: { a: string; b: string; programId: st
   refresh(input.programId);
   return { ok: true };
 }
+
+/** Autosave for the session details form (title, position in the plan, duration, notes). */
+export async function saveSessionMeta(input: {
+  id: string; programId: string; title: string; week: number; day: number; minutes: number | null; notes: string;
+}): Promise<BuilderResult> {
+  const { supabase, t } = await requireProfessional();
+  if (!isUuid(input.id) || !isUuid(input.programId)) return { ok: false, error: t.common.error };
+  const title = String(input.title ?? "").trim().slice(0, 160);
+  if (!title) return { ok: false, error: t.common.required };
+  const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, Math.round(Number.isFinite(n) ? n : lo)));
+  const minutes = input.minutes == null || !Number.isFinite(input.minutes) ? null : clamp(input.minutes, 1, 600);
+  const { data, error } = await supabase
+    .from("training_sessions")
+    .update({ title, week_number: clamp(input.week, 1, 104), day_number: clamp(input.day, 1, 7), planned_duration_min: minutes, notes: String(input.notes ?? "").trim().slice(0, 5000) || null })
+    .eq("id", input.id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data?.length) return { ok: false, error: t.common.notAllowed };
+  refresh(input.programId);
+  return { ok: true };
+}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotGuardFields } from "@/components/security/BotGuardFields";
 import { redirect } from "next/navigation";
 import { Field, FlashMessage, Input } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -18,6 +19,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <h1 className="mb-6 text-2xl font-semibold tracking-tight text-ink">{t.auth.loginTitle}</h1>
       <FlashMessage error={sp.error} ok={sp.ok} />
       <form action={login} className="space-y-4">
+        <BotGuardFields />
         <input type="hidden" name="next" value={next} />
         <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
         <Field label={t.auth.password}><Input type="password" name="password" autoComplete="current-password" required /></Field>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Logo } from "@/components/ui";
+import { LegalFooter } from "@/components/legal/LegalFooter";
 import type { Dictionary } from "@/lib/i18n";
 import type { OrgMembership, Profile, UserRole } from "@/lib/types";
 import { LanguageSwitch } from "./LanguageSwitch";
@@ -52,8 +53,8 @@ export function AppShell({ profile, org, t, unread, children }: { profile: Profi
         {profile.deactivated_at && (
           <div className="bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">{t.settings.deactivated}</div>
         )}
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
-        <footer className="no-print px-4 py-6 text-center text-xs text-muted sm:px-8">{t.footer.disclaimer}</footer>
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <footer className="no-print space-y-2 px-4 py-6 text-center text-xs text-muted sm:px-8"><p>{t.footer.disclaimer}</p><LegalFooter t={t} /></footer>
       </div>
     </div>
   );

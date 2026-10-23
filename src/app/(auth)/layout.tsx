@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
+import { LegalFooter } from "@/components/legal/LegalFooter";
 import { getSession } from "@/lib/auth";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -11,10 +12,10 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Link href="/"><Logo className="text-lg text-ink" /></Link>
         <LanguageSwitch locale={locale} next="/login" className="text-ink-soft" />
       </header>
-      <main className="flex flex-1 items-start justify-center px-4 pt-6 pb-16 sm:pt-16">
+      <main id="main-content" tabIndex={-1} className="flex flex-1 items-start justify-center px-4 pt-6 pb-16 sm:pt-16">
         <div className="w-full max-w-sm">{children}</div>
       </main>
-      <footer className="py-6 text-center text-xs text-muted">{t.footer.disclaimer}</footer>
+      <footer className="space-y-2 py-6 text-center text-xs text-muted"><p>{t.footer.disclaimer}</p><LegalFooter t={t} /></footer>
     </div>
   );
 }
