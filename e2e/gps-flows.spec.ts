@@ -122,7 +122,7 @@ test.describe.serial("GPS", () => {
     await expect(page.getByRole("button", { name: "Delete session" })).toHaveCount(0);
   });
 
-  test("the physiotherapist can read but not import; the director has no GPS", async ({ browser }) => {
+  test("the physiotherapist and the director can read but not import", async ({ browser }) => {
     const physio = await login(browser, people.physio);
     await physio.goto("/gps");
     await expect(physio.getByRole("link", { name: "Match vs Rivals" })).toBeVisible();
@@ -131,8 +131,19 @@ test.describe.serial("GPS", () => {
     await expect(physio).toHaveURL(/\/gps$/);
 
     const director = await login(browser, people.director);
-    await expect(director.getByRole("navigation").first().getByRole("link", { name: "GPS" })).toHaveCount(0);
+    const menu = director.getByRole("navigation").first();
+    await expect(menu.getByRole("link", { name: "GPS" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Training Planner" })).toHaveCount(0);
+    await expect(menu.getByRole("link", { name: "Exercise Library" })).toHaveCount(0);
     await director.goto("/gps");
-    await expect(director).toHaveURL(/\/dashboard/);
+    await expect(director.getByRole("link", { name: "Match vs Rivals" })).toBeVisible();
+    await expect(director.getByRole("link", { name: "Import session" })).toHaveCount(0);
+    await director.getByRole("link", { name: "Match vs Rivals" }).click();
+    await expect(director.getByRole("link", { name: "Alex Runner" })).toBeVisible();
+    await expect(director.getByTestId("pitch-heat-map")).toBeVisible();
+    for (const path of ["/training", "/exercises"]) {
+      await director.goto(path);
+      await expect(director).toHaveURL(/\/dashboard/);
+    }
   });
 });

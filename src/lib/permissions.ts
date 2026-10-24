@@ -14,8 +14,9 @@ const COMMON: Section[] = ["dashboard", "notifications", "settings"];
 
 /** Sections per team role. Roles missing here get the full professional set. */
 const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
-  // Runs the club: staff, roster counts, billing. No athlete records and no performance content.
-  director: [...COMMON, "team"],
+  // Runs the club: staff, roster counts, billing, and workload (GPS). No athlete records, no training
+  // planner and no exercise library.
+  director: [...COMMON, "team", "gps"],
   // Medical side: injuries and clearance, athlete records, screening tests, wellness, the rehab library.
   // Does not write training programs.
   physiotherapist: [...COMMON, "team", "athletes", "calendar", "exercises", "testing", "readiness", "injuries", "gps"],

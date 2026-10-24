@@ -12,7 +12,7 @@ import { deleteGpsSession } from "../actions";
 export default async function GpsSessionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireSection("gps");
+  const { supabase, user, profile, org, t } = await requireSection("gps");
   if (!isUuid(id)) notFound();
   const tg = t.gps;
   const isAthlete = profile.role === "athlete";
@@ -22,8 +22,11 @@ export default async function GpsSessionPage({ params, searchParams }: { params:
   const s = session as GpsSessionRow;
   const { data: metricData } = await supabase.from("gps_session_metrics").select("*").eq("session_id", id).order("total_distance_m", { ascending: false });
   const rows = (metricData ?? []) as GpsMetricRow[];
-  const { data: athletes } = rows.length ? await supabase.from("athletes").select("id, full_name").in("id", rows.map((r) => r.athlete_id)) : { data: [] };
-  const nameOf = (athleteId: string) => (athletes ?? []).find((a) => a.id === athleteId)?.full_name ?? "—";
+  // The director cannot read athlete records; names come from the roster list they are allowed to see.
+  const { data: athletes } = org?.org_role === "director"
+    ? { data: ((await supabase.rpc("org_roster")).data ?? []).map((r: { athlete_id: string; full_name: string }) => ({ id: r.athlete_id, full_name: r.full_name })) }
+    : rows.length ? await supabase.from("athletes").select("id, full_name").in("id", rows.map((r) => r.athlete_id)) : { data: [] };
+  const nameOf = (athleteId: string) => ((athletes ?? []) as { id: string; full_name: string }[]).find((a) => a.id === athleteId)?.full_name ?? "—";
 
   const selected = rows.find((r) => r.athlete_id === sp.athlete) ?? rows[0];
   const avg = (pick: (r: GpsMetricRow) => number) => average(rows.map(pick));

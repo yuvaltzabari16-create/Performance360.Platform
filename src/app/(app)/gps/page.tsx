@@ -47,8 +47,8 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
 
       {sessions.length === 0 ? (
         <div className="space-y-6">
-          <EmptyState title={tg.empty} body={isAthlete ? undefined : tg.emptyHelp} />
-          {!isAthlete && <ConnectionsCard t={t} canImport={canImport} />}
+          <EmptyState title={tg.empty} body={canImport ? tg.emptyHelp : undefined} />
+          {canImport && <ConnectionsCard t={t} canImport={canImport} />}
         </div>
       ) : (
         <div className="space-y-6">
@@ -103,7 +103,7 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
               })}
             </ul>
           </Card>
-          {!isAthlete && <ConnectionsCard t={t} canImport={canImport} />}
+          {canImport && <ConnectionsCard t={t} canImport={canImport} />}
         </div>
       )}
       <p className="mt-6 text-xs text-muted">{tg.medical}</p>

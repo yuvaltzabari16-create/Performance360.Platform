@@ -7,6 +7,7 @@ describe("permissions", () => {
       expect(canAccess(s, "org_admin", "director")).toBe(false);
     }
     expect(canAccess("team", "org_admin", "director")).toBe(true);
+    expect(canAccess("gps", "org_admin", "director")).toBe(true); // workload is visible, the planner and library are not
   });
   it("gives the physiotherapist the medical side but not program writing", () => {
     expect(canAccess("injuries", "physiotherapist", "physiotherapist")).toBe(true);

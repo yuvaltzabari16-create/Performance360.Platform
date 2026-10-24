@@ -3,7 +3,8 @@
 --
 -- Access
 --   * Staff read GPS data for the athletes they work with (same rule as every athlete record);
---     athletes read their own; the team director sees none.
+--     athletes read their own; the team director reads it for the athletes on the team's roster
+--     (workload is a club-level topic) while the training planner and exercise library stay closed to them.
 --   * Writing goes through import_gps_session(): not for the director or the physiotherapist, and
 --     only for athletes the caller works with.
 
@@ -49,10 +50,14 @@ alter table public.gps_sessions enable row level security;
 alter table public.gps_session_metrics enable row level security;
 revoke insert, update, delete on public.gps_sessions, public.gps_session_metrics from anon, authenticated;
 
--- Can the caller see this athlete's GPS data? Staff of the athlete or the athlete; never the director.
+-- Can the caller see this athlete's GPS data? Staff of the athlete, the athlete, or the director of a
+-- team the athlete is on (active roster).
 create or replace function public.can_view_gps(p_athlete uuid)
 returns boolean language sql stable security definer set search_path = public, pg_temp as $$
-  select public.can_access_athlete(p_athlete) and coalesce(public.my_org_role(), '') <> 'director'
+  select public.can_access_athlete(p_athlete)
+      or (coalesce(public.my_org_role(), '') = 'director' and exists (
+            select 1 from public.organization_athletes oa
+            where oa.athlete_id = p_athlete and oa.org_id = public.my_org_id() and oa.status = 'active'))
 $$;
 
 create or replace function public.can_view_gps_session(p_session uuid)
@@ -62,7 +67,7 @@ $$;
 
 create policy gps_metrics_select on public.gps_session_metrics for select to authenticated using (public.can_view_gps(athlete_id));
 create policy gps_sessions_select on public.gps_sessions for select to authenticated
-  using ((owner_id = auth.uid() and coalesce(public.my_org_role(), '') <> 'director') or public.can_view_gps_session(id));
+  using (owner_id = auth.uid() or public.can_view_gps_session(id));
 
 -- Import one session with its per-athlete rows (rows: jsonb array, at most 60 athletes).
 create or replace function public.import_gps_session(
