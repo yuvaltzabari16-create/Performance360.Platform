@@ -17,7 +17,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   const [{ data: contactRows }, { data: messageRows }] = await Promise.all([
     supabase.rpc("message_contacts"),
-    supabase.from("messages").select("id, sender_id, recipient_id, body, created_at, read_at").order("created_at", { ascending: false }).limit(400),
+    supabase.from("direct_messages").select("id, sender_id, recipient_id, body, created_at, read_at").order("created_at", { ascending: false }).limit(400),
   ]);
   const contacts = (contactRows ?? []) as Contact[];
   const messages = (messageRows ?? []) as Message[];

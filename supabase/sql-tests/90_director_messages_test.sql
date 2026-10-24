@@ -63,20 +63,20 @@ select tests.throws(format($$select public.send_message(%L, '   ')$$, :'ath')) a
 select tests.check(:'empty_msg'::boolean, 'empty messages are rejected');
 
 set request.jwt.claim.sub = :ath;
-select tests.check((select count(*) from public.messages) = 1, 'athlete receives the message');
+select tests.check((select count(*) from public.direct_messages) = 1, 'athlete receives the message');
 select tests.check((select count(*) from public.notifications where kind = 'message') = 1, 'recipient is notified');
 select public.mark_messages_read(:dir);
-select tests.check((select read_at is not null from public.messages), 'messages can be marked read');
+select tests.check((select read_at is not null from public.direct_messages), 'messages can be marked read');
 select public.send_message(:dir, 'Thanks');
 select tests.check((select count(*) from public.message_contacts()) = 2, 'athlete can message the staff of their team');
 
 set request.jwt.claim.sub = :out;
-select tests.check((select count(*) from public.messages) = 0, 'outsiders read none of it');
-select tests.throws(format($$insert into public.messages (sender_id, recipient_id, body) values (%L, %L, 'x')$$, :'out', :'ath')) as direct_ins \gset
+select tests.check((select count(*) from public.direct_messages) = 0, 'outsiders read none of it');
+select tests.throws(format($$insert into public.direct_messages (sender_id, recipient_id, body) values (%L, %L, 'x')$$, :'out', :'ath')) as direct_ins \gset
 select tests.check(:'direct_ins'::boolean, 'messages cannot be written directly');
 
 set request.jwt.claim.sub = :hop;
-select tests.check((select count(*) from public.messages) = 0, 'a third team member does not read others messages');
+select tests.check((select count(*) from public.direct_messages) = 0, 'a third team member does not read others messages');
 
 -- a personal trainer and their connected athlete can talk
 set request.jwt.claim.sub = :pt;

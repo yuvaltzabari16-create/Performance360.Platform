@@ -47,7 +47,7 @@ grant execute on function public.director_sees_athlete(uuid), public.director_se
 -- ---------------------------------------------------------------------------
 -- Messages
 -- ---------------------------------------------------------------------------
-create table public.messages (
+create table public.direct_messages (
   id uuid primary key default gen_random_uuid(),
   sender_id uuid not null references auth.users (id) on delete cascade,
   recipient_id uuid not null references auth.users (id) on delete cascade,
@@ -56,11 +56,11 @@ create table public.messages (
   read_at timestamptz,
   check (sender_id <> recipient_id)
 );
-create index messages_recipient_idx on public.messages (recipient_id, read_at, created_at desc);
-create index messages_sender_idx on public.messages (sender_id, created_at desc);
-alter table public.messages enable row level security;
-revoke insert, update, delete on public.messages from anon, authenticated;
-create policy messages_select on public.messages for select to authenticated using (sender_id = auth.uid() or recipient_id = auth.uid());
+create index direct_messages_recipient_idx on public.direct_messages (recipient_id, read_at, created_at desc);
+create index direct_messages_sender_idx on public.direct_messages (sender_id, created_at desc);
+alter table public.direct_messages enable row level security;
+revoke insert, update, delete on public.direct_messages from anon, authenticated;
+create policy direct_messages_select on public.direct_messages for select to authenticated using (sender_id = auth.uid() or recipient_id = auth.uid());
 
 -- People the caller may message, with a display name and a label (team role, "athlete" or profession).
 create or replace function public.message_contacts()
@@ -109,7 +109,7 @@ begin
   if not exists (select 1 from public.message_contacts() c where c.user_id = p_to) then
     raise exception 'not allowed' using errcode = '42501';
   end if;
-  insert into public.messages (sender_id, recipient_id, body) values (auth.uid(), p_to, left(v_body, 4000)) returning id into v_id;
+  insert into public.direct_messages (sender_id, recipient_id, body) values (auth.uid(), p_to, left(v_body, 4000)) returning id into v_id;
   select coalesce(nullif(full_name, ''), email) into v_name from public.profiles where id = auth.uid();
   perform public.notify(p_to, 'message', 'New message from ' || coalesce(v_name, ''), left(v_body, 120), '/messages?with=' || auth.uid());
   return v_id;
@@ -117,7 +117,7 @@ end $$;
 
 create or replace function public.mark_messages_read(p_with uuid)
 returns void language sql security definer set search_path = public, pg_temp as $$
-  update public.messages set read_at = now()
+  update public.direct_messages set read_at = now()
    where recipient_id = auth.uid() and sender_id = p_with and read_at is null
 $$;
 
