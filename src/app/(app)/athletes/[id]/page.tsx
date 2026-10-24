@@ -10,6 +10,8 @@ import { isUuid } from "@/lib/forms";
 import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, wellnessIndex } from "@/lib/metrics";
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
+import { InjurySection } from "@/components/injury/InjurySection";
+import { loadInjuries } from "@/lib/injury-data";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
 import { addToRoster, removeFromRoster } from "../../team/actions";
 
@@ -51,6 +53,9 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
   const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
   const isPro = profile.role !== "athlete";
+  const { injuries, events: injuryEvents } = await loadInjuries(supabase, [id]);
+  // Mirrors the database rule: the primary coach or a team physiotherapist on the athlete's roster records clearance.
+  const canClear = isPrimary || Boolean(org?.org_role === "physiotherapist" && onMyRoster);
 
   // Team staff on the athlete's roster teams (visible to the athlete and to colleagues).
   const rosterOrgIds = (rosterRows ?? []).map((r) => r.org_id);
@@ -199,6 +204,18 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               </ul>
             )}
           </Card>
+
+          <InjurySection
+            injuries={injuries}
+            events={injuryEvents}
+            athleteId={a.id}
+            today={new Date().toISOString().slice(0, 10)}
+            locale={profile.locale}
+            t={t}
+            back={`/athletes/${a.id}`}
+            professional={isPro}
+            canClear={canClear}
+          />
 
           <Card title={ta.notes}>
             <div id="notes" />
