@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
 import { getCookieLocale, getDictionary } from "./i18n";
+import { canAccess, type Section } from "./permissions";
 import type { OrgMembership, OrgRole, Profile, UserRole } from "./types";
 
 /** Loads the signed-in user and their profile once per request. */
@@ -70,4 +71,11 @@ export async function getMyAthleteId(): Promise<string | null> {
   if (!user) return null;
   const { data } = await supabase.from("athletes").select("id").eq("user_id", user.id).maybeSingle();
   return (data?.id as string | undefined) ?? null;
+}
+
+/** Page guard for a section: logins without access are sent to their dashboard. */
+export async function requireSection(section: Section) {
+  const session = await requireProfile();
+  if (!canAccess(section, session.profile.role, session.org?.org_role ?? null)) redirect("/dashboard");
+  return session;
 }

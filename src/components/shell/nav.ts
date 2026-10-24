@@ -1,4 +1,5 @@
 import type { Dictionary } from "@/lib/i18n";
+import { sectionsFor, type Section } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
 export type NavIcon =
@@ -10,44 +11,30 @@ export interface NavItem {
   icon: NavIcon;
 }
 
-/** Navigation per role. Only shipped, working modules are listed. */
+/** Menu entries per section; the label differs for athletes on a few of them. */
+function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
+  const athlete = role === "athlete";
+  switch (section) {
+    case "dashboard": return { href: "/dashboard", label: t.nav.dashboard, icon: "home" };
+    case "team": return { href: "/team", label: t.nav.team, icon: "team" };
+    case "athletes": return { href: "/athletes", label: t.nav.athletes, icon: "users" };
+    case "teams": return { href: "/teams", label: t.nav.teams, icon: "group" };
+    case "calendar": return { href: "/calendar", label: t.nav.calendar, icon: "calendar" };
+    case "training": return { href: "/training", label: athlete ? t.nav.myTraining : t.nav.training, icon: athlete ? "library" : "chart" };
+    case "exercises": return { href: "/exercises", label: t.nav.exercises, icon: "library" };
+    case "testing": return { href: "/testing", label: athlete ? t.nav.myResults : t.nav.testing, icon: "chart" };
+    case "readiness": return { href: "/readiness", label: t.nav.readiness, icon: "pulse" };
+    case "injuries": return { href: "/injuries", label: t.nav.injuries, icon: "pulse" };
+    case "code": return { href: "/code", label: t.nav.code, icon: "key" };
+    case "connect": return { href: "/connect", label: t.nav.connect, icon: "link" };
+    case "notifications": return { href: "/notifications", label: t.nav.notifications, icon: "bell" };
+    case "settings": return { href: "/settings", label: t.nav.settings, icon: "settings" };
+  }
+}
+
+/** Navigation for a login: the sections its role may open, in a fixed order. */
 export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null): NavItem[] {
-  if (role === "athlete") {
-    return [
-      { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
-      { href: "/calendar", label: t.nav.calendar, icon: "calendar" },
-      { href: "/training", label: t.nav.myTraining, icon: "library" },
-      { href: "/testing", label: t.nav.myResults, icon: "chart" },
-      { href: "/readiness", label: t.nav.readiness, icon: "pulse" },
-      { href: "/injuries", label: t.nav.injuries, icon: "pulse" },
-      { href: "/exercises", label: t.nav.exercises, icon: "library" },
-      { href: "/connect", label: t.nav.connect, icon: "link" },
-      { href: "/notifications", label: t.nav.notifications, icon: "bell" },
-      { href: "/settings", label: t.nav.settings, icon: "settings" },
-    ];
-  }
-  if (orgRole === "director") {
-    // The director runs the team; individual athlete records are not part of this role.
-    return [
-      { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
-      { href: "/team", label: t.nav.team, icon: "team" },
-      { href: "/notifications", label: t.nav.notifications, icon: "bell" },
-      { href: "/settings", label: t.nav.settings, icon: "settings" },
-    ];
-  }
-  return [
-    { href: "/dashboard", label: t.nav.dashboard, icon: "home" },
-    ...(orgRole ? [{ href: "/team", label: t.nav.team, icon: "team" as const }] : []),
-    { href: "/athletes", label: t.nav.athletes, icon: "users" },
-    { href: "/teams", label: t.nav.teams, icon: "group" },
-    { href: "/calendar", label: t.nav.calendar, icon: "calendar" },
-    { href: "/training", label: t.nav.training, icon: "chart" },
-    { href: "/exercises", label: t.nav.exercises, icon: "library" },
-    { href: "/testing", label: t.nav.testing, icon: "chart" },
-    { href: "/readiness", label: t.nav.readiness, icon: "pulse" },
-    { href: "/injuries", label: t.nav.injuries, icon: "pulse" },
-    { href: "/code", label: t.nav.code, icon: "key" },
-    { href: "/notifications", label: t.nav.notifications, icon: "bell" },
-    { href: "/settings", label: t.nav.settings, icon: "settings" },
-  ];
+  const allowed = sectionsFor(role, orgRole);
+  const order: Section[] = ["dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "code", "connect", "notifications", "settings"];
+  return order.filter((s) => allowed.includes(s)).map((s) => entry(s, role, t));
 }

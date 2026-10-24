@@ -134,6 +134,7 @@ test.describe.serial("Return to play", () => {
   test("the director sees no injuries", async ({ browser }) => {
     const page = await login(browser, people.director);
     await page.goto("/injuries");
-    await expect(page.getByText("Ivan Injured")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/dashboard/); // the injury section is not part of the director's login
+    await expect(page.getByRole("heading", { name: "Injury board" })).toHaveCount(0);
   });
 });

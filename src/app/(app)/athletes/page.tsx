@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select, Table, Td } from "@/components/ui";
-import { requireProfessional } from "@/lib/auth";
+import { requireSection } from "@/lib/auth";
 import { ageFromDob } from "@/lib/metrics";
 import { containsPattern, sanitizeSearchTerm } from "@/lib/security/query";
 import type { Athlete } from "@/lib/types";
@@ -11,7 +11,7 @@ const PAGE_SIZE = 50;
 
 export default async function AthletesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, t } = await requireProfessional();
+  const { supabase, t } = await requireSection("athletes");
   const status = sp.status === "archived" ? "archived" : "active";
   const q = (sp.q ?? "").trim().slice(0, 80);
   const sport = (sp.sport ?? "").slice(0, 80);
