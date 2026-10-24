@@ -5,7 +5,7 @@ import { Badge, ButtonLink, Card, EmptyState, FlashMessage, PageHeader, Stat } f
 import { ConfirmSubmit } from "@/components/ui/client";
 import { requireSection } from "@/lib/auth";
 import { average, formatDistance, type GpsMetricRow, type GpsSessionRow } from "@/lib/gps/format";
-import { canWriteTraining } from "@/lib/permissions";
+import { canImportGps } from "@/lib/permissions";
 import { loadSampleSession } from "./actions";
 
 export const metadata = { title: "GPS" };
@@ -15,7 +15,7 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
   const { supabase, profile, org, t } = await requireSection("gps");
   const tg = t.gps;
   const isAthlete = profile.role === "athlete";
-  const canImport = !isAthlete && canWriteTraining(org?.org_role ?? null);
+  const canImport = !isAthlete && canImportGps(org?.org_role ?? null);
   const kind = sp.kind === "match" || sp.kind === "training" ? sp.kind : null;
 
   let query = supabase.from("gps_sessions").select("id, title, kind, session_date, duration_min, source, is_sample, pitch_length_m, pitch_width_m, owner_id").order("session_date", { ascending: false }).limit(60);

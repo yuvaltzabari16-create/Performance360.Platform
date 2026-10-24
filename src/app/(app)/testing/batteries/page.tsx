@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, Field, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
@@ -10,7 +11,8 @@ export const metadata = { title: "Test batteries" };
 
 export default async function BatteriesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, t } = await requireProfessional();
+  const { supabase, org, t } = await requireProfessional();
+  if (org?.org_role === "director") redirect("/testing"); // the director reads results, staff record them
   const tt = t.testing;
   const [{ data: batteries }, { data: defsData }] = await Promise.all([
     supabase.from("test_batteries").select("*").order("name"),

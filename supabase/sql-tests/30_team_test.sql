@@ -118,8 +118,8 @@ select tests.check(public.is_primary_coach(:'ath_rec'), 'head of performance cou
 set request.jwt.claim.sub = :dir;
 select tests.check((select count(*) from public.athletes) = 1, 'director reads roster athletes (read-only)');
 select tests.check(tests.affected(format('update public.athletes set sport = %L where id = %L', 'x', :'ath_rec')) = 0, 'director cannot edit athletes');
-select tests.check((select count(*) from public.test_results) = 0, 'director cannot read test results');
-select tests.check((select count(*) from public.athlete_notes) = 0, 'director cannot read notes');
+select tests.check((select count(*) from public.test_results) = 2, 'director reads test results (read-only)');
+select tests.check((select count(*) from public.athlete_notes) = 2, 'director reads notes (read-only)');
 select tests.check((select count(*) from public.profiles where id = :ath) = 0, 'director cannot read the athlete account profile');
 select tests.check((select count(*) from public.org_roster()) = 1, 'director sees the roster list');
 select tests.check((select full_name from public.org_roster()) = 'Alex Athlete', 'roster shows the athlete name');

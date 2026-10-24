@@ -10,7 +10,7 @@ import { buildHeat, computeMetrics } from "@/lib/gps/metrics";
 import { parseSamples } from "@/lib/gps/samples";
 import { parseSummary } from "@/lib/gps/summary";
 import { DEFAULT_PITCH } from "@/lib/gps/types";
-import { canWriteTraining } from "@/lib/permissions";
+import { canImportGps } from "@/lib/permissions";
 
 const SOURCES = ["statsports", "catapult", "polar", "other"] as const;
 const KINDS = ["training", "match"] as const;
@@ -37,7 +37,7 @@ export async function importGpsSession(formData: FormData) {
   const { supabase, org, t } = await requireSection("gps");
   const back = "/gps/import";
   const te = t.gps.importErrors;
-  if (!canWriteTraining(org?.org_role ?? null)) fail(back, te.generic);
+  if (!canImportGps(org?.org_role ?? null)) fail(back, te.generic);
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) fail(back, te.no_file);
   if (file.size > MAX_CSV_BYTES) fail(back, te.too_big);
@@ -92,7 +92,7 @@ export async function importGpsSession(formData: FormData) {
 /** Adds a clearly labelled sample session for the roster so the GPS pages can be explored. */
 export async function loadSampleSession() {
   const { supabase, org, t } = await requireSection("gps");
-  if (!canWriteTraining(org?.org_role ?? null)) fail("/gps", t.gps.importErrors.generic);
+  if (!canImportGps(org?.org_role ?? null)) fail("/gps", t.gps.importErrors.generic);
   const { athletes } = await rosterByName(supabase);
   const squad = athletes.slice(0, 18);
   if (squad.length === 0) fail("/gps", t.gps.sampleNoAthletes);

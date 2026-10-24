@@ -30,10 +30,14 @@ select tests.check((select count(*) from public.training_programs where title = 
 
 set request.jwt.claim.sub = :physio;
 select tests.check((select count(*) from public.exercises) > 300, 'physiotherapist reads the library (rehab)');
-select tests.throws(format($$insert into public.training_programs (coach_id, title) values (%L, 'Physio program')$$, :'physio')) as physio_prog \gset
-select tests.check(:'physio_prog'::boolean, 'physiotherapist cannot write training programs');
-select tests.throws(format($$insert into public.exercises (owner_id, name, category) values (%L, 'Physio move', 'rehab')$$, :'physio')) as physio_ex \gset
-select tests.check(:'physio_ex'::boolean, 'physiotherapist cannot create library exercises');
+insert into public.training_programs (coach_id, title) values (:physio, 'Rehab program');
+select tests.check((select count(*) from public.training_programs where title = 'Rehab program') = 1, 'physiotherapist builds rehab programs');
+insert into public.exercises (owner_id, name, category) values (:physio, 'Physio move', 'rehab');
+select tests.check((select count(*) from public.exercises where name = 'Physio move') = 1, 'physiotherapist can add a rehab exercise');
+set request.jwt.claim.sub = :dir;
+select tests.throws(format($$insert into public.training_programs (coach_id, title) values (%L, 'Dir program')$$, :'dir')) as dir_prog \gset
+select tests.check(:'dir_prog'::boolean, 'director cannot write programs');
+set request.jwt.claim.sub = :physio;
 
 set request.jwt.claim.sub = :pt;
 insert into public.training_programs (coach_id, title) values (:pt, 'PT program');

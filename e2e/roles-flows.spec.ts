@@ -61,13 +61,16 @@ test.describe.serial("Role logins", () => {
   test("the director sees the club but no performance content", async ({ browser }) => {
     const page = await login(browser, people.director);
     await expect(nav(page).getByRole("link", { name: "My Team" })).toBeVisible();
-    for (const name of ["Exercise Library", "Training Planner", "Testing", "Readiness"]) {
+    for (const name of ["Exercise Library", "Training Planner"]) {
       await expect(nav(page).getByRole("link", { name })).toHaveCount(0);
     }
-    for (const name of ["Athletes", "Calendar", "Injuries", "Messages", "Groups", "GPS", "Settings"]) {
+    for (const name of ["Athletes", "Calendar", "Testing", "Readiness", "Injuries", "Messages", "Groups", "GPS", "Settings"]) {
       await expect(nav(page).getByRole("link", { name })).toBeVisible();
     }
-    for (const path of ["/exercises", "/training", "/testing", "/readiness"]) {
+    await page.goto("/testing");
+    await expect(page.getByRole("heading", { name: "Testing", level: 1 })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Record test" })).toHaveCount(0); // read-only
+    for (const path of ["/exercises", "/training"]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/dashboard/);
     }
@@ -82,16 +85,37 @@ test.describe.serial("Role logins", () => {
     await expect(page).toHaveURL(/\/exercises/);
   });
 
-  test("the physiotherapist has the medical side but no program builder", async ({ browser }) => {
+  test("the physiotherapist has the medical side, rehab programs and GPS", async ({ browser }) => {
     const page = await login(browser, people.physio);
-    for (const name of ["Injuries", "Athletes", "Readiness", "Testing"]) {
+    for (const name of ["Injuries", "Athletes", "Readiness", "Training Planner", "Exercise Library", "GPS", "Messages"]) {
       await expect(nav(page).getByRole("link", { name })).toBeVisible();
     }
-    await expect(nav(page).getByRole("link", { name: "Training Planner" })).toHaveCount(0);
+    await expect(nav(page).getByRole("link", { name: "Testing" })).toHaveCount(0); // medical information only
     await page.goto("/training");
+    await expect(page).toHaveURL(/\/training/);
+    await page.goto("/testing");
     await expect(page).toHaveURL(/\/dashboard/);
     await page.goto("/injuries");
     await expect(page.getByRole("heading", { name: "Injury board" })).toBeVisible();
+  });
+
+  test("sign-in options check that the account matches the chosen role", async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto("/login?as=director");
+    await expect(page.getByTestId("login-roles").getByRole("link", { name: "Physiotherapist" })).toBeVisible();
+    await page.getByLabel("Email").fill(people.physio.email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.getByText(/not a Director account/)).toBeVisible();
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login/); // the session was closed again
+
+    await page.goto("/login?as=physiotherapist");
+    await page.getByLabel("Email").fill(people.physio.email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL(/\/dashboard/);
   });
 
   test("an independent personal trainer has their own full login", async ({ page }) => {

@@ -2,14 +2,14 @@ import { ConnectionsCard } from "@/components/gps/ConnectionsCard";
 import { Card, Field, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { requireSection } from "@/lib/auth";
-import { canWriteTraining } from "@/lib/permissions";
+import { canImportGps } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { importGpsSession } from "../actions";
 
 export default async function ImportGpsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const { org, profile, t } = await requireSection("gps");
-  if (profile.role === "athlete" || !canWriteTraining(org?.org_role ?? null)) redirect("/gps");
+  if (profile.role === "athlete" || !canImportGps(org?.org_role ?? null)) redirect("/gps");
   const tg = t.gps;
   return (
     <>

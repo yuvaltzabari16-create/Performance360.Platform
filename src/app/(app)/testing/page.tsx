@@ -18,7 +18,8 @@ function fmtPct(v: number | null) {
 
 export default async function TestingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireProfile();
+  const { supabase, user, profile, org, t } = await requireProfile();
+  const readOnly = org?.org_role === "director"; // the director reads results; staff record them
   const tt = t.testing;
   const isAthlete = profile.role === "athlete";
 
@@ -42,7 +43,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
       <>
         <PageHeader
           title={isAthlete ? tt.myTitle : tt.title}
-          actions={!isAthlete && (
+          actions={!isAthlete && !readOnly && (
             <>
               <ButtonLink variant="secondary" href="/testing/batteries">{tt.batteries}</ButtonLink>
               <ButtonLink href="/testing/new">{tt.record}</ButtonLink>
@@ -59,7 +60,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
           </form>
         )}
         {(recent ?? []).length === 0 ? (
-          <EmptyState title={tt.empty} body={isAthlete ? t.readiness.needsProfile : tt.emptyHelp} action={!isAthlete && <ButtonLink href="/testing/new">{tt.record}</ButtonLink>} />
+          <EmptyState title={tt.empty} body={isAthlete ? t.readiness.needsProfile : readOnly ? undefined : tt.emptyHelp} action={!isAthlete && !readOnly && <ButtonLink href="/testing/new">{tt.record}</ButtonLink>} />
         ) : (
           <Table head={[t.common.date, tt.athlete, tt.test, tt.best, tt.method]}>
             {(recent ?? []).map((r) => {
@@ -122,7 +123,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
         actions={
           <>
             {results.length > 0 && <ButtonLink variant="secondary" href={`/testing/export?athlete=${athleteId}`}>{t.common.exportCsv}</ButtonLink>}
-            {!isAthlete && <ButtonLink href={`/testing/new?athlete=${athleteId}`}>{tt.record}</ButtonLink>}
+            {!isAthlete && !readOnly && <ButtonLink href={`/testing/new?athlete=${athleteId}`}>{tt.record}</ButtonLink>}
           </>
         }
       />

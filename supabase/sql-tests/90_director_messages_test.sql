@@ -46,7 +46,8 @@ select tests.check((select count(*) from public.program_assignments) = 1, 'direc
 select tests.check((select count(*) from public.training_programs) = 1, 'director sees the program title');
 select tests.check((select count(*) from public.training_sessions) = 1, 'director sees session titles');
 select tests.check((select count(*) from public.session_exercises) = 0, 'director does not see session contents');
-select tests.check((select count(*) from public.athlete_notes) = 0, 'director does not see coach notes');
+select tests.check((select count(*) from public.athlete_notes) = 1, 'director reads coach notes (read-only)');
+select tests.check((select count(*) from public.test_results) = 0, 'no test results recorded yet');
 select tests.check((select count(*) from public.exercises) = 0, 'director does not see the exercise library');
 select tests.throws(format($$select public.set_injury_stage(%L, 'rehab', null)$$, :'inj')) as dir_stage \gset
 select tests.check(:'dir_stage'::boolean, 'director cannot change an injury stage');

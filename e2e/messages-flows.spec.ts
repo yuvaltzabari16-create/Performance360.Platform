@@ -81,9 +81,10 @@ test.describe.serial("Messages and the director's club view", () => {
     for (const name of ["Dashboard", "My Team", "Athletes", "Groups", "Calendar", "Injuries", "Messages", "GPS", "Settings"]) {
       await expect(menu.getByRole("link", { name })).toBeVisible();
     }
-    for (const name of ["Training Planner", "Exercise Library", "Testing", "Readiness"]) {
+    for (const name of ["Training Planner", "Exercise Library"]) {
       await expect(menu.getByRole("link", { name })).toHaveCount(0);
     }
+    for (const name of ["Testing", "Readiness"]) await expect(menu.getByRole("link", { name })).toBeVisible();
     await page.getByRole("link", { name: "Athletes" }).first().click();
     await expect(page.getByRole("link", { name: "Anna Athlete" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Add athlete" })).toHaveCount(0);

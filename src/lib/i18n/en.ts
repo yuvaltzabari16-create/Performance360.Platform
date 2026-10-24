@@ -86,6 +86,9 @@ const en = {
     org_admin: "Team / Organization Administrator",
   },
   auth: {
+    loginAs: "Sign in as",
+    loginAny: "Any account",
+    roleMismatch: "This account is not a {role} account. Pick the matching option, or sign in with \"Any account\".",
     loginTitle: "Sign in to Performance360",
     signupTitle: "Create your account",
     password: "Password",

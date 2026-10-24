@@ -14,13 +14,13 @@ const COMMON: Section[] = ["dashboard", "messages", "notifications", "settings"]
 
 /** Sections per team role. Roles missing here get the full professional set. */
 const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
-  // Runs the club: overview, players, training schedule, injuries, messages, squads, staff, GPS and
-  // settings. Everything is read-only except staff and messages. No training planner, no exercise
-  // library, no testing or wellness data.
-  director: [...COMMON, "team", "athletes", "teams", "calendar", "injuries", "gps"],
-  // Medical side: injuries and clearance, athlete records, screening tests, wellness, the rehab library.
-  // Does not write training programs.
-  physiotherapist: [...COMMON, "team", "athletes", "calendar", "exercises", "testing", "readiness", "injuries", "gps"],
+  // Bird's-eye view of the club: all information, read-only (roster, schedule, tests, wellness, injuries,
+  // notes, GPS, squads, staff, messages). No training planner and no exercise library: building training
+  // is the performance and medical staff's job.
+  director: [...COMMON, "team", "athletes", "teams", "calendar", "testing", "readiness", "injuries", "gps"],
+  // Medical side: athlete medical picture, wellness, injuries and clearance, rehab and injury-prevention
+  // programs (planner and library), and GPS load.
+  physiotherapist: [...COMMON, "team", "athletes", "calendar", "training", "exercises", "readiness", "injuries", "gps"],
   // Performance side: programs, library, testing, load, groups, and the injury board to plan around it.
   head_of_performance: [...COMMON, "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps"],
 };
@@ -39,5 +39,8 @@ export function sectionsFor(role: UserRole | null | undefined, orgRole: OrgRole 
 export const canAccess = (section: Section, role: UserRole | null | undefined, orgRole: OrgRole | null | undefined) =>
   sectionsFor(role, orgRole).includes(section);
 
-/** Whether this login may create training programs and their own exercises. */
-export const canWriteTraining = (orgRole: OrgRole | null | undefined) => orgRole !== "director" && orgRole !== "physiotherapist";
+/** Whether this login may create training programs and their own exercises (everyone but the director). */
+export const canWriteTraining = (orgRole: OrgRole | null | undefined) => orgRole !== "director";
+
+/** Whether this login may import GPS files: the performance side, not the medical side or the director. */
+export const canImportGps = (orgRole: OrgRole | null | undefined) => orgRole !== "director" && orgRole !== "physiotherapist";

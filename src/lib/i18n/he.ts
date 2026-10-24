@@ -88,6 +88,9 @@ const he: Dictionary = {
     org_admin: "מנהל/ת קבוצה או ארגון",
   },
   auth: {
+    loginAs: "התחברות בתור",
+    loginAny: "כל חשבון",
+    roleMismatch: "החשבון הזה אינו חשבון {role}. בחרו באפשרות המתאימה, או התחברו עם \"כל חשבון\".",
     loginTitle: "התחברות ל-Performance360",
     signupTitle: "יצירת חשבון",
     password: "סיסמה",

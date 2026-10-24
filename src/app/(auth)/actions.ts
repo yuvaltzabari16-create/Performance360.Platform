@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 import { fail, safeNext, str } from "@/lib/forms";
+import { isLoginRole, matchesLoginRole } from "@/lib/login-roles";
 import { siteUrl } from "@/lib/site";
+import type { OrgRole, UserRole } from "@/lib/types";
 import { verifyBotGuard } from "@/lib/security/bot-guard";
 import { clientIp } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
@@ -25,6 +27,23 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) fail(`/login?next=${encodeURIComponent(next)}`, t.auth.invalidCredentials);
+  // A chosen login option must match the account; otherwise the session is closed again.
+  const chosen = str(formData, "as", 30);
+  if (isLoginRole(chosen)) {
+    const { data: userData } = await supabase.auth.getUser();
+    const uid = userData.user?.id;
+    const [{ data: prof }, { data: member }] = uid
+      ? await Promise.all([
+          supabase.from("profiles").select("role").eq("id", uid).maybeSingle(),
+          supabase.from("organization_members").select("org_role").eq("user_id", uid).eq("status", "active").maybeSingle(),
+        ])
+      : [{ data: null }, { data: null }];
+    if (!matchesLoginRole(chosen, (prof?.role as UserRole | null) ?? null, (member?.org_role as OrgRole | null) ?? null)) {
+      await supabase.auth.signOut();
+      const label = chosen === "athlete" || chosen === "personal_trainer" ? t.roles[chosen] : t.orgRoles[chosen];
+      fail(`/login?as=${chosen}&next=${encodeURIComponent(next)}`, t.auth.roleMismatch.replace("{role}", label));
+    }
+  }
   // Accounts with two-factor authentication must pass the second step before reaching the app.
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(next)}`);
