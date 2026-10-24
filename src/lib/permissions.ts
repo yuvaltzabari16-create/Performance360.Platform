@@ -6,7 +6,7 @@
 import type { OrgRole, UserRole } from "./types";
 
 export const SECTIONS = [
-  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "code", "connect", "notifications", "settings",
+  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps", "code", "connect", "notifications", "settings",
 ] as const;
 export type Section = (typeof SECTIONS)[number];
 
@@ -18,14 +18,14 @@ const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
   director: [...COMMON, "team"],
   // Medical side: injuries and clearance, athlete records, screening tests, wellness, the rehab library.
   // Does not write training programs.
-  physiotherapist: [...COMMON, "team", "athletes", "calendar", "exercises", "testing", "readiness", "injuries"],
+  physiotherapist: [...COMMON, "team", "athletes", "calendar", "exercises", "testing", "readiness", "injuries", "gps"],
   // Performance side: programs, library, testing, load, groups, and the injury board to plan around it.
-  head_of_performance: [...COMMON, "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries"],
+  head_of_performance: [...COMMON, "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps"],
 };
 
-const PROFESSIONAL: Section[] = [...COMMON, "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "code"];
+const PROFESSIONAL: Section[] = [...COMMON, "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps", "code"];
 const TEAM_PROFESSIONAL: Section[] = [...PROFESSIONAL.slice(0, 3), "team", ...PROFESSIONAL.slice(3)];
-const ATHLETE: Section[] = [...COMMON, "calendar", "training", "exercises", "testing", "readiness", "injuries", "connect"];
+const ATHLETE: Section[] = [...COMMON, "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps", "connect"];
 
 /** Sections the given login can open. */
 export function sectionsFor(role: UserRole | null | undefined, orgRole: OrgRole | null | undefined): Section[] {

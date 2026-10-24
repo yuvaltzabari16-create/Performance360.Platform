@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // GPS exports can be a few megabytes; the import action validates the size itself.
+  experimental: { serverActions: { bodySizeLimit: "9mb" } },
 };
 
 export default nextConfig;
