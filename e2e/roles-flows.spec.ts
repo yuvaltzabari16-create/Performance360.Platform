@@ -90,11 +90,13 @@ test.describe.serial("Role logins", () => {
     for (const name of ["Injuries", "Athletes", "Readiness", "Training Planner", "Exercise Library", "GPS", "Messages"]) {
       await expect(nav(page).getByRole("link", { name })).toBeVisible();
     }
-    await expect(nav(page).getByRole("link", { name: "Testing" })).toHaveCount(0); // medical information only
+    await expect(nav(page).getByRole("link", { name: "Testing" })).toBeVisible();
     await page.goto("/training");
     await expect(page).toHaveURL(/\/training/);
     await page.goto("/testing");
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/testing/);
+    await page.goto("/gps/import");
+    await expect(page.getByRole("heading", { name: "Import GPS session" })).toBeVisible();
     await page.goto("/injuries");
     await expect(page.getByRole("heading", { name: "Injury board" })).toBeVisible();
   });

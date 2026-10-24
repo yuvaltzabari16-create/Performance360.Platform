@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui";
 import type { Dictionary } from "@/lib/i18n";
+import type { AttachmentRow } from "@/lib/files/data";
 import { InjuryCard } from "./InjuryCard";
 import { InjuryReportForm } from "./InjuryReportForm";
 import type { InjuryEventRow, InjuryRow } from "./types";
@@ -7,6 +8,8 @@ import type { InjuryEventRow, InjuryRow } from "./types";
 interface Props {
   injuries: InjuryRow[];
   events: InjuryEventRow[];
+  files: AttachmentRow[];
+  userId: string;
   athleteId?: string;
   today: string;
   locale: string;
@@ -21,13 +24,13 @@ interface Props {
 }
 
 /** Open injuries first, then a collapsed history, then the form to log a new one. */
-export function InjurySection({ injuries, events, athleteId, today, locale, t, back, professional, canClear, canReport = true, title }: Props) {
+export function InjurySection({ injuries, events, files, userId, athleteId, today, locale, t, back, professional, canClear, canReport = true, title }: Props) {
   const ti = t.injury;
   const open = injuries.filter((i) => i.status === "open");
   const resolved = injuries.filter((i) => i.status === "resolved");
   const eventsFor = (id: string) => events.filter((e) => e.injury_id === id);
   const card = (i: InjuryRow) => (
-    <InjuryCard key={i.id} injury={i} events={eventsFor(i.id)} today={today} locale={locale} t={t} back={back} professional={professional} canClear={canClear} />
+    <InjuryCard key={i.id} injury={i} events={eventsFor(i.id)} today={today} locale={locale} t={t} back={back} professional={professional} canClear={canClear} files={files.filter((f) => f.ref_id === i.id)} canUpload={canReport} userId={userId} />
   );
 
   return (

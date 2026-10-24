@@ -5,6 +5,8 @@ import { Field, Input, Select, Textarea } from "@/components/ui";
 import type { Dictionary } from "@/lib/i18n";
 import { daysOut, nextStage, previousStage, returnOutlook, SEVERITIES, type InjuryStage } from "@/lib/injury";
 import { addInjuryNote, changeInjuryStage, updateInjuryDetails } from "@/app/(app)/injuries/actions";
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import type { AttachmentRow } from "@/lib/files/data";
 import { StageTrack } from "./StageTrack";
 import type { InjuryEventRow, InjuryRow } from "./types";
 
@@ -32,10 +34,14 @@ interface Props {
   professional: boolean;
   /** Whether the viewer may record the final clearance. */
   canClear: boolean;
+  /** Files attached to this injury, whether the viewer may add more, and who they are. */
+  files: AttachmentRow[];
+  canUpload: boolean;
+  userId: string;
 }
 
 /** An injury with its stage track, controls and timeline. Server component; all changes go through server actions. */
-export function InjuryCard({ injury, events, today, locale, t, back, professional, canClear }: Props) {
+export function InjuryCard({ injury, events, today, locale, t, back, professional, canClear, files, canUpload, userId }: Props) {
   const ti = t.injury;
   const resolved = injury.status === "resolved";
   const next = nextStage(injury.stage);
@@ -142,6 +148,8 @@ export function InjuryCard({ injury, events, today, locale, t, back, professiona
           <SubmitButton variant="secondary">{ti.addNote}</SubmitButton>
         </form>
       </div>
+
+      <AttachmentsPanel kind="injury" refId={injury.id} athleteId={injury.athlete_id} back={back} files={files} canUpload={canUpload} userId={userId} t={t} />
 
       {professional && !resolved && (
         <Link href="/exercises?category=rehab" className="inline-block text-sm text-brand-700 hover:underline">{ti.openRehab}</Link>

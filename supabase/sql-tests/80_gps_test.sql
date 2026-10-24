@@ -42,8 +42,9 @@ select tests.throws($$select public.import_gps_session('Huge', 'training', curre
 select tests.check(:'empty_rows'::boolean, 'empty imports are rejected');
 
 set request.jwt.claim.sub = :physio;
-select tests.throws(format($$select public.import_gps_session('Physio', 'training', current_date, 105, 68, 'other', false, '[{"athlete_id":"%s"}]'::jsonb)$$, :'rec')) as physio_imp \gset
-select tests.check(:'physio_imp'::boolean, 'physiotherapist cannot import');
+select public.import_gps_session('Physio import', 'training', current_date, 105, 68, 'other', false, format('[{"athlete_id":"%s","total_distance_m":3000}]', :'rec')::jsonb) as physio_sess \gset
+select tests.check((select count(*) from public.gps_session_metrics) = 2, 'physiotherapist can import GPS files');
+select public.delete_gps_session(:'physio_sess');
 select tests.check((select count(*) from public.gps_session_metrics) = 1, 'physiotherapist can read GPS data');
 select tests.check((select count(*) from public.gps_sessions) = 1, 'physiotherapist sees the session');
 

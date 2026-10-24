@@ -9,11 +9,12 @@ describe("permissions", () => {
     for (const s of ["training", "exercises", "code"] as const) expect(canAccess(s, "org_admin", "director")).toBe(false);
     expect(canWriteTraining("director")).toBe(false);
   });
-  it("gives the physiotherapist the medical side, rehab programs and GPS", () => {
+  it("gives the physiotherapist the medical side, tests, rehab programs and GPS import", () => {
     for (const s of ["injuries", "readiness", "training", "exercises", "gps", "athletes"] as const) expect(canAccess(s, "physiotherapist", "physiotherapist")).toBe(true);
-    expect(canAccess("testing", "physiotherapist", "physiotherapist")).toBe(false);
+    expect(canAccess("testing", "physiotherapist", "physiotherapist")).toBe(true);
     expect(canWriteTraining("physiotherapist")).toBe(true);
-    expect(canImportGps("physiotherapist")).toBe(false);
+    expect(canImportGps("physiotherapist")).toBe(true);
+    expect(canImportGps("director")).toBe(false);
   });
   it("gives the head of performance the performance side", () => {
     for (const s of ["training", "exercises", "testing", "teams", "gps", "readiness"] as const) expect(canAccess(s, "performance_coach", "head_of_performance")).toBe(true);

@@ -1005,6 +1005,23 @@ const en = {
     notAllowed: "You can't message this person.",
     privacy: "Messages are private between the two of you. They are not for emergencies: call the relevant professional or emergency services.",
   },
+  files: {
+    title: "Files",
+    empty: "No files yet.",
+    choose: "Choose a file",
+    upload: "Attach file",
+    remove: "Remove",
+    uploaded: "File attached.",
+    removed: "File removed.",
+    limits: "PDF, images, Word, Excel, PowerPoint, CSV or text, up to {size}.",
+    attachment: "Attachment",
+    errors: {
+      empty: "Choose a file first.",
+      too_big: "The file is larger than 5 MB.",
+      bad_type: "This file type is not allowed. Use PDF, images, Word, Excel, PowerPoint, CSV or text.",
+      generic: "The file could not be saved.",
+    },
+  },
   orgRoles: {
     director: "Director",
     head_coach: "Head Coach",

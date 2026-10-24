@@ -15,12 +15,12 @@ export default async function InjuriesPage({ searchParams }: { searchParams: Pro
   // Athletes: their own injuries and a way to report one.
   if (profile.role === "athlete") {
     const { data: mine } = await supabase.from("athletes").select("id").eq("user_id", user.id).maybeSingle();
-    const { injuries, events } = await loadInjuries(supabase, mine ? [mine.id] : []);
+    const { injuries, events, files: injuryFiles } = await loadInjuries(supabase, mine ? [mine.id] : []);
     return (
       <>
         <PageHeader title={ti.title} subtitle={ti.subtitle} />
         <FlashMessage error={sp.error} ok={sp.ok} />
-        <InjurySection injuries={injuries} events={events} athleteId={mine?.id} today={today} locale={profile.locale} t={t} back="/injuries" professional={false} canClear={false} title={ti.report} />
+        <InjurySection injuries={injuries} events={events} files={injuryFiles} userId={user.id} athleteId={mine?.id} today={today} locale={profile.locale} t={t} back="/injuries" professional={false} canClear={false} title={ti.report} />
       </>
     );
   }

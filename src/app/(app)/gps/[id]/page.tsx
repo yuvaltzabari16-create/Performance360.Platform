@@ -1,3 +1,5 @@
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PitchHeatMap } from "@/components/gps/PitchHeatMap";
@@ -28,6 +30,7 @@ export default async function GpsSessionPage({ params, searchParams }: { params:
     : rows.length ? await supabase.from("athletes").select("id, full_name").in("id", rows.map((r) => r.athlete_id)) : { data: [] };
   const nameOf = (athleteId: string) => ((athletes ?? []) as { id: string; full_name: string }[]).find((a) => a.id === athleteId)?.full_name ?? "—";
 
+  const sessionFiles = await loadAttachments(supabase, "gps", [id]);
   const selected = rows.find((r) => r.athlete_id === sp.athlete) ?? rows[0];
   const avg = (pick: (r: GpsMetricRow) => number) => average(rows.map(pick));
   const maxDistance = Math.max(1, ...rows.map((r) => r.total_distance_m));
@@ -88,6 +91,12 @@ export default async function GpsSessionPage({ params, searchParams }: { params:
               ))}
             </Table>
           </Card>
+
+          {(sessionFiles.length > 0 || s.owner_id === user.id) && (
+            <Card>
+              <AttachmentsPanel kind="gps" refId={s.id} back={`/gps/${s.id}`} files={sessionFiles} canUpload={s.owner_id === user.id} userId={user.id} t={t} />
+            </Card>
+          )}
 
           {selected && (
             <div className="grid gap-6 lg:grid-cols-5" id="athlete-detail">

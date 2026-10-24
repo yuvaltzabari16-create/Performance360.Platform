@@ -1,3 +1,5 @@
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
 import { DraftTextarea } from "@/components/autosave/DraftTextarea";
 import { escapeLike } from "@/lib/security/query";
@@ -52,9 +54,10 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
   const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
   const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
+  const athleteFiles = await loadAttachments(supabase, "athlete", [id]);
   const isDirector = org?.org_role === "director"; // read-only view of roster athletes
   const isPro = profile.role !== "athlete" && !isDirector;
-  const { injuries, events: injuryEvents } = await loadInjuries(supabase, [id]);
+  const { injuries, events: injuryEvents, files: injuryFiles } = await loadInjuries(supabase, [id]);
   // Mirrors the database rule: the primary coach or a team physiotherapist on the athlete's roster records clearance.
   const canClear = isPrimary || Boolean(org?.org_role === "physiotherapist" && onMyRoster);
 
@@ -209,6 +212,8 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
           <InjurySection
             injuries={injuries}
             events={injuryEvents}
+            files={injuryFiles}
+            userId={user.id}
             athleteId={a.id}
             today={new Date().toISOString().slice(0, 10)}
             locale={profile.locale}
@@ -273,6 +278,11 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               <p className="mt-3 text-xs text-muted">{ta.healthNote}</p>
             </Card>
           )}
+
+          <Card title={t.files.title}>
+            <AttachmentsPanel kind="athlete" refId={a.id} athleteId={a.id} back={`/athletes/${a.id}`} files={athleteFiles} canUpload={isPro || isSelf} userId={user.id} t={t} />
+            {athleteFiles.length === 0 && !(isPro || isSelf) && <p className="text-sm text-muted">{t.files.empty}</p>}
+          </Card>
 
           <Card title={ta.assignedPrograms}>
             {(assignments.data ?? []).length === 0 ? (

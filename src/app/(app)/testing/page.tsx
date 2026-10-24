@@ -1,3 +1,5 @@
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
 import { Badge, ButtonLink, Card, EmptyState, FlashMessage, PageHeader, Table, Td } from "@/components/ui";
 import { AutoSubmitSelect, ConfirmSubmit } from "@/components/ui/client";
@@ -113,6 +115,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
       return { def, rows, bySide, limbDiff: limbDifference(left, right, def.higher_is_better), chart, sides };
     });
 
+  const testFiles = await loadAttachments(supabase, "test", [athleteId]);
   const sideColors = { both: "#23985e", left: "#2563eb", right: "#d97706" };
 
   return (
@@ -143,6 +146,9 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
         )}
       </form>
       <p className="mb-5 text-xs text-muted">{tt.bestRule} {tt.measuredVsCalc} {tt.noNorms}</p>
+      <div className="mb-6 rounded-xl border border-line bg-surface p-4">
+        <AttachmentsPanel kind="test" refId={athleteId} athleteId={athleteId} back={`/testing?athlete=${athleteId}`} files={testFiles} canUpload={!isAthlete && !readOnly} userId={user.id} t={t} />
+      </div>
 
       {groups.length === 0 ? (
         <EmptyState title={tt.empty} body={tt.emptyHelp} />

@@ -3,6 +3,8 @@ import { Badge, Card, EmptyState, Field, FlashMessage, PageHeader, Select, Texta
 import { SubmitButton } from "@/components/ui/client";
 import { requireSection } from "@/lib/auth";
 import { isUuid } from "@/lib/forms";
+import { loadAttachments } from "@/lib/files/data";
+import { ALLOWED_EXTENSIONS, formatBytes } from "@/lib/files/rules";
 import { sendMessage } from "./actions";
 
 export const metadata = { title: "Messages" };
@@ -35,6 +37,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const withId = isUuid(sp.with) ? sp.with : null;
   const active = withId ? contactOf(withId) ?? (threads.has(withId) ? { user_id: withId, full_name: tm.unknown, label: "" } : null) : null;
   const thread = withId ? messages.filter((m) => (m.sender_id === withId && m.recipient_id === user.id) || (m.sender_id === user.id && m.recipient_id === withId)).reverse() : [];
+  const threadFiles = await loadAttachments(supabase, "message", thread.map((m) => m.id));
   if (withId && thread.some((m) => m.recipient_id === user.id && !m.read_at)) await supabase.rpc("mark_messages_read", { p_with: withId });
 
   return (
@@ -91,6 +94,11 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                       <li key={m.id} className={cx("flex", mine ? "justify-end" : "justify-start")}>
                         <div className={cx("max-w-[80%] rounded-2xl px-3.5 py-2 text-sm", mine ? "bg-brand-600 text-white" : "bg-canvas text-ink")}>
                           <p className="whitespace-pre-line break-words"><bdi>{m.body}</bdi></p>
+                          {threadFiles.filter((f) => f.ref_id === m.id).map((f) => (
+                            <a key={f.id} href={`/files/${f.id}`} download className={cx("mt-1.5 block truncate rounded-lg px-2 py-1 text-xs underline", mine ? "bg-white/15" : "bg-surface")}>
+                              <bdi>{f.file_name}</bdi> <span className="num">({formatBytes(f.size_bytes)})</span>
+                            </a>
+                          ))}
                           <div className={cx("num mt-1 text-[10px]", mine ? "text-white/70" : "text-muted")}>{new Date(m.created_at).toLocaleString(profile.locale, { dateStyle: "short", timeStyle: "short" })}</div>
                         </div>
                       </li>
@@ -100,7 +108,10 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                 {contactOf(active.user_id) && (
                   <form action={sendMessage} className="mt-4 flex flex-col gap-2 border-t border-line pt-4 sm:flex-row">
                     <input type="hidden" name="to" value={active.user_id} />
-                    <Textarea name="body" rows={2} required maxLength={4000} aria-label={tm.placeholder} placeholder={tm.placeholder} className="flex-1" />
+                    <div className="flex-1 space-y-2">
+                      <Textarea name="body" rows={2} maxLength={4000} aria-label={tm.placeholder} placeholder={tm.placeholder} />
+                      <input type="file" name="file" aria-label={t.files.choose} accept={ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(",")} className="block w-full text-xs file:me-2 file:rounded-md file:border-0 file:bg-canvas file:px-2.5 file:py-1 file:text-xs file:font-medium" />
+                    </div>
                     <SubmitButton>{tm.send}</SubmitButton>
                   </form>
                 )}

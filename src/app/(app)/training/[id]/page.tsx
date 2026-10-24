@@ -1,3 +1,5 @@
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, ButtonLink, Card, Checkbox, Field, FlashMessage, Input, PageHeader, Select, Textarea, cx } from "@/components/ui";
@@ -76,6 +78,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
     </>
   );
 
+  const programFiles = await loadAttachments(supabase, "training", [id]);
   return (
     <>
       <PageHeader
@@ -103,6 +106,11 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
         }
       />
       <FlashMessage error={sp.error} ok={sp.ok} />
+      {(programFiles.length > 0 || isOwner) && (
+        <div className="no-print mb-4 rounded-xl border border-line bg-surface p-4">
+          <AttachmentsPanel kind="training" refId={id} back={`/training/${id}`} files={programFiles} canUpload={isOwner} userId={user.id} t={t} />
+        </div>
+      )}
       <div className="mb-4 flex flex-wrap gap-2">
         <Badge tone={program.status === "active" ? "green" : program.status === "archived" ? "gray" : "amber"}>{tt.statuses[program.status]}</Badge>
         {program.is_template && <Badge tone="blue">{tt.templates}</Badge>}

@@ -1007,6 +1007,23 @@ const he: Dictionary = {
     notAllowed: "אי אפשר לשלוח הודעה לאדם הזה.",
     privacy: "ההודעות פרטיות בין שניכם. הן לא מיועדות למצבי חירום: פנו לאיש המקצוע הרלוונטי או לשירותי החירום.",
   },
+  files: {
+    title: "קבצים",
+    empty: "אין עדיין קבצים.",
+    choose: "בחרו קובץ",
+    upload: "צירוף קובץ",
+    remove: "הסרה",
+    uploaded: "הקובץ צורף.",
+    removed: "הקובץ הוסר.",
+    limits: "PDF, תמונות, Word, Excel, PowerPoint, CSV או טקסט, עד {size}.",
+    attachment: "קובץ מצורף",
+    errors: {
+      empty: "בחרו קודם קובץ.",
+      too_big: "הקובץ גדול מ-5 מ״ב.",
+      bad_type: "סוג הקובץ אינו מותר. השתמשו ב-PDF, תמונות, Word, Excel, PowerPoint, CSV או טקסט.",
+      generic: "לא ניתן היה לשמור את הקובץ.",
+    },
+  },
   orgRoles: {
     director: "מנהל/ת",
     head_coach: "מאמן/ת ראשי/ת",

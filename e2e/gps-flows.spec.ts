@@ -122,13 +122,11 @@ test.describe.serial("GPS", () => {
     await expect(page.getByRole("button", { name: "Delete session" })).toHaveCount(0);
   });
 
-  test("the physiotherapist and the director can read but not import", async ({ browser }) => {
+  test("the physiotherapist imports, the director only reads", async ({ browser }) => {
     const physio = await login(browser, people.physio);
     await physio.goto("/gps");
     await expect(physio.getByRole("link", { name: "Match vs Rivals" })).toBeVisible();
-    await expect(physio.getByRole("link", { name: "Import session" })).toHaveCount(0);
-    await physio.goto("/gps/import");
-    await expect(physio).toHaveURL(/\/gps$/);
+    await expect(physio.getByRole("link", { name: "Import session" }).first()).toBeVisible(); // the physiotherapist imports too
 
     const director = await login(browser, people.director);
     const menu = director.getByRole("navigation").first();
