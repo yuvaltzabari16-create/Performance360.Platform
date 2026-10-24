@@ -80,8 +80,8 @@ select tests.check((select status from public.injuries where id = :'inj') = 'res
 
 -- ----- director sees nothing -------------------------------------------------------
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.injuries) = 0, 'director cannot read injuries');
-select tests.check((select count(*) from public.injury_events) = 0, 'director cannot read the timeline');
+select tests.check((select count(*) from public.injuries) = 1, 'director reads injuries (read-only)');
+select tests.check((select count(*) from public.injury_events) >= 1, 'director reads the timeline');
 select tests.throws(format($$select public.add_injury_note(%L, 'x')$$, :'inj')) as dir_note \gset
 select tests.check(:'dir_note'::boolean, 'director cannot add notes');
 

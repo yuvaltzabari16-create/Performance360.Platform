@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { Badge, ButtonLink, Card, PageHeader, Stat } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
+import { OpenInjuriesCard, type OpenInjury } from "@/components/injury/OpenInjuriesCard";
 import type { Dictionary } from "@/lib/i18n";
 
 // The director sees the team's roster and aggregated totals, never individual athlete records.
 export async function DirectorDashboard({ t }: { t: Dictionary }) {
   const { supabase, profile, org } = await requireProfile();
   const tt = t.team;
-  const [{ data: summaryRows }, { data: roster }, { data: members }] = await Promise.all([
+  const [{ data: summaryRows }, { data: roster }, { data: members }, { data: injuries }] = await Promise.all([
     supabase.rpc("org_summary"),
     supabase.rpc("org_roster"),
     supabase.from("organization_members").select("user_id, org_role").eq("org_id", org!.org_id).eq("status", "active"),
+    supabase.from("injuries").select("id, athlete_id, body_area, stage, injury_date, athletes(full_name)").eq("status", "open").order("injury_date", { ascending: true }).limit(6),
   ]);
   const summary = (summaryRows as { staff_count: number; roster_count: number; roster_with_account: number; tests_30d: number; sessions_7d: number; readiness_today: number }[] | null)?.[0];
   const ids = (members ?? []).map((m) => m.user_id);
@@ -34,6 +36,9 @@ export async function DirectorDashboard({ t }: { t: Dictionary }) {
         <Stat label={tt.readinessToday} value={`${checkedIn}${rosterCount ? ` / ${rosterCount}` : ""}`} />
       </div>
       <p className="mt-2 text-xs text-muted">{tt.aggregateNote}</p>
+      <div className="mt-6">
+        <OpenInjuriesCard injuries={(injuries ?? []) as unknown as OpenInjury[]} today={new Date().toISOString().slice(0, 10)} t={t} href="/injuries" showAthlete />
+      </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card title={tt.staff} action={<Link className="text-xs text-brand-700 hover:underline" href="/team">{tt.inviteStaff}</Link>}>
           <ul className="divide-y divide-line text-sm">

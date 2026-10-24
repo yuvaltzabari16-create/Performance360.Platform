@@ -9,9 +9,12 @@ import { addMembers, deleteTeam, removeMember, updateTeam } from "../actions";
 export default async function TeamPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase, user, t } = await requireProfessional();
+  const { supabase, user, org, t } = await requireProfessional();
   if (!isUuid(id)) notFound();
-  const { data: team } = await supabase.from("teams").select("*").eq("id", id).eq("owner_id", user.id).maybeSingle();
+  const readOnly = org?.org_role === "director";
+  let teamQuery = supabase.from("teams").select("*").eq("id", id);
+  if (!readOnly) teamQuery = teamQuery.eq("owner_id", user.id);
+  const { data: team } = await teamQuery.maybeSingle();
   if (!team) notFound();
   const [{ data: members }, { data: athletes }] = await Promise.all([
     supabase.from("team_members").select("athlete_id, added_at, athletes(id, full_name, position, status)").eq("team_id", id),
@@ -26,32 +29,32 @@ export default async function TeamPage({ params, searchParams }: { params: Promi
         title={team.name}
         subtitle={[team.sport, team.season].filter(Boolean).join(" · ") || undefined}
         crumbs={[{ href: "/teams", label: t.teams.title }]}
-        actions={<ButtonLink variant="secondary" href="/training">{t.training.assignTeam}</ButtonLink>}
+        actions={!readOnly && <ButtonLink variant="secondary" href="/training">{t.training.assignTeam}</ButtonLink>}
       />
       <FlashMessage error={sp.error} ok={sp.ok} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Table head={[t.common.name, t.athletes.position, ""]}>
-            {(members ?? []).length === 0 && <tr><Td className="text-muted">—</Td><Td>{""}</Td><Td>{""}</Td></tr>}
+          <Table head={readOnly ? [t.common.name, t.athletes.position] : [t.common.name, t.athletes.position, ""]}>
+            {(members ?? []).length === 0 && <tr><Td className="text-muted">—</Td><Td>{""}</Td>{!readOnly && <Td>{""}</Td>}</tr>}
             {(members ?? []).map((m) => {
               const a = m.athletes as unknown as { id: string; full_name: string; position: string | null } | null;
               return (
                 <tr key={m.athlete_id}>
                   <Td>{a ? <Link className="font-medium hover:text-brand-700" href={`/athletes/${a.id}`}>{a.full_name}</Link> : "—"}</Td>
                   <Td>{a?.position ?? "—"}</Td>
-                  <Td className="text-end">
+                  {!readOnly && <Td className="text-end">
                     <form action={removeMember}>
                       <input type="hidden" name="team_id" value={id} />
                       <input type="hidden" name="athlete_id" value={m.athlete_id} />
                       <button className="text-xs text-red-700 hover:underline">{t.common.remove}</button>
                     </form>
-                  </Td>
+                  </Td>}
                 </tr>
               );
             })}
           </Table>
         </div>
-        <div className="space-y-6">
+        {!readOnly && <div className="space-y-6">
           <Card title={t.teams.addMember}>
             <form action={addMembers} className="space-y-3">
               <input type="hidden" name="team_id" value={id} />
@@ -76,7 +79,7 @@ export default async function TeamPage({ params, searchParams }: { params: Promi
               <ConfirmSubmit variant="danger" message={`${t.common.delete} "${team.name}"?`}>{t.common.delete}</ConfirmSubmit>
             </form>
           </Card>
-        </div>
+        </div>}
       </div>
     </>
   );

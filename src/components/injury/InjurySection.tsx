@@ -14,12 +14,14 @@ interface Props {
   back: string;
   professional: boolean;
   canClear: boolean;
+  /** Whether to offer the form to log or report an injury (not for the read-only director view). */
+  canReport?: boolean;
   /** Title override (the athlete's own page calls it "Report a problem" etc.). */
   title?: string;
 }
 
 /** Open injuries first, then a collapsed history, then the form to log a new one. */
-export function InjurySection({ injuries, events, athleteId, today, locale, t, back, professional, canClear, title }: Props) {
+export function InjurySection({ injuries, events, athleteId, today, locale, t, back, professional, canClear, canReport = true, title }: Props) {
   const ti = t.injury;
   const open = injuries.filter((i) => i.status === "open");
   const resolved = injuries.filter((i) => i.status === "resolved");
@@ -40,13 +42,13 @@ export function InjurySection({ injuries, events, athleteId, today, locale, t, b
             <div className="mt-3 space-y-4">{resolved.map(card)}</div>
           </details>
         )}
-        <details className="rounded-lg border border-line p-4" open={injuries.length === 0 ? false : undefined}>
+        {canReport && <details className="rounded-lg border border-line p-4" open={injuries.length === 0 ? false : undefined}>
           <summary className="cursor-pointer text-sm font-medium text-brand-700">{professional ? ti.log : ti.report}</summary>
           <div className="mt-3">
             {!professional && <p className="mb-3 text-sm text-muted">{ti.reportHelp}</p>}
             <InjuryReportForm athleteId={athleteId} back={back} professional={professional} t={t} />
           </div>
-        </details>
+        </details>}
         <p className="text-xs text-muted">{ti.disclaimer}</p>
       </div>
     </Card>

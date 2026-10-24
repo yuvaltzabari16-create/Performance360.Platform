@@ -68,8 +68,9 @@ test.describe.serial("Team accounts", () => {
     await expect(page.getByText("Team created.")).toBeVisible();
     athleteCode = (await page.locator(".tracking-\\[0\\.2em\\]").innerText()).trim();
     expect(athleteCode).toMatch(/^TEAM-[A-Z0-9]{6}$/);
-    // The director's navigation has no athlete-record sections.
-    await expect(page.getByRole("link", { name: "Athletes" })).toHaveCount(0);
+    // The director's menu has the club view, but no planner, library or testing.
+    await expect(page.getByRole("link", { name: "Training Planner" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Exercise Library" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "My Team" }).first()).toBeVisible();
   });
 
@@ -158,14 +159,16 @@ test.describe.serial("Team accounts", () => {
     await snap(hop, "15-roster-athlete-staff-view");
   });
 
-  test("director sees the roster and totals but not athlete records", async ({ browser }) => {
+  test("director reads the roster and totals, read-only", async ({ browser }) => {
     const dir = await login(browser, people.director);
     await expect(dir.getByText("Alex Athlete")).toBeVisible();
     await dir.goto("/team");
     await expect(dir.getByText("Alex Athlete")).toBeVisible();
     await expect(dir.getByRole("link", { name: "Alex Athlete" })).toHaveCount(0);
     const res = await dir.goto(athleteUrl);
-    expect(res?.status()).toBe(404);
+    expect(res?.status()).toBe(200); // the roster athlete can be read ...
+    await expect(dir.getByRole("button", { name: "Archive" })).toHaveCount(0); // ... but not changed
+    await expect(dir.getByRole("link", { name: "Edit profile" })).toHaveCount(0);
     await snap(dir, "16-director-dashboard");
   });
 

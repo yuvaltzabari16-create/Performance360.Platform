@@ -131,10 +131,14 @@ test.describe.serial("Return to play", () => {
     await expect(page.getByText("Return-to-play update").first()).toBeVisible();
   });
 
-  test("the director sees no injuries", async ({ browser }) => {
+  test("the director reads injuries but cannot change them", async ({ browser }) => {
     const page = await login(browser, people.director);
     await page.goto("/injuries");
-    await expect(page).toHaveURL(/\/dashboard/); // the injury section is not part of the director's login
-    await expect(page.getByRole("heading", { name: "Injury board" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Injury board" })).toBeVisible();
+    await page.goto(athleteUrl);
+    await page.getByText(/Resolved injuries/).click();
+    await expect(page.getByText("Passed hop test and sprint test")).toBeVisible(); // reads the timeline
+    await expect(page.getByRole("button", { name: /Advance to/ })).toHaveCount(0);
+    await expect(page.getByText("Log injury")).toHaveCount(0);
   });
 });

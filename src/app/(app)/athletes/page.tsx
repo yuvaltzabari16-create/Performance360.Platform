@@ -11,7 +11,8 @@ const PAGE_SIZE = 50;
 
 export default async function AthletesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, t } = await requireSection("athletes");
+  const { supabase, org, t } = await requireSection("athletes");
+  const readOnly = org?.org_role === "director"; // the director reads the roster; coaches manage it
   const status = sp.status === "archived" ? "archived" : "active";
   const q = (sp.q ?? "").trim().slice(0, 80);
   const sport = (sp.sport ?? "").slice(0, 80);
@@ -53,10 +54,12 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
       <PageHeader
         title={t.athletes.title}
         actions={
-          <>
-            <ButtonLink href="/code" variant="secondary">{t.nav.code}</ButtonLink>
-            <ButtonLink href="/athletes/new">{t.athletes.add}</ButtonLink>
-          </>
+          !readOnly && (
+            <>
+              <ButtonLink href="/code" variant="secondary">{t.nav.code}</ButtonLink>
+              <ButtonLink href="/athletes/new">{t.athletes.add}</ButtonLink>
+            </>
+          )
         }
       />
       <FlashMessage error={sp.error} ok={sp.ok} />
@@ -87,7 +90,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
         <EmptyState
           title={hasFilters ? t.exercises.empty : t.athletes.empty}
           body={hasFilters ? undefined : t.athletes.emptyHelp}
-          action={!hasFilters && <ButtonLink href="/athletes/new">{t.athletes.add}</ButtonLink>}
+          action={!hasFilters && !readOnly && <ButtonLink href="/athletes/new">{t.athletes.add}</ButtonLink>}
         />
       ) : (
         <>

@@ -52,7 +52,8 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
   const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
   const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
-  const isPro = profile.role !== "athlete";
+  const isDirector = org?.org_role === "director"; // read-only view of roster athletes
+  const isPro = profile.role !== "athlete" && !isDirector;
   const { injuries, events: injuryEvents } = await loadInjuries(supabase, [id]);
   // Mirrors the database rule: the primary coach or a team physiotherapist on the athlete's roster records clearance.
   const canClear = isPrimary || Boolean(org?.org_role === "physiotherapist" && onMyRoster);
@@ -97,7 +98,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
       <PageHeader
         title={a.full_name}
         subtitle={[a.sport, a.position, a.team_name].filter(Boolean).join(" · ") || undefined}
-        crumbs={isPro ? [{ href: "/athletes", label: t.athletes.title }] : []}
+        crumbs={isPro || isDirector ? [{ href: "/athletes", label: t.athletes.title }] : []}
         actions={
           <>
             {isPro && <ButtonLink variant="secondary" href={`/testing/new?athlete=${a.id}`}>{t.testing.record}</ButtonLink>}
@@ -215,6 +216,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             back={`/athletes/${a.id}`}
             professional={isPro}
             canClear={canClear}
+            canReport={!isDirector}
           />
 
           <Card title={ta.notes}>

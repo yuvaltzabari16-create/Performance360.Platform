@@ -61,10 +61,13 @@ test.describe.serial("Role logins", () => {
   test("the director sees the club but no performance content", async ({ browser }) => {
     const page = await login(browser, people.director);
     await expect(nav(page).getByRole("link", { name: "My Team" })).toBeVisible();
-    for (const name of ["Exercise Library", "Training Planner", "Testing", "Athletes", "Injuries"]) {
+    for (const name of ["Exercise Library", "Training Planner", "Testing", "Readiness"]) {
       await expect(nav(page).getByRole("link", { name })).toHaveCount(0);
     }
-    for (const path of ["/exercises", "/training", "/testing", "/injuries"]) {
+    for (const name of ["Athletes", "Calendar", "Injuries", "Messages", "Groups", "GPS", "Settings"]) {
+      await expect(nav(page).getByRole("link", { name })).toBeVisible();
+    }
+    for (const path of ["/exercises", "/training", "/testing", "/readiness"]) {
       await page.goto(path);
       await expect(page).toHaveURL(/\/dashboard/);
     }

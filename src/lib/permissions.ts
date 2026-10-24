@@ -6,17 +6,18 @@
 import type { OrgRole, UserRole } from "./types";
 
 export const SECTIONS = [
-  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps", "code", "connect", "notifications", "settings",
+  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "messages", "gps", "code", "connect", "notifications", "settings",
 ] as const;
 export type Section = (typeof SECTIONS)[number];
 
-const COMMON: Section[] = ["dashboard", "notifications", "settings"];
+const COMMON: Section[] = ["dashboard", "messages", "notifications", "settings"];
 
 /** Sections per team role. Roles missing here get the full professional set. */
 const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
-  // Runs the club: staff, roster counts, billing, and workload (GPS). No athlete records, no training
-  // planner and no exercise library.
-  director: [...COMMON, "team", "gps"],
+  // Runs the club: overview, players, training schedule, injuries, messages, squads, staff, GPS and
+  // settings. Everything is read-only except staff and messages. No training planner, no exercise
+  // library, no testing or wellness data.
+  director: [...COMMON, "team", "athletes", "teams", "calendar", "injuries", "gps"],
   // Medical side: injuries and clearance, athlete records, screening tests, wellness, the rehab library.
   // Does not write training programs.
   physiotherapist: [...COMMON, "team", "athletes", "calendar", "exercises", "testing", "readiness", "injuries", "gps"],

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { MonthGrid, STATUS_TONE } from "@/components/calendar/MonthGrid";
 import { Badge, Card, EmptyState, PageHeader, cx } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
@@ -13,7 +12,7 @@ type Row<T> = T & { athletes: { full_name: string } | null; training_programs: {
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const { supabase, profile, org, t, locale } = await requireProfile();
-  if (org?.org_role === "director") redirect("/dashboard"); // directors do not see individual athlete data
+  const readOnly = org?.org_role === "director"; // the director sees the schedule, not the planner
   const isAthlete = profile.role === "athlete";
   const tc = t.calendar;
 
@@ -96,7 +95,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                     <div className="flex flex-wrap gap-3 text-xs">
                       {isAthlete
                         ? <Link className="font-medium text-brand-700 hover:underline" href={`/training/session/${e.sessionId}?athlete=${e.athleteId}&date=${selected}`}>{tc.openSession}</Link>
-                        : <Link className="font-medium text-brand-700 hover:underline" href={`/training/${e.programId}?week=${e.week}&session=${e.sessionId}`}>{tc.openProgram}</Link>}
+                        : !readOnly && <Link className="font-medium text-brand-700 hover:underline" href={`/training/${e.programId}?week=${e.week}&session=${e.sessionId}`}>{tc.openProgram}</Link>}
                       {e.minutes ? <span className="num text-muted">{e.minutes} {t.common.min}</span> : null}
                     </div>
                   </li>
