@@ -157,6 +157,7 @@ const en = {
     body: "Performance360 needs a Supabase project. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env.local, apply the migrations in supabase/migrations, then restart the dev server.",
   },
   dashboard: {
+    needsAttention: "Needs attention",
     greeting: "Welcome back",
     activeAthletes: "Active athletes",
     activePrograms: "Active programs",
@@ -811,6 +812,8 @@ const en = {
     kpiAvg: "Average days out (resolved)",
     boardEmpty: "No open injuries. Injuries reported for your athletes appear here.",
     columnEmpty: "—",
+    openInjuries: "Open injuries",
+    noOpen: "No open injuries.",
     sectionTitle: "Injuries and return to play",
     noInjuries: "No injuries recorded.",
     log: "Log injury",

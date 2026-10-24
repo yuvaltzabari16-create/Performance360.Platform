@@ -159,6 +159,7 @@ const he: Dictionary = {
     body: "Performance360 דורשת פרויקט Supabase. הגדירו NEXT_PUBLIC_SUPABASE_URL ו-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY בקובץ .env.local, הריצו את המיגרציות שבתיקייה supabase/migrations והפעילו מחדש את השרת.",
   },
   dashboard: {
+    needsAttention: "דורש תשומת לב",
     greeting: "ברוכים השבים",
     activeAthletes: "ספורטאים פעילים",
     activePrograms: "תוכניות פעילות",
@@ -813,6 +814,8 @@ const he: Dictionary = {
     kpiAvg: "ממוצע ימי היעדרות (פציעות שנסגרו)",
     boardEmpty: "אין פציעות פתוחות. פציעות שיודווחו עבור הספורטאים שלכם יופיעו כאן.",
     columnEmpty: "—",
+    openInjuries: "פציעות פתוחות",
+    noOpen: "אין פציעות פתוחות.",
     sectionTitle: "פציעות וחזרה למשחק",
     noInjuries: "לא נרשמו פציעות.",
     log: "רישום פציעה",
