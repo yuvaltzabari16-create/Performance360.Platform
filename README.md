@@ -19,7 +19,15 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
 | Team accounts (director, staff roles, invitations, consented roster; live on the Supabase project since 2026-10-22), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
-| AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, rehab module, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
+| Workout builder with AI assistant, training calendar, athlete "Today's workout" | Working (AI needs `ANTHROPIC_API_KEY`) |
+| Return to play: injury timeline, staff injury board, clearance by qualified roles | Working |
+| GPS and wearables: CSV import (StatSports, Catapult, Polar, generic), distance, speed zones, sprints, heat maps | Working (live vendor sync needs vendor API access) |
+| Role logins: director (read-only club view), head coach, head of performance, physiotherapist, athlete, personal trainer | Working |
+| Messages and file attachments in every category | Working |
+| Security and compliance: CSP, https, rate limits, bot guard, two-factor, idle sign-out, account deletion, privacy policy, terms, parental consent for minors | Working (legal texts are a draft until reviewed) |
+| Reports/PDF, Google Calendar, payments, nutrition and custom forms, video feed, research library, subscriptions | **Not built yet** |
+
+Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
