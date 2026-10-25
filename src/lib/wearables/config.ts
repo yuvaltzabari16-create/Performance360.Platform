@@ -8,7 +8,7 @@ export const MOCK = process.env.WEARABLES_MOCK === "1";
 
 const site = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-export const WHOOP_SCOPES = "offline read:recovery read:sleep read:cycles read:profile";
+export const WHOOP_SCOPES = "offline read:recovery read:sleep read:cycles";
 
 export interface WhoopConfig {
   clientId: string;
