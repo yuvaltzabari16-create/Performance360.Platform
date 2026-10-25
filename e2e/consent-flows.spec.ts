@@ -39,6 +39,7 @@ test.describe.serial("Legal and consent", () => {
     await page.getByRole("button", { name: "Create account" }).click(); // blocked by the browser: the box is required
     await expect(page).toHaveURL(/\/signup/);
     await box.check();
+    await page.getByLabel(/I agree to the/).check();
     await page.getByRole("button", { name: "Create account" }).click();
     await page.waitForURL(/\/onboarding/);
   });

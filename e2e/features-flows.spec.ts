@@ -17,7 +17,7 @@ async function signUpCoach(page: Page) {
   await page.getByLabel("Email").fill(coach.email);
   await page.getByLabel("Password").fill(password);
   await page.getByLabel(/I agree to the/).check();
-  await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL(/\/onboarding/);
   await page.getByLabel("Your profession").selectOption("sc_coach");
   await page.getByRole("button", { name: "Continue" }).click();
@@ -65,6 +65,7 @@ test.describe.serial("Assistant, calendar and today view", () => {
     await athletePage.getByLabel("Full name").fill(athlete.name);
     await athletePage.getByLabel("Email").fill(athlete.email);
     await athletePage.getByLabel("Password").fill(password);
+    await athletePage.getByLabel(/I agree to the/).check();
     await athletePage.getByRole("button", { name: "Create account" }).click();
     await athletePage.waitForURL(/\/onboarding/);
     await athletePage.getByRole("button", { name: "Continue" }).click();

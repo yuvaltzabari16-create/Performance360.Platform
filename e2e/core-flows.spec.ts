@@ -19,7 +19,7 @@ async function signup(page: Page, who: { name: string; email: string }, startUrl
   await page.getByLabel("Email").fill(who.email);
   await page.getByLabel("Password").fill(password);
   await page.getByLabel(/I agree to the/).check();
-  await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL(/\/onboarding/);
 }
 
