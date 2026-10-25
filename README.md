@@ -27,7 +27,9 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Security and compliance: CSP, https, rate limits, bot guard, two-factor, idle sign-out, account deletion, privacy policy, terms, parental consent for minors | Working (legal texts are a draft until reviewed) |
 | Reports/PDF, Google Calendar, payments, nutrition and custom forms, video feed, research library, subscriptions | **Not built yet** |
 
-Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Documentation: [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Roles and access](docs/ROLES.md) ·
+[Deployment](docs/DEPLOYMENT.md) · [Database](supabase/README.md) · [Decisions](docs/adr) · [Known issues](docs/KNOWN-ISSUES.md) · [Changelog](CHANGELOG.md).
+Run all fast checks with `npm run verify`.
 
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
