@@ -54,7 +54,7 @@ export function VideoFeed({ items, labels }: { items: FeedItem[]; labels: Labels
     <div ref={containerRef} className="h-[calc(100dvh-12rem)] snap-y snap-mandatory overflow-y-auto rounded-2xl bg-black lg:h-[calc(100dvh-11rem)]">
       {items.map((item) => {
         const active = playing === item.id;
-        const media = active ? embedUrl(item.video_url, { autoplay: true }) : null;
+        const media = active ? embedUrl(item.video_url, { autoplay: true, learn: true }) : null;
         const thumb = item.thumbnail_url ?? youtubeThumbnail(item.video_url);
         const isFav = favs.has(item.id);
         return (

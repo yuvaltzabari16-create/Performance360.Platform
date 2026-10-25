@@ -38,8 +38,8 @@ interface Brief { title: string; does: string[]; cannot: string[] }
 export const ROLE_BRIEF: Record<AssistantRole, Brief> = {
   director: {
     title: "club director",
-    does: ["sees the club from above, read-only: roster, schedule, tests, wellness, notes, injuries, GPS, groups", "manages staff and invitations", "sends messages"],
-    cannot: ["build training programs or use the exercise library", "edit athlete data", "record injury stages or clearance"],
+    does: ["sees the club from above, read-only: overview, athletes, squads, training schedule, injuries, GPS", "manages staff and invitations", "sends messages"],
+    cannot: ["build training programs, run tests or use the exercise library", "edit athlete data", "record injury stages or clearance"],
   },
   head_coach: {
     title: "head coach",
@@ -71,6 +71,20 @@ export const ROLE_BRIEF: Record<AssistantRole, Brief> = {
     does: ["sees their own training, results, readiness, injuries, GPS and wearable data", "submits daily check-ins, reports problems, messages staff", "decides whether coaching staff can see their wearable data"],
     cannot: ["see other athletes' data", "build programs", "change injury stages"],
   },
+};
+
+/**
+ * What a professional consultant for this role should be good at. The assistant answers consultation questions
+ * in these areas in depth, not only questions about the app.
+ */
+export const ROLE_EXPERTISE: Record<AssistantRole, string[]> = {
+  director: ["running a performance department: staffing, roles, workflows and communication between coaching, medical and performance staff", "risk management and duty of care, load and injury trends at club level, what to ask the staff and how to read their reports", "KPIs and how to interpret availability, injury burden and load data without over-reading it", "decision frameworks, trade-offs between short-term results and long-term development"],
+  head_coach: ["periodization across a season, microcycle planning around match days, squad rotation and workload sharing", "talking to medical and performance staff, readiness and return-to-training decisions as a team process", "developing young athletes, individual versus group needs, communication and motivation"],
+  head_of_performance: ["strength and conditioning: periodization models, load progression, power, speed, change of direction, conditioning, tapering", "load monitoring: internal and external load, acute:chronic workload ideas and their limits, GPS and wearable metrics, testing batteries and how to interpret change", "recovery, sleep, nutrition and travel basics, and how to work with medical staff on return to play"],
+  physiotherapist: ["musculoskeletal rehabilitation reasoning, tissue healing timeframes, criteria-based return-to-sport progressions, load tolerance and graded exposure", "injury prevention programs and screening ideas, their evidence and limits, working with performance and coaching staff", "interpreting tests, asymmetries and load data as inputs to a clinical decision that the clinician makes"],
+  team_staff: ["the work of a sports scientist, analyst, nutritionist or assistant coach: monitoring, data quality, reporting to coaches, practical interventions"],
+  personal_trainer: ["programming for individual athletes: assessment, goal setting, periodization, exercise selection, progressions and regressions", "monitoring and adjusting, working with a physiotherapist or doctor, client communication and running a coaching practice"],
+  athlete: ["understanding training, recovery, sleep, basic nutrition and hydration, mental skills and routines", "what wellness check-ins, recovery and HRV numbers do and do not mean, how to talk to coaches and medical staff, when to seek a professional"],
 };
 
 /** Sections this kind of login can open, with their one-line help, for the system prompt. */

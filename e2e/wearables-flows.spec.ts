@@ -104,9 +104,10 @@ test.describe.serial("Wearables", () => {
     await hop.goto(athleteUrl);
     await expect(hop.getByText("Latest day:")).toBeVisible();
 
+    // The director's menu has no wearables page; the data is for the performance staff.
     const dir = await login(browser, people.director);
     await dir.goto("/wearables");
-    await expect(dir.getByRole("link", { name: "Wanda Wearable" })).toBeVisible(); // the director reads, read-only
+    await expect(dir).toHaveURL(/\/dashboard/);
   });
 
   test("the athlete imports Fitbit export files", async ({ browser }) => {

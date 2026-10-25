@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { canAccess, canImportGps, canWriteTraining, sectionsFor } from "./permissions";
 
 describe("permissions", () => {
-  it("gives the director the club view with all information but no planner or library", () => {
-    for (const s of ["athletes", "calendar", "testing", "readiness", "injuries", "messages", "teams", "gps", "team", "settings"] as const) {
+  it("gives the director the club overview, athletes, squads, schedule, injuries, messages, GPS and settings", () => {
+    for (const s of ["dashboard", "athletes", "teams", "calendar", "injuries", "messages", "gps", "team", "settings"] as const) {
       expect(canAccess(s, "org_admin", "director")).toBe(true);
     }
-    for (const s of ["training", "exercises", "code"] as const) expect(canAccess(s, "org_admin", "director")).toBe(false);
+    for (const s of ["training", "testing", "exercises", "readiness", "wearables", "code"] as const) expect(canAccess(s, "org_admin", "director")).toBe(false);
     expect(canWriteTraining("director")).toBe(false);
   });
   it("gives the physiotherapist the medical side, tests, rehab programs and GPS import", () => {

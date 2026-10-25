@@ -13,12 +13,12 @@ row-level security (see ADR 0002). ✓ means the login can open the section.
 | Calendar | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Training Planner |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Exercise Library |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Testing | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Readiness | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Testing |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Readiness |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Injuries | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Messages | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | GPS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Wearables | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Wearables |  | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Personal Code |  | ✓ |  |  | ✓ | ✓ |  |
 | Connect to a coach |  |  |  |  |  |  | ✓ |
 | Notifications | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

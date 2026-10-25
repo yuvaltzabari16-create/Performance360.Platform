@@ -72,6 +72,7 @@ test.describe.serial("Team accounts", () => {
     // The director's menu has the club view, but no planner, library or testing.
     await expect(page.getByRole("link", { name: "Training Planner" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Exercise Library" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Testing" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "My Team" }).first()).toBeVisible();
   });
 

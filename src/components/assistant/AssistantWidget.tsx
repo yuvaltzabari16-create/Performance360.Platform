@@ -2,16 +2,17 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { askAssistant } from "@/app/assistant/actions";
+import { RichText } from "./RichText";
 
 interface Labels {
-  open: string; close: string; title: string; intro: string; privacy: string; placeholder: string; send: string; thinking: string; you: string; assistant: string; clear: string;
+  open: string; close: string; title: string; intro: string; privacy: string; placeholder: string; send: string; thinking: string; you: string; assistant: string; clear: string; copy: string; copied: string;
   errors: Record<string, string>;
 }
 interface Msg { role: "user" | "assistant"; content: string }
 
 /**
  * Floating chat for every signed-in role. Messages stay in this component's memory only (closing the tab
- * clears them). Text is rendered as plain text, never as HTML.
+ * clears them). Answers are rendered from a small Markdown subset as React elements, never as HTML.
  */
 export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels; starters: string[]; roleKey: string }) {
   const [open, setOpen] = useState(false);
@@ -19,6 +20,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [copiedAt, setCopiedAt] = useState<number | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -49,8 +51,8 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
   return (
     <div className="no-print fixed bottom-4 end-4 z-40 flex flex-col items-end gap-3" data-testid="assistant" data-role={roleKey}>
       {open && (
-        <section role="dialog" aria-label={labels.title} className="flex h-[min(34rem,calc(100dvh-6rem))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl">
-          <header className="flex items-center justify-between gap-2 bg-charcoal px-4 py-3 text-white">
+        <section role="dialog" aria-label={labels.title} className="flex h-[min(40rem,calc(100dvh-6rem))] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/95 shadow-[var(--shadow-lift)] backdrop-blur-md">
+          <header className="flex items-center justify-between gap-2 bg-gradient-to-b from-brand-600 to-brand-700 px-5 py-3.5 text-white">
             <h2 className="text-sm font-semibold">{labels.title}</h2>
             <span className="flex items-center gap-1">
               {messages.length > 0 && <button type="button" onClick={() => { setMessages([]); setError(null); }} className="rounded-md px-2 py-1 text-xs text-white/70 hover:text-white">{labels.clear}</button>}
@@ -63,15 +65,23 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
                 <p className="text-ink-soft">{labels.intro}</p>
                 <ul className="flex flex-col gap-2">
                   {starters.map((s) => (
-                    <li key={s}><button type="button" onClick={() => send(s)} className="w-full rounded-lg border border-line px-3 py-2 text-start text-ink hover:border-brand-400 hover:bg-brand-50/50">{s}</button></li>
+                    <li key={s}><button type="button" onClick={() => send(s)} className="w-full rounded-xl border border-line px-3.5 py-2.5 text-start text-ink hover:border-brand-400 hover:bg-brand-50/50">{s}</button></li>
                   ))}
                 </ul>
               </div>
             )}
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                <div className={`max-w-[88%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 ${m.role === "user" ? "bg-brand-600 text-white" : "bg-canvas text-ink"}`} data-from={m.role}>
-                  <span className="sr-only">{m.role === "user" ? labels.you : labels.assistant}: </span>{m.content}
+                <div className={`max-w-[92%] break-words rounded-2xl px-4 py-2.5 leading-6 ${m.role === "user" ? "whitespace-pre-wrap bg-gradient-to-b from-brand-500 to-brand-600 text-white" : "bg-brand-50/70 text-ink"}`} data-from={m.role}>
+                  <span className="sr-only">{m.role === "user" ? labels.you : labels.assistant}: </span>
+                  {m.role === "user" ? m.content : <RichText text={m.content} />}
+                  {m.role === "assistant" && (
+                    <button
+                      type="button"
+                      onClick={() => { navigator.clipboard?.writeText(m.content).then(() => { setCopiedAt(i); setTimeout(() => setCopiedAt((v) => (v === i ? null : v)), 1500); }).catch(() => undefined); }}
+                      className="mt-2 block text-[11px] font-medium text-brand-700 hover:underline"
+                    >{copiedAt === i ? labels.copied : labels.copy}</button>
+                  )}
                 </div>
               </div>
             ))}
@@ -81,11 +91,11 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
           <form onSubmit={(e) => { e.preventDefault(); send(draft); }} className="border-t border-line p-3">
             <div className="flex items-end gap-2">
               <textarea
-                ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} maxLength={1000} aria-label={labels.placeholder} placeholder={labels.placeholder}
+                ref={inputRef} value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} maxLength={3000} aria-label={labels.placeholder} placeholder={labels.placeholder}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(draft); } }}
-                className="min-h-10 flex-1 resize-none rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="min-h-11 flex-1 resize-none rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
-              <button type="submit" disabled={pending || !draft.trim()} className="rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">{labels.send}</button>
+              <button type="submit" disabled={pending || !draft.trim()} className="rounded-xl bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:from-brand-600 hover:to-brand-700 disabled:opacity-50">{labels.send}</button>
             </div>
             <p className="mt-2 text-[11px] leading-snug text-muted">{labels.privacy}</p>
           </form>

@@ -15,6 +15,11 @@ describe("youtube helpers", () => {
     expect(embedUrl("https://www.youtube.com/shorts/hL82TgLzpxg", { autoplay: true })).toMatchObject({ kind: "iframe", vertical: true, src: expect.stringContaining("autoplay=1") });
     expect(youtubeThumbnail("https://www.youtube.com/watch?v=LYtagQH6P5k")).toBe("https://i.ytimg.com/vi/LYtagQH6P5k/hqdefault.jpg");
   });
+  it("builds a learning embed with captions, loop and speed control", () => {
+    const src = embedUrl("https://www.youtube.com/watch?v=LYtagQH6P5k", { learn: true })?.src ?? "";
+    for (const p of ["cc_load_policy=1", "loop=1", "playlist=LYtagQH6P5k", "enablejsapi=1", "iv_load_policy=3"]) expect(src).toContain(p);
+    expect(embedUrl("https://www.youtube.com/watch?v=LYtagQH6P5k", { autoplay: true })?.src).toContain("mute=1");
+  });
   it("handles vimeo, direct files and rejects non-https", () => {
     expect(embedUrl("https://vimeo.com/12345")?.src).toBe("https://player.vimeo.com/video/12345");
     expect(embedUrl("https://cdn.example.com/a.mp4")?.kind).toBe("video");

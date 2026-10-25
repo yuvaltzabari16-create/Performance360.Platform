@@ -14,10 +14,10 @@ const COMMON: Section[] = ["dashboard", "messages", "wearables", "notifications"
 
 /** Sections per team role. Roles missing here get the full professional set. */
 const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
-  // Bird's-eye view of the club: all information, read-only (roster, schedule, tests, wellness, injuries,
-  // notes, GPS, squads, staff, messages). No training planner and no exercise library: building training
-  // is the performance and medical staff's job.
-  director: [...COMMON, "team", "athletes", "teams", "calendar", "testing", "readiness", "injuries", "gps"],
+  // The professional director's club view, read-only: overview, athletes, squads, training schedule, injury
+  // information, messages, GPS and settings (plus the team page, where staff are invited). No training planner,
+  // no testing and no exercise library: building and measuring training is the performance and medical staff's job.
+  director: ["dashboard", "messages", "notifications", "settings", "team", "athletes", "teams", "calendar", "injuries", "gps"],
   // Medical side: athlete medical picture, wellness, tests, injuries and clearance, rehab and
   // injury-prevention programs (planner and library), and GPS (view and import).
   physiotherapist: [...COMMON, "team", "athletes", "calendar", "training", "exercises", "testing", "readiness", "injuries", "gps"],

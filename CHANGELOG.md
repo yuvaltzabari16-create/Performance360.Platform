@@ -6,6 +6,9 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Director menu**: overview, athletes, squads, training schedule, injuries, messages, GPS and settings (plus My Team for invitations). Testing, readiness and wearables are removed from the director.
+- **Professional consultant**: the chat assistant for every role now consults on sport science, training, load, rehabilitation principles and running a department (role-specific expertise, longer answers, Markdown formatting, copy button). Still no diagnosis and no clearance to play.
+- **Exercise videos**: learning player with captions where available, looping, no end-screen suggestions and slow-motion speed buttons; cues as numbered steps and common mistakes as warnings.
 - **New look**: soft light backdrop with green glow, floating rounded cards, a floating light sidebar with initials avatars, pill badges, gradient buttons, larger headings and a product preview on the landing page, in the Performance360 green. Styled from shared components, so every page follows.
 - **Email notifications**: people who turn on email notifications get a daily email copy of new notifications (Resend; optional, needs `RESEND_API_KEY`, `MAIL_FROM`, `CRON_SECRET` and the service-role key). Hebrew mails are right to left; links stay inside the app.
 - **Squads**: the director and head of performance split the roster into squads and assign coaches. A head coach or assistant coach then sees only the athletes of their squads (database-enforced, including roster lists, GPS, injuries, wearables and notifications). Teams without squads behave as before.

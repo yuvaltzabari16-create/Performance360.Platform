@@ -137,13 +137,14 @@ test.describe.serial("GPS", () => {
     await expect(menu.getByRole("link", { name: "GPS" })).toBeVisible();
     await expect(menu.getByRole("link", { name: "Training Planner" })).toHaveCount(0);
     await expect(menu.getByRole("link", { name: "Exercise Library" })).toHaveCount(0);
+    await expect(menu.getByRole("link", { name: "Testing" })).toHaveCount(0);
     await director.goto("/gps");
     await expect(director.getByRole("link", { name: "Match vs Rivals" })).toBeVisible();
     await expect(director.getByRole("link", { name: "Import session" })).toHaveCount(0);
     await director.getByRole("link", { name: "Match vs Rivals" }).click();
     await expect(director.getByRole("link", { name: "Alex Runner" })).toBeVisible();
     await expect(director.getByTestId("pitch-heat-map")).toBeVisible();
-    for (const path of ["/training", "/exercises"]) {
+    for (const path of ["/training", "/exercises", "/testing"]) {
       await director.goto(path);
       await expect(director).toHaveURL(/\/dashboard/);
     }

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ExternalLink } from "@/components/legal/ExternalLink";
+import { ExercisePlayer } from "@/components/exercises/ExercisePlayer";
 import { Badge, ButtonLink, Card, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { requireProfile } from "@/lib/auth";
@@ -20,7 +21,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
   const isOwner = e.owner_id === user.id;
   const isPro = profile.role !== "athlete";
   const { data: fav } = await supabase.from("exercise_favorites").select("exercise_id").eq("exercise_id", id).eq("user_id", user.id).maybeSingle();
-  const media = embedUrl(e.video_url);
+  const media = embedUrl(e.video_url, { learn: true });
   // Only verified HTTPS YouTube links are rendered as links (source is free text).
   const explainerUrl = e.source?.match(/^Detailed explanation: (\S+)$/)?.[1] ?? null;
   const explainer = explainerUrl && youtubeInfo(explainerUrl) ? explainerUrl : null;
@@ -64,9 +65,13 @@ export default async function ExercisePage({ params, searchParams }: { params: P
           <Card>
             {media?.kind === "iframe" ? (
               <>
-                <div className={media.vertical ? "mx-auto aspect-[9/16] max-h-[70vh] overflow-hidden rounded-lg bg-black" : "aspect-video overflow-hidden rounded-lg bg-black"}>
-                  <iframe src={media.src} title={e.name} className="size-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" />
-                </div>
+                <ExercisePlayer
+                  src={media.src}
+                  title={e.name}
+                  vertical={media.vertical}
+                  speedControl={media.src.includes("youtube-nocookie.com")}
+                  labels={{ speed: te.speed, normal: te.speedNormal, restart: te.restart, speedHelp: te.speedHelp }}
+                />
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span>{te.embedNote}</span>
                   <ExternalLink href={e.video_url} className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} ↗</ExternalLink>
@@ -82,10 +87,28 @@ export default async function ExercisePage({ params, searchParams }: { params: P
             {e.description && <p className="mt-4 whitespace-pre-line text-sm leading-6 text-ink">{e.description}</p>}
           </Card>
           <Card title={te.cues}>
-            {e.coaching_cues.length ? <ul className="list-disc space-y-1 ps-5 text-sm">{e.coaching_cues.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="text-sm text-muted">—</p>}
+            {e.coaching_cues.length ? (
+              <ol className="space-y-3 text-sm" data-testid="exercise-steps">
+                {e.coaching_cues.map((c, n) => (
+                  <li key={c} className="flex items-start gap-3">
+                    <span className="num mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-b from-brand-500 to-brand-600 text-xs font-bold text-white">{n + 1}</span>
+                    <span className="leading-6"><bdi>{c}</bdi></span>
+                  </li>
+                ))}
+              </ol>
+            ) : <p className="text-sm text-muted">—</p>}
           </Card>
           <Card title={te.errors}>
-            {e.common_errors.length ? <ul className="list-disc space-y-1 ps-5 text-sm">{e.common_errors.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="text-sm text-muted">—</p>}
+            {e.common_errors.length ? (
+              <ul className="space-y-2 text-sm">
+                {e.common_errors.map((c) => (
+                  <li key={c} className="flex items-start gap-3 rounded-xl bg-red-50/70 px-3 py-2">
+                    <span aria-hidden className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-red-500 text-xs font-bold text-white">!</span>
+                    <span className="leading-6"><bdi>{c}</bdi></span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-sm text-muted">—</p>}
           </Card>
         </div>
         <div className="space-y-6 lg:col-span-2">

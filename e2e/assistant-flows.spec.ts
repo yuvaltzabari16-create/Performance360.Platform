@@ -37,7 +37,7 @@ async function ask(page: Page, role: string, question: string) {
   const box = page.getByTestId("assistant");
   await expect(box).toHaveAttribute("data-role", role);
   await box.getByRole("button", { name: "Open the assistant" }).click();
-  await expect(page.getByRole("dialog", { name: "Performance360 assistant" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Professional consultant" })).toBeVisible();
   await page.getByLabel("Type your question").fill(question);
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(page.getByTestId("assistant-log").getByText(`[mock assistant · ${role}] ${question}`)).toBeVisible();
@@ -94,10 +94,10 @@ test.describe.serial("Assistant for every role", () => {
   test("starter questions, clearing and closing work; there is no assistant on public pages", async ({ browser, page }) => {
     const ath = await login(browser, people.athlete);
     await ath.getByTestId("assistant").getByRole("button", { name: "Open the assistant" }).click();
-    await ath.getByRole("button", { name: "What does my recovery score mean?" }).click();
-    await expect(ath.getByTestId("assistant-log").getByText(/\[mock assistant · athlete\] What does my recovery score mean\?/)).toBeVisible();
+    await ath.getByRole("button", { name: "What do my recovery and sleep numbers really tell me?" }).click();
+    await expect(ath.getByTestId("assistant-log").getByText(/\[mock assistant · athlete\] What do my recovery and sleep numbers really tell me\?/)).toBeVisible();
     await ath.getByRole("button", { name: "Clear" }).click();
-    await expect(ath.getByRole("button", { name: "How do I report a pain or injury?" })).toBeVisible();
+    await expect(ath.getByRole("button", { name: "How can I recover better between a match and the next training?" })).toBeVisible();
     await ath.keyboard.press("Escape");
     await expect(ath.getByRole("dialog")).toHaveCount(0);
     await page.goto("/privacy");

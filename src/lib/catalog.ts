@@ -46,13 +46,23 @@ export function youtubeThumbnail(url: string | null): string | null {
 }
 
 /** Converts a YouTube/Vimeo watch URL into an embeddable URL; other HTTPS links are returned as-is. */
-export function embedUrl(url: string | null, opts: { autoplay?: boolean } = {}): { kind: "iframe" | "video" | "link"; src: string; vertical?: boolean } | null {
+export function embedUrl(url: string | null, opts: { autoplay?: boolean; learn?: boolean } = {}): { kind: "iframe" | "video" | "link"; src: string; vertical?: boolean } | null {
   if (!url || !url.startsWith("https://")) return null;
   const yt = youtubeInfo(url);
   if (yt) {
     const params = new URLSearchParams({ rel: "0", playsinline: "1" });
     if (yt.start) params.set("start", String(yt.start));
-    if (opts.autoplay) params.set("autoplay", "1");
+    if (opts.autoplay) { params.set("autoplay", "1"); params.set("mute", "1"); }
+    // Learning view: captions on when the video has them, no end-screen suggestions or annotations, a calm
+    // player, a loop so the movement can be watched again and again, and the player API for speed buttons.
+    if (opts.learn) {
+      params.set("cc_load_policy", "1");
+      params.set("modestbranding", "1");
+      params.set("iv_load_policy", "3");
+      params.set("enablejsapi", "1");
+      params.set("loop", "1");
+      params.set("playlist", yt.id);
+    }
     return { kind: "iframe", src: `https://www.youtube-nocookie.com/embed/${yt.id}?${params}`, vertical: yt.isShort };
   }
   try {

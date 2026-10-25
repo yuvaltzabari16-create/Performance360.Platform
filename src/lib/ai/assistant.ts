@@ -1,10 +1,11 @@
 import { MemoryRateLimiter } from "@/lib/security/rate-limit";
 import type { OrgRole, UserRole } from "@/lib/types";
-import { ROLE_BRIEF, assistantRole, sectionGuide, type AssistantRole } from "./assistant-roles";
+import { ROLE_BRIEF, ROLE_EXPERTISE, assistantRole, sectionGuide, type AssistantRole } from "./assistant-roles";
 
 /**
- * The chat assistant: a help and coaching-knowledge companion for every role. It never receives the user's
- * data (only what they type), cannot change anything in the app, and does not diagnose or clear anyone.
+ * The chat assistant: a professional consultant for every role (sport science, training, rehabilitation principles,
+ * performance management) that also explains the app. It never receives the user's data (only what they type),
+ * cannot change anything in the app, and does not diagnose or clear anyone.
  * Uses the Anthropic Messages API (ANTHROPIC_API_KEY, AI_MODEL). AI_PROVIDER=mock returns a fixed reply (tests).
  */
 
@@ -13,8 +14,8 @@ export type ChatFailure = "not_configured" | "rate_limited" | "failed" | "refuse
 export type ChatResult = { ok: true; text: string } | { ok: false; error: ChatFailure };
 
 const DEFAULT_MODEL = "claude-sonnet-5-5";
-export const MAX_MESSAGE_CHARS = 1000;
-export const MAX_HISTORY = 10;
+export const MAX_MESSAGE_CHARS = 3000;
+export const MAX_HISTORY = 20;
 const limiter = new MemoryRateLimiter();
 const RULE = { name: "chat", windowMs: 60 * 60 * 1000, max: Number(process.env.AI_CHAT_REQUESTS_PER_HOUR) || 40 };
 
@@ -49,13 +50,20 @@ export function assistantSystemPrompt(role: UserRole, orgRole: OrgRole | null, l
     "Sections they can open:",
     sectionGuide(role, orgRole),
     "",
-    "Help with: how to use the app and where to find things, athletic training knowledge (periodization, load and recovery concepts, RPE, testing, GPS and wearable metrics in general terms, return-to-play principles at an educational level), and drafting messages, notes or plans for the person to review.",
+    "",
+    "You are a professional consultant for this person, like a knowledgeable senior colleague: you discuss problems in depth, weigh options, explain the reasoning and the evidence, and say plainly where evidence is weak or opinions differ. Areas you are strong in for this role:",
+    ...ROLE_EXPERTISE[ar].map((e) => `- ${e}`),
+    "You also explain how to use the app and draft messages, notes, session outlines or plans for the person to review.",
+    "How to answer:",
+    "- Start with the answer or recommendation, then the reasoning. Use short headings or bullets for anything with several parts; use a short table-like list when comparing options. Mention practical next steps.",
+    "- Ask one or two clarifying questions when the answer depends on context (sport, level, age, season phase, constraints), but still give a useful first answer.",
+    "- The person may paste figures or describe a situation. Work with it and interpret it, while reminding them to leave out names and identifying details.",
+    "- Be honest about uncertainty. Separate what is well established from what is common practice or opinion. Do not invent studies, numbers or references.",
+    "- Default length: about 150 to 350 words. Go longer only when asked for a plan or a detailed explanation.",
     "Rules:",
-    "- You do not see this person's athletes, figures or records. If asked about them, say so and point to the section of the app where they can look.",
-    "- Never diagnose, prescribe treatment or say an athlete is safe to return. For pain, injury or health questions give general information and say a qualified professional decides. In an emergency tell them to contact emergency services.",
-    "- Do not ask for names, health details or other personal data, and remind the person not to type them if they do.",
-    "- Only describe features that exist for this role. If something is not available to them, say who can do it. Never claim you changed anything in the app.",
-    "- Be concise and practical: short paragraphs or a few bullets, under about 180 words unless asked for more.",
+    "- You do not see this person's athletes, figures or records unless they type them. If asked to look something up, say so and point to the section of the app where they can look.",
+    "- Never diagnose a person, prescribe treatment or medication, or say an athlete is safe to return to play. For pain, injury or health questions give general educational information and say that a qualified clinician makes the decision. In an emergency tell them to contact emergency services.",
+    "- Only describe app features that exist for this role. If something is not available to them, say who can do it. Never claim you changed anything in the app.",
     `- Reply in ${language === "he" ? "Hebrew" : "English"} unless the person writes in another language.`,
   ].join("\n");
 }
@@ -73,7 +81,7 @@ export async function chatReply(system: string, history: ChatMessage[], userId: 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: process.env.AI_MODEL || DEFAULT_MODEL, max_tokens: 700, system, messages: history }),
+      body: JSON.stringify({ model: process.env.AI_MODEL || DEFAULT_MODEL, max_tokens: 1600, system, messages: history }),
       signal: AbortSignal.timeout(45_000),
     });
     if (!res.ok) return { ok: false, error: "failed" };
