@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
-/* Performance360 design tokens: white surfaces, green accent, charcoal ink. */
+/*
+ * Performance360 design tokens. Light is the default look; dark is switched on by Settings (data-theme="dark"), or follows the
+ * device when the choice is "system". The green brand stays in both. Every colour in the app comes from these tokens,
+ * so components never hard-code a light-only colour.
+ */
 @theme {
   --color-brand-50: #effaf3;
   --color-brand-100: #d7f2e0;
@@ -12,34 +16,90 @@
   --color-brand-700: #12623d;
   --color-brand-800: #114e33;
   --color-brand-900: #0f402b;
-  --color-ink: #1c2321;
-  --color-ink-soft: #4a5552;
+  --color-ink: #1a211f;
+  --color-ink-soft: #46514d;
   --color-muted: #6b7672;
-  --color-line: #e4e8e6;
+  --color-line: #dfe5e2;
   --color-surface: #ffffff;
-  --color-canvas: #f7f9f8;
+  --color-canvas: #f3f6f4;
   --color-charcoal: #1f2624;
   --color-mint: #e6f6ed;
-  --shadow-card: 0 1px 2px rgba(16, 40, 28, 0.04), 0 10px 28px -12px rgba(16, 70, 45, 0.16);
-  --shadow-lift: 0 2px 4px rgba(16, 40, 28, 0.05), 0 18px 40px -16px rgba(16, 70, 45, 0.22);
-  --font-sans: "Inter", "Heebo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --shadow-card: 0 1px 1px rgba(16, 40, 28, 0.03), 0 8px 24px -12px rgba(16, 70, 45, 0.16);
+  --shadow-lift: 0 1px 2px rgba(16, 40, 28, 0.05), 0 20px 44px -18px rgba(16, 70, 45, 0.26);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Heebo", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --ease-ios: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Dark values. The same set is used by an explicit choice and by "system" when the device is dark. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-brand-50: #12261b;
+  --color-brand-100: #173523;
+  --color-brand-200: #1f4a31;
+  --color-brand-300: #2f7a50;
+  --color-brand-400: #3fae75;
+  --color-brand-500: #34c27a;
+  --color-brand-600: #22a361;
+  --color-brand-700: #6fdba4;
+  --color-brand-800: #98e8bf;
+  --color-brand-900: #c2f2d9;
+  --color-ink: #f1f5f3;
+  --color-ink-soft: #bbc5c1;
+  --color-muted: #8c9893;
+  --color-line: #2a3330;
+  --color-surface: #161c1a;
+  --color-canvas: #0b0f0d;
+  --color-charcoal: #0b0f0d;
+  --color-mint: #12261b;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+  --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 24px 48px -18px rgba(0, 0, 0, 0.8);
+  --color-red-50: #2a1416; --color-red-100: #3a1a1d; --color-red-200: #5b2428; --color-red-700: #ff8a84; --color-red-800: #ffa39e; --color-red-900: #ffbab5;
+  --color-amber-50: #2b2110; --color-amber-100: #3a2b12; --color-amber-200: #5a4216; --color-amber-300: #7a5a1c; --color-amber-800: #f3c76a; --color-amber-900: #f7d68f; --color-amber-950: #fbe3ae;
+  --color-sky-50: #10222c; --color-sky-100: #142d3a; --color-sky-200: #1d4558; --color-sky-800: #8fd0f2; --color-sky-900: #b4e0f7;
+  --color-slate-100: #232a27; --color-slate-200: #2d3532; --color-slate-300: #3d4743; --color-slate-600: #aab4b0; --color-slate-800: #d3dad7;
+  --color-violet-50: #1e1830; --color-violet-100: #271f40; --color-violet-200: #3b2f63; --color-violet-800: #c3b1f5; --color-violet-900: #d8cdfa;
+  --color-teal-50: #0f2623; --color-teal-100: #133530; --color-teal-200: #1c4f48; --color-teal-800: #7fdcd0;
+  --color-rose-50: #2c151c; --color-rose-100: #3b1b25; --color-rose-200: #5c2a38; --color-rose-800: #f4a3b8; --color-rose-900: #f9c0cf;
+  --color-orange-50: #2b1b0f; --color-orange-200: #5c3716; --color-orange-900: #f9c795;
+  --color-emerald-50: #0f2619; --color-emerald-200: #1d4a31; --color-emerald-900: #a5eac3;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):not([data-theme="dark"]) {
+    color-scheme: dark;
+    --color-brand-50: #12261b; --color-brand-100: #173523; --color-brand-200: #1f4a31; --color-brand-300: #2f7a50; --color-brand-400: #3fae75; --color-brand-500: #34c27a; --color-brand-600: #22a361; --color-brand-700: #6fdba4; --color-brand-800: #98e8bf; --color-brand-900: #c2f2d9;
+    --color-ink: #f1f5f3; --color-ink-soft: #bbc5c1; --color-muted: #8c9893; --color-line: #2a3330; --color-surface: #161c1a; --color-canvas: #0b0f0d; --color-charcoal: #0b0f0d; --color-mint: #12261b;
+    --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+    --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 24px 48px -18px rgba(0, 0, 0, 0.8);
+    --color-red-50: #2a1416; --color-red-100: #3a1a1d; --color-red-200: #5b2428; --color-red-700: #ff8a84; --color-red-800: #ffa39e; --color-red-900: #ffbab5;
+    --color-amber-50: #2b2110; --color-amber-100: #3a2b12; --color-amber-200: #5a4216; --color-amber-300: #7a5a1c; --color-amber-800: #f3c76a; --color-amber-900: #f7d68f; --color-amber-950: #fbe3ae;
+    --color-sky-50: #10222c; --color-sky-100: #142d3a; --color-sky-200: #1d4558; --color-sky-800: #8fd0f2; --color-sky-900: #b4e0f7;
+    --color-slate-100: #232a27; --color-slate-200: #2d3532; --color-slate-300: #3d4743; --color-slate-600: #aab4b0; --color-slate-800: #d3dad7;
+    --color-violet-50: #1e1830; --color-violet-100: #271f40; --color-violet-200: #3b2f63; --color-violet-800: #c3b1f5; --color-violet-900: #d8cdfa;
+    --color-teal-50: #0f2623; --color-teal-100: #133530; --color-teal-200: #1c4f48; --color-teal-800: #7fdcd0;
+    --color-rose-50: #2c151c; --color-rose-100: #3b1b25; --color-rose-200: #5c2a38; --color-rose-800: #f4a3b8; --color-rose-900: #f9c0cf;
+    --color-orange-50: #2b1b0f; --color-orange-200: #5c3716; --color-orange-900: #f9c795;
+    --color-emerald-50: #0f2619; --color-emerald-200: #1d4a31; --color-emerald-900: #a5eac3;
+  }
 }
 
 html {
   color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Soft airy page: a pale tint with green light glowing in from the corners, like the reference videos. */
+/* iOS-style grouped background: a calm tint with a soft green light, fixed behind scrolling content. */
 body {
   background-color: var(--color-canvas);
   background-image:
-    radial-gradient(56rem 34rem at 92% -8%, rgba(124, 207, 160, 0.30), transparent 62%),
-    radial-gradient(44rem 30rem at -6% 12%, rgba(176, 228, 196, 0.38), transparent 60%),
-    linear-gradient(180deg, #fbfdfc 0%, #f2f8f5 100%);
+    radial-gradient(56rem 34rem at 92% -8%, color-mix(in srgb, var(--color-brand-300) 34%, transparent), transparent 62%),
+    radial-gradient(44rem 30rem at -6% 12%, color-mix(in srgb, var(--color-brand-200) 42%, transparent), transparent 60%);
   background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.011em;
 }
 
 /* Numbers in data tables stay left-to-right even in Hebrew layouts. */
@@ -70,4 +130,53 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* iOS feel: translucent "material" bars, springy press feedback, and the switch look for checkboxes marked as switches. */
+.glass {
+  background-color: color-mix(in srgb, var(--color-surface) 72%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  backdrop-filter: saturate(180%) blur(22px);
+}
+.press {
+  transition: transform 0.28s var(--ease-ios), background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.press:active {
+  transform: scale(0.97);
+}
+input.ios-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  inline-size: 2.75rem;
+  block-size: 1.7rem;
+  flex: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-muted) 35%, var(--color-surface));
+  transition: background-color 0.25s var(--ease-ios);
+  cursor: pointer;
+}
+input.ios-switch::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0.125rem;
+  inset-inline-start: 0.125rem;
+  inline-size: 1.45rem;
+  block-size: 1.45rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
+  transition: transform 0.28s var(--ease-ios);
+}
+input.ios-switch:checked {
+  background: var(--color-brand-500);
+}
+input.ios-switch:checked::after {
+  transform: translateX(1.05rem);
+}
+[dir="rtl"] input.ios-switch:checked::after {
+  transform: translateX(-1.05rem);
+}
+@media print {
+  .glass { background: none; backdrop-filter: none; }
 }

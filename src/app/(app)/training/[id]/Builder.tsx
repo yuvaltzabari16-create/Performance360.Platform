@@ -353,7 +353,7 @@ function ChipEditor({ fieldKey, label, placeholder, initial, onDone, onCancel }:
         }}
         onBlur={() => finish(value)}
         size={Math.max(6, Math.min(18, value.length + 2))}
-        className="num min-w-0 rounded bg-white/80 px-1.5 py-0.5 text-[13px] font-semibold text-ink outline-none ring-1 ring-brand-400 focus:ring-2"
+        className="num min-w-0 rounded bg-surface/85 px-1.5 py-0.5 text-[13px] font-semibold text-ink outline-none ring-1 ring-brand-400 focus:ring-2"
       />
     </span>
   );

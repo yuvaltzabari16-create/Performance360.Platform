@@ -49,10 +49,10 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
   }
 
   return (
-    <div className="no-print fixed bottom-4 end-4 z-40 flex flex-col items-end gap-3" data-testid="assistant" data-role={roleKey}>
+    <div className="no-print fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] end-4 z-40 flex flex-col items-end gap-3 lg:bottom-4" data-testid="assistant" data-role={roleKey}>
       {open && (
-        <section role="dialog" aria-label={labels.title} className="flex h-[min(40rem,calc(100dvh-6rem))] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/95 shadow-[var(--shadow-lift)] backdrop-blur-md">
-          <header className="flex items-center justify-between gap-2 bg-gradient-to-b from-brand-600 to-brand-700 px-5 py-3.5 text-white">
+        <section role="dialog" aria-label={labels.title} className="flex h-[min(40rem,calc(100dvh-6rem))] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border ring-line/60 bg-surface/95 shadow-[var(--shadow-lift)] backdrop-blur-md">
+          <header className="flex items-center justify-between gap-2 bg-brand-600 px-5 py-3.5 text-white">
             <h2 className="text-sm font-semibold">{labels.title}</h2>
             <span className="flex items-center gap-1">
               {messages.length > 0 && <button type="button" onClick={() => { setMessages([]); setError(null); }} className="rounded-md px-2 py-1 text-xs text-white/70 hover:text-white">{labels.clear}</button>}
@@ -103,7 +103,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
       )}
       <button
         ref={buttonRef} type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? labels.close : labels.open}
-        className="flex size-13 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="press flex size-13 items-center justify-center rounded-full bg-brand-600 text-white shadow-[var(--shadow-lift)] hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /><path d="M9 11h6M9 14h4" /></svg>
       </button>

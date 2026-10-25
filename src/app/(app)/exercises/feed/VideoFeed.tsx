@@ -75,7 +75,7 @@ export function VideoFeed({ items, labels }: { items: FeedItem[]; labels: Labels
                   <img src={thumb} alt="" loading="lazy" className="absolute inset-0 size-full object-contain opacity-80" />
                 )}
                 <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid size-16 place-items-center rounded-full bg-white/90 text-2xl text-brand-700 shadow-lg transition-transform group-hover:scale-105">▶</span>
+                  <span className="grid size-16 place-items-center rounded-full bg-surface/90 text-2xl text-brand-700 shadow-lg transition-transform group-hover:scale-105">▶</span>
                 </span>
               </button>
             )}

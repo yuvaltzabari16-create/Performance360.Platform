@@ -677,6 +677,9 @@ const he: Dictionary = {
     } as Record<string, string>,
   },
   settings: {
+    theme: "מראה",
+    themeHelp: "בהיר, כהה, או לפי המכשיר. הירוק נשאר.",
+    themeNames: { system: "אוטומטי", light: "בהיר", dark: "כהה" },
     notifyAbout: "להודיע לי על",
     categories: { injury: "פציעות וחזרה לפעילות", message: "הודעות", program: "תוכניות אימון", team: "שינויים בצוות", connection: "חיבורי ספורטאים" },
     signOutEverywhere: "התנתקות מכל המכשירים",

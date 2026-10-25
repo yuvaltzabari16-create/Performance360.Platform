@@ -254,8 +254,10 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.waitForURL(/\/dashboard/);
-    await page.getByText("Menu").click();
-    await expect(page.getByRole("link", { name: "My Training" }).last()).toBeVisible();
+    // Phones get a bottom tab bar; "Menu" opens the sheet with every section.
+    await expect(page.getByRole("navigation", { name: "Tabs" })).toBeVisible();
+    await page.getByRole("navigation", { name: "Tabs" }).getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("dialog").getByRole("link", { name: "My Training" })).toBeVisible();
     await snap(page, "10-mobile-menu");
   });
 });

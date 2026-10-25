@@ -1,6 +1,8 @@
 import { ButtonLink, Card, Checkbox, Field, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { cookies } from "next/headers";
+import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
+import { THEME_COOKIE, parseTheme } from "@/lib/theme/theme";
 import { requireProfile } from "@/lib/auth";
 import { NOTIFICATION_CATEGORIES, mutedCategories } from "@/lib/notification-categories";
 import { canAccess, type Section } from "@/lib/permissions";
@@ -60,6 +62,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </fieldset>
             <div className="sm:col-span-2"><SubmitButton pendingText={t.common.saving}>{t.common.save}</SubmitButton></div>
           </form>
+        </Card>
+        <Card title={ts.theme}>
+          <p className="mb-3 text-sm text-ink-soft">{ts.themeHelp}</p>
+          <ThemeSwitch current={parseTheme((await cookies()).get(THEME_COOKIE)?.value)} labels={{ system: ts.themeNames.system, light: ts.themeNames.light, dark: ts.themeNames.dark }} next="/settings" />
         </Card>
         <Card title={ts.security}>
           <div className="flex flex-wrap gap-2">

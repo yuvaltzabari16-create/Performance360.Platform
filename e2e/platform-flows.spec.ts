@@ -98,4 +98,23 @@ test.describe.serial("Platform", () => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);
   });
+
+  test("appearance: dark mode keeps the green, is remembered and follows the choice", async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto("/login");
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/); // "Auto": the device decides
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bg).not.toBe("rgb(243, 246, 244)"); // not the light canvas
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // remembered
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Light" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    // the system choice follows the device
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Auto" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(11, 15, 13)");
+  });
 });

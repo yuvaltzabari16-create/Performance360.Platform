@@ -54,7 +54,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
         </div>
         <Link
           href={`/exercises/feed?${new URLSearchParams({ ...(category ? { category } : {}), ...(onlyFav ? {} : { fav: "1" }) })}`}
-          className={`rounded-lg border px-3 py-2 text-sm ${onlyFav ? "border-brand-500 bg-brand-50 text-brand-800" : "border-line bg-white text-ink-soft hover:bg-canvas"}`}
+          className={`rounded-lg border px-3 py-2 text-sm ${onlyFav ? "border-brand-500 bg-brand-50 text-brand-800" : "border-line bg-surface text-ink-soft hover:bg-canvas"}`}
         >
           ★ {te.onlyFavorites}
         </Link>

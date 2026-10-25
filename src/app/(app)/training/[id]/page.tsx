@@ -160,7 +160,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
           {(phases ?? []).length > 0 && (
             <div className="flex flex-wrap gap-2">
               {(phases ?? []).map((ph) => (
-                <div key={ph.id} className={cx("rounded-lg border px-3 py-2 text-xs", week >= ph.start_week && week <= ph.end_week ? "border-brand-300 bg-brand-50" : "border-line bg-white")}>
+                <div key={ph.id} className={cx("rounded-lg border px-3 py-2 text-xs", week >= ph.start_week && week <= ph.end_week ? "border-brand-300 bg-brand-50" : "border-line bg-surface")}>
                   <div className="font-medium text-ink">{ph.name} <span className="text-muted">({tt.cycles[ph.cycle_level as keyof typeof tt.cycles]})</span></div>
                   <div className="num text-muted">{t.common.week} {ph.start_week}–{ph.end_week}</div>
                 </div>
@@ -175,7 +175,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
               <Link
                 key={w}
                 href={`/training/${id}?week=${w}`}
-                className={cx("num shrink-0 rounded-lg border px-3 py-1.5 text-sm", w === week ? "border-brand-500 bg-brand-600 text-white" : "border-line bg-white text-ink-soft hover:border-brand-300")}
+                className={cx("num shrink-0 rounded-lg border px-3 py-1.5 text-sm", w === week ? "border-brand-500 bg-brand-600 text-white" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
               >
                 {t.common.week} {w}{sessionCountByWeek.get(w) ? <span className="ms-1 opacity-70">({sessionCountByWeek.get(w)})</span> : null}
               </Link>
@@ -192,7 +192,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                   key={s.id}
                   href={`/training/${id}?week=${week}&session=${s.id}`}
                   aria-current={s.id === selected?.id ? "page" : undefined}
-                  className={cx("shrink-0 rounded-lg border px-3 py-1.5 text-sm", s.id === selected?.id ? "border-brand-600 bg-brand-50 font-semibold text-brand-800" : "border-line bg-white text-ink-soft hover:border-brand-300")}
+                  className={cx("shrink-0 rounded-lg border px-3 py-1.5 text-sm", s.id === selected?.id ? "border-brand-600 bg-brand-50 font-semibold text-brand-800" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
                 >
                   {t.common.day} {s.day_number} · <bdi>{s.title}</bdi>
                 </Link>

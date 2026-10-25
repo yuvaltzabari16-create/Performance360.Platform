@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Dark mode and iOS design**: Auto / Light / Dark appearance (Settings, sidebar and sign-in pages; remembered, no flash) with the green kept in both; iOS-style large titles, grouped inset cards, translucent material bars, springy press feedback, switch toggles, tinted buttons and an iOS-style bottom tab bar with a "Menu" sheet on phones.
 - **Director menu**: overview, athletes, squads, training schedule, injuries, messages, GPS and settings (plus My Team for invitations). Testing, readiness and wearables are removed from the director.
 - **Professional consultant**: the chat assistant for every role now consults on sport science, training, load, rehabilitation principles and running a department (role-specific expertise, longer answers, Markdown formatting, copy button). Still no diagnosis and no clearance to play.
 - **Exercise videos**: learning player with captions where available, looping, no end-screen suggestions and slow-motion speed buttons; cues as numbered steps and common mistakes as warnings.

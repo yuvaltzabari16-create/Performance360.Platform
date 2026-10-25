@@ -675,6 +675,9 @@ const en = {
     } as Record<string, string>,
   },
   settings: {
+    theme: "Appearance",
+    themeHelp: "Light, dark, or follow your device. The green stays.",
+    themeNames: { system: "Auto", light: "Light", dark: "Dark" },
     notifyAbout: "Notify me about",
     categories: { injury: "Injuries and return to play", message: "Messages", program: "Training plans", team: "Team changes", connection: "Athlete connections" },
     signOutEverywhere: "Sign out on all devices",

@@ -7,7 +7,7 @@ import { LegalFooter } from "./LegalFooter";
 export async function LegalPage({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
   const { t, user } = await getSession();
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
+    <div className="flex min-h-dvh flex-col bg-surface">
       <header className="flex items-center justify-between px-4 py-5 sm:px-8">
         <Link href={user ? "/dashboard" : "/"} aria-label="Performance360"><Logo className="text-lg text-ink" /></Link>
         <Link href={user ? "/dashboard" : "/login"} className="text-sm text-brand-700 hover:underline">{t.legal.backHome}</Link>

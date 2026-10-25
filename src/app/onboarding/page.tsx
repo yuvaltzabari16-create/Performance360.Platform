@@ -37,7 +37,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   ];
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-surface">
       <header className="flex items-center justify-between px-4 py-5 sm:px-8">
         <Logo className="text-lg text-ink" />
         <LanguageSwitch locale={locale} next={here} className="text-ink-soft" />

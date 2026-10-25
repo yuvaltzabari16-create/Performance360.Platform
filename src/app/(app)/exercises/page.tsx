@@ -76,7 +76,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
           {profile.role !== "athlete" && <option value="mine">{te.mine}</option>}
           <option value="favorites">{te.onlyFavorites}</option>
         </Select>
-        <button className="rounded-lg border border-line bg-white px-3 text-sm hover:bg-canvas" type="submit">{t.common.filter}</button>
+        <button className="rounded-lg border border-line bg-surface px-3 text-sm hover:bg-canvas" type="submit">{t.common.filter}</button>
       </form>
 
       {exercises.length === 0 ? (
@@ -91,7 +91,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
                     {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
                     <img src={(e.thumbnail_url ?? youtubeThumbnail(e.video_url))!} alt="" loading="lazy" className="size-full object-cover" />
                     <span className="absolute inset-0 grid place-items-center bg-black/10 opacity-90 transition-opacity group-hover:bg-black/20" aria-hidden>
-                      <span className="grid size-11 place-items-center rounded-full bg-white/90 text-brand-700 shadow">▶</span>
+                      <span className="grid size-11 place-items-center rounded-full bg-surface/90 text-brand-700 shadow">▶</span>
                     </span>
                   </div>
                 )}

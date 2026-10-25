@@ -39,7 +39,7 @@ export function MonthGrid({ weeks, eventsByDate, selected, today, hrefFor, weekd
   moreLabel: (n: number) => string;
 }) {
   return (
-    <div role="grid" aria-label="Calendar" className="overflow-hidden rounded-3xl border border-white/80 bg-white/85 shadow-[var(--shadow-lift)] backdrop-blur-sm">
+    <div role="grid" aria-label="Calendar" className="overflow-hidden rounded-3xl bg-surface/90 ring-1 ring-line/60 shadow-[var(--shadow-lift)] backdrop-blur-sm">
       <div role="row" className="grid grid-cols-7 border-b border-line/60 bg-brand-50/50 text-center text-xs font-medium text-muted">
         {weekdays.map((d) => <div key={d} role="columnheader" className="py-2">{d}</div>)}
       </div>

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui";
 import type { NavIcon, NavItem } from "./nav";
 
-const paths: Record<NavIcon, string> = {
+export const navIconPaths: Record<NavIcon, string> = {
   home: "M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
   team: "M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a4 4 0 0 1 0 7.8",
   users: "M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM22 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8",
@@ -34,16 +34,16 @@ export function NavLinks({ items, unread }: { items: NavItem[]; unread: number }
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-colors",
-                active ? "bg-gradient-to-b from-brand-50 to-brand-100/70 font-semibold text-brand-800 shadow-[inset_0_0_0_1px_rgba(124,207,160,0.45)]" : "text-ink-soft hover:bg-brand-50/70 hover:text-ink",
+                "press flex items-center gap-3 rounded-xl px-3.5 py-2 text-[15px]",
+                active ? "bg-brand-600 font-semibold text-white shadow-[0_6px_14px_-8px_rgba(21,122,74,0.8)]" : "text-ink-soft hover:bg-brand-50 hover:text-ink",
               )}
             >
-              <svg viewBox="0 0 24 24" className={cx("size-[18px] shrink-0", active ? "text-brand-600" : "text-muted")} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d={paths[item.icon]} />
+              <svg viewBox="0 0 24 24" className={cx("size-[19px] shrink-0", active ? "text-white" : "text-brand-600")} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d={navIconPaths[item.icon]} />
               </svg>
               <span className="flex-1 truncate">{item.label}</span>
               {item.icon === "bell" && unread > 0 && (
-                <span className="num rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold text-white">{unread > 99 ? "99+" : unread}</span>
+                <span className={cx("num rounded-full px-1.5 text-[11px] font-semibold", active ? "bg-white text-brand-700" : "bg-red-500 text-white")}>{unread > 99 ? "99+" : unread}</span>
               )}
             </Link>
           </li>

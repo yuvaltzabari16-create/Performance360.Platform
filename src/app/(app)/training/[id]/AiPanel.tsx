@@ -108,7 +108,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
       </div>
 
       <div className="flex gap-2 border-t border-line p-3">
-        <button type="button" onClick={generate} disabled={pending || prompt.trim().length < 3} className="flex-1 rounded-lg border border-brand-600 bg-white px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
+        <button type="button" onClick={generate} disabled={pending || prompt.trim().length < 3} className="flex-1 rounded-lg border border-brand-600 bg-surface px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
           {pending && !preview ? ai.generating : ai.generate}
         </button>
         {preview && (

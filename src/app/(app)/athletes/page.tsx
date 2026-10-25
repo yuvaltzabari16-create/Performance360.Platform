@@ -86,7 +86,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
             <option value="name">A–Z</option>
             <option value="recent">↓ {t.common.date}</option>
           </Select>
-          <button className="rounded-xl border border-line bg-white/90 px-4 text-sm hover:border-brand-200 hover:bg-white" type="submit">{t.common.filter}</button>
+          <button className="rounded-xl border border-line bg-surface/90 px-4 text-sm hover:border-brand-200 hover:bg-surface" type="submit">{t.common.filter}</button>
         </div>
       </form>
 
