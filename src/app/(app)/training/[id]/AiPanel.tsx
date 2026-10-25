@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
 import { useEffect, useState, useTransition } from "react";
 import { FIELD_KEYS, FIELD_TONES } from "@/lib/builder-fields";
 import type { WorkoutPreview } from "@/lib/ai/workout";
@@ -52,7 +53,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
   return (
     <div className="no-print fixed inset-y-0 end-0 z-40 flex w-full max-w-md flex-col border-s border-line bg-surface shadow-2xl" role="dialog" aria-label={ai.title}>
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink"><span aria-hidden className="text-brand-600">✦</span>{ai.title}</h2>
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink"><Icon name="sparkle" className="size-4 text-brand-600" />{ai.title}</h2>
         <button type="button" onClick={onClose} aria-label={tt.builder.closeLibrary} className="rounded-lg px-2 py-1 text-lg text-muted hover:bg-canvas">×</button>
       </div>
 

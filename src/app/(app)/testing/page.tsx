@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
 import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
@@ -155,7 +156,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
       ) : (
         <div className="space-y-6">
           {groups.map(({ def, rows, bySide, limbDiff, chart, sides }) => (
-            <Card key={def.id} title={<span>{def.name} <span className="font-normal text-muted">({def.unit}, {def.higher_is_better ? "↑" : "↓"})</span></span>}>
+            <Card key={def.id} title={<span>{def.name} <span className="font-normal text-muted">({def.unit}{def.higher_is_better ? <Icon name="up" className="ms-1 size-3.5" /> : <Icon name="down" className="ms-1 size-3.5" />})</span></span>}>
               <div className="grid gap-4 lg:grid-cols-5">
                 <div className="space-y-3 lg:col-span-2">
                   {bySide.map(({ side, summary: s }) => (

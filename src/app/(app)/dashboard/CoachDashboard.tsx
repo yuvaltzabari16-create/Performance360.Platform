@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Stat } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
@@ -65,7 +66,7 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
                     <Link href={`/athletes/${e.athlete_id}`} className="font-medium hover:text-brand-700">{e.athletes.full_name}</Link>
                     <span className="flex items-center gap-2">
                       <span className="num text-xs text-muted">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}</span>
-                      <Badge tone="amber">{t.readiness.flagged}{e.pain_reported ? " · ⚠" : ""}</Badge>
+                      <Badge tone="amber">{t.readiness.flagged}{e.pain_reported && <Icon name="warning" className="ms-1 size-3.5" />}</Badge>
                     </span>
                   </li>
                 ))}

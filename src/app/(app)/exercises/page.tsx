@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
@@ -53,7 +54,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
         subtitle={`${total} ${te.videoCount}`}
         actions={
           <>
-            <ButtonLink variant="secondary" href={`/exercises/feed${category ? `?category=${category}` : ""}`}>▶ {te.feed}</ButtonLink>
+            <ButtonLink variant="secondary" href={`/exercises/feed${category ? `?category=${category}` : ""}`}><Icon name="play" filled className="size-3.5" /> {te.feed}</ButtonLink>
             {profile.role !== "athlete" && <ButtonLink href="/exercises/new">{te.add}</ButtonLink>}
           </>
         }
@@ -91,14 +92,14 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
                     {/* eslint-disable-next-line @next/next/no-img-element -- remote YouTube thumbnail */}
                     <img src={(e.thumbnail_url ?? youtubeThumbnail(e.video_url))!} alt="" loading="lazy" className="size-full object-cover" />
                     <span className="absolute inset-0 grid place-items-center bg-black/10 opacity-90 transition-opacity group-hover:bg-black/20" aria-hidden>
-                      <span className="grid size-11 place-items-center rounded-full bg-surface/90 text-brand-700 shadow">▶</span>
+                      <span className="grid size-11 place-items-center rounded-full bg-surface/90 text-brand-700 shadow"><Icon name="play" filled className="size-5" /></span>
                     </span>
                   </div>
                 )}
                 <div className="flex flex-1 flex-col p-4">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-medium text-ink"><bdi>{e.name}</bdi></h3>
-                  {favorites.has(e.id) && <span className="text-brand-600" aria-label={te.favorites}>★</span>}
+                  {favorites.has(e.id) && <span className="text-brand-600" aria-label={te.favorites}><Icon name="star" filled /></span>}
                 </div>
                 {(e.primary_objective || e.movement_pattern) && <p className="mt-1 line-clamp-2 text-sm text-ink-soft"><bdi>{e.primary_objective ?? e.movement_pattern}</bdi></p>}
                 <div className="mt-auto flex flex-wrap gap-1.5 pt-3">

@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Professional icons**: text symbols and emoji (stars, arrows, check marks, play signs) are replaced by one set of outline icons in the app.
 - **Quick actions**: a "+" tab in the phone tab bar and a "Quick actions" button in the sidebar open a sheet of one-tap actions for the role (add athlete, record a test, new program, log an injury, message, import GPS, daily check-in, ...). Only actions the login may do appear.
 - **Dark mode and iOS design**: Auto / Light / Dark appearance (Settings, sidebar and sign-in pages; remembered, no flash) with the green kept in both; iOS-style large titles, grouped inset cards, translucent material bars, springy press feedback, switch toggles, tinted buttons and an iOS-style bottom tab bar with a "Menu" sheet on phones.
 - **Director menu**: overview, athletes, squads, training schedule, injuries, messages, GPS and settings (plus My Team for invitations). Testing, readiness and wearables are removed from the director.

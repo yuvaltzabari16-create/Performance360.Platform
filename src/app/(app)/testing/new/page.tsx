@@ -95,7 +95,7 @@ export default async function RecordTestPage({ searchParams }: { searchParams: P
                         const items = defs.filter((d) => d.category === c);
                         return items.length ? (
                           <optgroup key={c} label={tt.categories[c]}>
-                            {items.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.unit}{d.higher_is_better ? " ↑" : " ↓"})</option>)}
+                            {items.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.unit})</option>)}
                           </optgroup>
                         ) : null;
                       })}

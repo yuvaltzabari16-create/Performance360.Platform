@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -120,7 +121,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
             aria-expanded={aiOpen}
             className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
           >
-            <span aria-hidden>✦</span> {b.ai.button}
+            <Icon name="sparkle" /> {b.ai.button}
           </button>
           <button
             type="button"
@@ -129,7 +130,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
             className={cx("inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
               libraryOpen ? "border-brand-600 bg-brand-600 text-white" : "border-line bg-surface text-ink hover:border-brand-300")}
           >
-            <span aria-hidden>▤</span> {b.library}
+            <Icon name="list" /> {b.library}
           </button>
           </div>
         </div>
@@ -187,8 +188,8 @@ export function Builder({ programId, session, exercises, library, tt, categories
                               ? <Link href={`/exercises/${e.exercise_id}`} className="font-medium text-ink hover:text-brand-700"><bdi>{e.exercise_name}</bdi></Link>
                               : <bdi className="font-medium text-ink">{e.exercise_name}</bdi>}
                             <div className="no-print flex shrink-0 items-center">
-                              <IconButton label={tt.moveUp} disabled={i === 0} onClick={() => move(e, blk.items[i - 1])}>↑</IconButton>
-                              <IconButton label={tt.moveDown} disabled={i === blk.items.length - 1} onClick={() => move(e, blk.items[i + 1])}>↓</IconButton>
+                              <IconButton label={tt.moveUp} disabled={i === 0} onClick={() => move(e, blk.items[i - 1])}><Icon name="up" /></IconButton>
+                              <IconButton label={tt.moveDown} disabled={i === blk.items.length - 1} onClick={() => move(e, blk.items[i + 1])}><Icon name="down" /></IconButton>
                               <IconButton label={b.duplicate} onClick={() => run(() => duplicateExercise({ id: e.id, programId }))}>⧉</IconButton>
                               <IconButton label={labels.remove} danger onClick={() => remove(e.id)}>×</IconButton>
                             </div>

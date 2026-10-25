@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "@/components/legal/ExternalLink";
 import { ExercisePlayer } from "@/components/exercises/ExercisePlayer";
@@ -35,7 +36,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
           <>
             <form action={toggleFavorite}>
               <input type="hidden" name="id" value={e.id} />
-              <SubmitButton variant="secondary">{fav ? `★ ${te.unfavorite}` : `☆ ${te.favorite}`}</SubmitButton>
+              <SubmitButton variant="secondary"><span className="inline-flex items-center gap-1.5"><Icon name="star" filled={Boolean(fav)} />{fav ? te.unfavorite : te.favorite}</span></SubmitButton>
             </form>
             {isPro && !isOwner && (
               <form action={duplicateExercise}>
@@ -74,13 +75,13 @@ export default async function ExercisePage({ params, searchParams }: { params: P
                 />
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span>{te.embedNote}</span>
-                  <ExternalLink href={e.video_url} className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} ↗</ExternalLink>
+                  <ExternalLink href={e.video_url} className="font-medium text-brand-700 hover:underline">{te.openOnYouTube} <Icon name="external" className="size-3.5" /></ExternalLink>
                 </div>
               </>
             ) : media?.kind === "video" ? (
               <video src={media.src} controls preload="metadata" playsInline className="aspect-video w-full rounded-lg bg-black" poster={e.thumbnail_url ?? undefined} />
             ) : media?.kind === "link" ? (
-              <ExternalLink href={media.src} className="text-sm text-brand-700 hover:underline">{te.video} ↗</ExternalLink>
+              <ExternalLink href={media.src} className="text-sm text-brand-700 hover:underline">{te.video} <Icon name="external" className="size-3.5" /></ExternalLink>
             ) : (
               <p className="text-sm text-muted">{te.noVideo}</p>
             )}
@@ -123,7 +124,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
                 [te.regressions, e.regressions],
                 [te.progressions, e.progressions],
                 [te.modNotes, e.modification_notes],
-                [te.source, explainer ? <ExternalLink key="src" className="text-brand-700 hover:underline" href={explainer}>{te.openOnYouTube} ↗</ExternalLink> : e.source],
+                [te.source, explainer ? <ExternalLink key="src" className="text-brand-700 hover:underline" href={explainer}>{te.openOnYouTube} <Icon name="external" className="size-3.5" /></ExternalLink> : e.source],
               ]}
             />
           </Card>

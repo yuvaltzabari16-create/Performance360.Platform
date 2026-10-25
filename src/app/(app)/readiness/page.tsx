@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { Badge, Card, Checkbox, EmptyState, Field, FlashMessage, Input, PageHeader, Table, Td, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -87,7 +88,7 @@ async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefin
                 {entries.slice(0, 14).map((e) => (
                   <li key={e.id} className="flex justify-between py-2">
                     <span className="num">{e.entry_date}</span>
-                    <span className="num text-ink-soft">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}{e.sleep_hours != null && ` · ${e.sleep_hours}h`}{e.pain_reported && " · ⚠"}</span>
+                    <span className="num text-ink-soft">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}{e.sleep_hours != null && ` · ${e.sleep_hours}h`}{e.pain_reported && <Icon name="warning" className="ms-1 size-3.5" />}</span>
                   </li>
                 ))}
               </ul>
@@ -144,7 +145,7 @@ async function CoachReadiness({ sp, t }: { sp: Record<string, string | undefined
               <Td><span className="num">{entry?.soreness ?? "—"}</span></Td>
               <Td><span className="num">{entry?.stress ?? "—"}</span></Td>
               <Td>
-                {!entry ? <Badge>{tr.missing}</Badge> : flagged ? <Badge tone="amber">{tr.flagged}{entry.pain_reported ? " · ⚠" : ""}</Badge> : <Badge tone="green">✓</Badge>}
+                {!entry ? <Badge>{tr.missing}</Badge> : flagged ? <Badge tone="amber">{tr.flagged}{entry.pain_reported && <Icon name="warning" className="ms-1 size-3.5" />}</Badge> : <Badge tone="green"><Icon name="check" className="size-3.5" /></Badge>}
                 {entry?.pain_notes && <div className="mt-1 text-xs text-amber-900">{entry.pain_notes}</div>}
               </Td>
             </tr>

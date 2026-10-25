@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { safeInternalPath } from "@/lib/security/url";
 import { revalidatePath } from "next/cache";
@@ -66,7 +67,7 @@ export default async function NotificationsPage() {
                       <button className="text-xs text-muted hover:text-ink">{t.notifications.markRead}</button>
                     </form>
                   )}
-                  {n.read_at && <Badge>✓</Badge>}
+                  {n.read_at && <Badge><Icon name="check" className="size-3.5" /></Badge>}
                 </div>
               </li>
             ))}

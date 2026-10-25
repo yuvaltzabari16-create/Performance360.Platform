@@ -154,7 +154,7 @@ test.describe.serial("Performance360 core workflows", () => {
   test("coach records a jump test with trials", async ({ browser }) => {
     const page = await login(browser, coach);
     await page.goto(`/testing/new?athlete=${athleteRecordUrl.split("/").pop()}`);
-    await page.locator('select[name="r0_test"]').selectOption({ label: "Countermovement Jump (cm ↑)" });
+    await page.locator('select[name="r0_test"]').selectOption({ label: "Countermovement Jump (cm)" });
     await page.getByLabel("Trial 1", { exact: true }).fill("38.1");
     await page.getByLabel("Trial 2", { exact: true }).fill("39.4");
     await page.getByLabel("Trial 3", { exact: true }).fill("38.9");

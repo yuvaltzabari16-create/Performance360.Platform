@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import { AutoSubmitSelect } from "@/components/ui/client";
@@ -56,7 +57,7 @@ export default async function FeedPage({ searchParams }: { searchParams: Promise
           href={`/exercises/feed?${new URLSearchParams({ ...(category ? { category } : {}), ...(onlyFav ? {} : { fav: "1" }) })}`}
           className={`rounded-lg border px-3 py-2 text-sm ${onlyFav ? "border-brand-500 bg-brand-50 text-brand-800" : "border-line bg-surface text-ink-soft hover:bg-canvas"}`}
         >
-          ★ {te.onlyFavorites}
+          <span className="inline-flex items-center gap-1.5"><Icon name="star" filled={onlyFav} />{te.onlyFavorites}</span>
         </Link>
       </form>
       <VideoFeed

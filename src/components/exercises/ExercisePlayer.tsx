@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
 import { useRef, useState } from "react";
 
 interface Labels { speed: string; normal: string; restart: string; speedHelp: string }
@@ -38,7 +39,7 @@ export function ExercisePlayer({ src, title, vertical, labels, speedControl }: {
               {s === 1 ? labels.normal : `${s}×`}
             </button>
           ))}
-          <button type="button" onClick={() => command("seekTo", [0, true])} className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-soft ring-1 ring-inset ring-line hover:bg-brand-50">↺ {labels.restart}</button>
+          <button type="button" onClick={() => command("seekTo", [0, true])} className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-soft ring-1 ring-inset ring-line hover:bg-brand-50"><Icon name="restart" className="me-1 size-3.5" />{labels.restart}</button>
           <span className="basis-full text-[11px] text-muted">{labels.speedHelp}</span>
         </div>
       )}

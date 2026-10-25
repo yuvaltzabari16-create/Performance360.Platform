@@ -133,7 +133,7 @@ export function InjuryCard({ injury, events, today, locale, t, back, professiona
               <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
                 <span className="font-medium text-ink">
                   {ti.events[e.kind]}
-                  {e.stage && (e.kind === "stage_changed" || e.kind === "cleared" || e.kind === "reopened") ? ` → ${ti.stages[e.stage]}` : ""}
+                  {e.stage && (e.kind === "stage_changed" || e.kind === "cleared" || e.kind === "reopened") ? ` · ${ti.stages[e.stage]}` : ""}
                 </span>
                 <span className="num">{new Date(e.created_at).toLocaleDateString(locale)}</span>
                 {e.author_name && <span><bdi>{fill(ti.by, { name: e.author_name })}</bdi>{e.author_role && ` · ${t.orgRoles[e.author_role as keyof typeof t.orgRoles] ?? ""}`}</span>}

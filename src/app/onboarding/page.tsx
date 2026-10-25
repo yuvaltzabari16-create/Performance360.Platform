@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, Field, FlashMessage, Input, Logo, Select } from "@/components/ui";
@@ -61,7 +62,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           </div>
         )}
 
-        {type && <p className="mb-5"><Link href={to({})} className="text-sm text-brand-700 hover:underline">← {t.onboarding.changeType}</Link></p>}
+        {type && <p className="mb-5"><Link href={to({})} className="text-sm text-brand-700 hover:underline"><Icon name="arrowLeft" className="me-1 size-3.5" />{t.onboarding.changeType}</Link></p>}
 
         {type === "athlete" && (
           <Card title={to2.athlete.title}>

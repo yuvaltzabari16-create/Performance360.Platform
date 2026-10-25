@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { embedUrl, youtubeThumbnail } from "@/lib/catalog";
@@ -75,7 +76,7 @@ export function VideoFeed({ items, labels }: { items: FeedItem[]; labels: Labels
                   <img src={thumb} alt="" loading="lazy" className="absolute inset-0 size-full object-contain opacity-80" />
                 )}
                 <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid size-16 place-items-center rounded-full bg-surface/90 text-2xl text-brand-700 shadow-lg transition-transform group-hover:scale-105">▶</span>
+                  <span className="grid size-16 place-items-center rounded-full bg-surface/90 text-brand-700 shadow-lg transition-transform group-hover:scale-105"><Icon name="play" filled className="size-7" /></span>
                 </span>
               </button>
             )}
@@ -107,10 +108,10 @@ export function VideoFeed({ items, labels }: { items: FeedItem[]; labels: Labels
                     aria-label={isFav ? labels.unfavorite : labels.favorite}
                     className="grid size-11 place-items-center rounded-full bg-white/15 text-xl hover:bg-white/25"
                   >
-                    {isFav ? "★" : "☆"}
+                    <Icon name="star" filled={isFav} className="size-5" />
                   </button>
-                  <Link href={`/exercises/${item.id}`} className="grid size-11 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={labels.details}>ⓘ</Link>
-                  <a href={item.video_url} target="_blank" rel="noopener noreferrer" className="grid size-11 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={labels.openOnYouTube}>↗</a>
+                  <Link href={`/exercises/${item.id}`} className="grid size-11 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={labels.details}><Icon name="list" className="size-5" /></Link>
+                  <a href={item.video_url} target="_blank" rel="noopener noreferrer" className="grid size-11 place-items-center rounded-full bg-white/15 hover:bg-white/25" aria-label={labels.openOnYouTube}><Icon name="external" className="size-5" /></a>
                 </div>
               </div>
             </div>

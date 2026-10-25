@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { sessionDate } from "@/lib/calendar";
 import { ButtonLink, Card, EmptyState, PageHeader } from "@/components/ui";
@@ -107,7 +108,7 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
         </Card>
         {(injuries ?? []).length > 0 && <OpenInjuriesCard injuries={injuries as OpenInjury[]} today={today} t={t} href="/injuries" showAthlete={false} />}
         <Card title={td.checkInToday}>
-          {todayEntry ? <p className="text-sm text-brand-800">✓ {td.checkInDone}</p> : <ButtonLink href="/readiness">{td.checkInCta}</ButtonLink>}
+          {todayEntry ? <p className="flex items-center gap-1.5 text-sm text-brand-800"><Icon name="check" /> {td.checkInDone}</p> : <ButtonLink href="/readiness">{td.checkInCta}</ButtonLink>}
         </Card>
         <Card title={td.myGoals}>
           {!me?.short_term_goals && !me?.long_term_goals ? <p className="text-sm text-muted">{td.noGoals}</p> : (

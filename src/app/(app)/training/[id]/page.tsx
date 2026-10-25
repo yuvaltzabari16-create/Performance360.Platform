@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
 import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
@@ -210,7 +211,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 </h2>
                 <div className="flex items-center gap-2">
                 {myAthleteId && <ButtonLink className="px-2.5 py-1 text-xs" href={`/training/session/${selected.id}?athlete=${myAthleteId}`}>{tt.log}</ButtonLink>}
-                <a href="#assign" className="no-print inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"><span aria-hidden>➤</span> {tt.assignTo}</a>
+                <a href="#assign" className="no-print inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"><Icon name="send" /> {tt.assignTo}</a>
               </div>
               </div>
               {selected.notes && <p className="whitespace-pre-line text-sm text-ink-soft">{selected.notes}</p>}
