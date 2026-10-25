@@ -70,7 +70,7 @@ export interface Profile {
   avatar_url: string | null;
   locale: Locale;
   units: Units;
-  notification_prefs: { in_app: boolean; email: boolean };
+  notification_prefs: { in_app: boolean; email: boolean; muted?: string[] };
   is_platform_admin: boolean;
   onboarded_at: string | null;
   deactivated_at: string | null;

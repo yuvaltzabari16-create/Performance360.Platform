@@ -47,10 +47,13 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
       <PageHeader
         title={tg.title}
         subtitle={tg.subtitle}
-        actions={canImport && (
+        actions={(
           <>
+            {sessions.length > 0 && <ButtonLink href="/export/gps" variant="secondary" prefetch={false}>{t.common.exportCsv}</ButtonLink>}
+            {canImport && (<>
             <form action={loadSampleSession}><ConfirmSubmit variant="secondary" message={tg.sampleConfirm}>{tg.sample}</ConfirmSubmit></form>
             <ButtonLink href="/gps/import">{tg.import}</ButtonLink>
+            </>)}
           </>
         )}
       />

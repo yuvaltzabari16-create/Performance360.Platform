@@ -57,14 +57,20 @@ export async function connectWhoop(supabase: SupabaseClient, code: string): Prom
   return synced.ok ? { ok: true, days: synced.days } : { ok: false, error: synced.error };
 }
 
-/** Pulls the last 30 days from WHOOP, refreshing the access token first when it is close to expiry. */
-export async function syncWhoop(supabase: SupabaseClient): Promise<{ ok: true; days: number } | { ok: false; error: string }> {
+interface TokenRow { access_cipher: string | null; refresh_cipher: string | null; expires_at: string | null }
+
+/**
+ * Shared sync step: refreshes the access token when it is close to expiry, pulls the last 30 days and hands them to
+ * `save`. Used for a person pressing "Sync now" and for the scheduled job, so both behave the same.
+ */
+async function pullWhoop(
+  row: TokenRow,
+  io: { saveTokens: (access: string, refresh: string | null, expires: string | null) => Promise<void>; save: (days: DailyMetrics[], error: string | null) => Promise<number> },
+): Promise<{ ok: true; days: number } | { ok: false; error: string }> {
   const cfg = whoopConfig();
   const key = tokenKey();
   if (!cfg || !key) return { ok: false, error: "not_configured" };
-  const { data } = await supabase.rpc("wearable_tokens_get", { p_provider: "whoop" });
-  const row = (data as { access_cipher: string | null; refresh_cipher: string | null; expires_at: string | null }[] | null)?.[0];
-  if (!row?.access_cipher) return { ok: false, error: "not_connected" };
+  if (!row.access_cipher) return { ok: false, error: "not_connected" };
   let access = decrypt(row.access_cipher, key);
   const refresh = row.refresh_cipher ? decrypt(row.refresh_cipher, key) : null;
   if (!access) return { ok: false, error: "token_unreadable" };
@@ -73,15 +79,44 @@ export async function syncWhoop(supabase: SupabaseClient): Promise<{ ok: true; d
     if (expiring && refresh) {
       const r = await refreshTokens(cfg, refresh);
       access = r.tokens.access;
-      await supabase.rpc("wearable_tokens_update", {
-        p_provider: "whoop", p_access: encrypt(r.tokens.access, key), p_refresh: r.tokens.refresh ? encrypt(r.tokens.refresh, key) : null, p_expires: r.tokens.expiresAt?.toISOString() ?? null,
-      });
+      await io.saveTokens(encrypt(r.tokens.access, key), r.tokens.refresh ? encrypt(r.tokens.refresh, key) : null, r.tokens.expiresAt?.toISOString() ?? null);
     }
     const days = await fetchWhoopDays(cfg, access, 30);
-    return { ok: true, days: await saveDays(supabase, "whoop", days) };
+    return { ok: true, days: await io.save(days, null) };
   } catch (e) {
     const code = e instanceof Error ? e.message : "sync_failed";
-    await saveDays(supabase, "whoop", [], code).catch(() => undefined);
+    await io.save([], code).catch(() => undefined);
     return { ok: false, error: code };
   }
+}
+
+/** Pulls the last 30 days from WHOOP for the signed-in athlete ("Sync now" and right after connecting). */
+export async function syncWhoop(supabase: SupabaseClient): Promise<{ ok: true; days: number } | { ok: false; error: string }> {
+  const { data } = await supabase.rpc("wearable_tokens_get", { p_provider: "whoop" });
+  const row = (data as TokenRow[] | null)?.[0];
+  if (!row?.access_cipher) return { ok: false, error: "not_connected" };
+  return pullWhoop(row, {
+    saveTokens: async (access, refresh, expires) => { await supabase.rpc("wearable_tokens_update", { p_provider: "whoop", p_access: access, p_refresh: refresh, p_expires: expires }); },
+    save: (days, error) => saveDays(supabase, "whoop", days, error),
+  });
+}
+
+/** Scheduled job: syncs every API-linked WHOOP connection that has not synced for `olderThanHours`. Uses the service-role client. */
+export async function syncAllWhoop(admin: SupabaseClient, olderThanHours = 5, limit = 50): Promise<{ due: number; synced: number; failed: number }> {
+  const { data } = await admin.rpc("wearable_cron_due", { p_provider: "whoop", p_older_than: `${olderThanHours} hours`, p_limit: limit });
+  const due = (data ?? []) as (TokenRow & { athlete_id: string })[];
+  let synced = 0;
+  let failed = 0;
+  for (const row of due) {
+    const result = await pullWhoop(row, {
+      saveTokens: async (access, refresh, expires) => { await admin.rpc("wearable_cron_tokens_update", { p_athlete: row.athlete_id, p_provider: "whoop", p_access: access, p_refresh: refresh, p_expires: expires }); },
+      save: async (days, error) => {
+        const { data: n, error: e } = await admin.rpc("wearable_save_days_for", { p_athlete: row.athlete_id, p_provider: "whoop", p_rows: days.slice(0, 400), p_error: error });
+        if (e) throw new Error(e.message);
+        return Number(n ?? 0);
+      },
+    });
+    if (result.ok) synced++; else failed++;
+  }
+  return { due: due.length, synced, failed };
 }

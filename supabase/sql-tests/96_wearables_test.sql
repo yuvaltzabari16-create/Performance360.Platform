@@ -87,3 +87,8 @@ set role anon;
 select tests.throws($$select public.wearable_connect('whoop', 'api', 'a', 'b', now(), null, null)$$) as anon_conn \gset
 reset role;
 select tests.check(:'anon_conn'::boolean, 'anonymous users cannot connect');
+
+-- Scheduled sync: the cron functions are for the service role only.
+reset role;
+select tests.throws($$set role authenticated; select * from public.wearable_cron_due('whoop', interval '1 hour', 10)$$) as cron_user \gset
+select tests.check(:'cron_user'::boolean, 'app users cannot call the cron functions');

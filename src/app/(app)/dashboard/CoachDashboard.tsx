@@ -12,7 +12,8 @@ import { isoDaysAgo } from "./dates";
 
 // All figures below are counted from the database; nothing is estimated or seeded.
 export async function CoachDashboard({ t }: { t: Dictionary }) {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile, org } = await requireProfile();
+  const orgRole = org?.org_role ?? null;
   const td = t.dashboard;
   const today = isoDaysAgo(0);
   const [athletes, programs, tests30, sessions7, readinessToday, recentTests, readinessRecent, injuries] = await Promise.all([
@@ -55,17 +56,53 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
     });
 
   const athleteCount = athletes.count ?? 0;
+  const readinessCard = (
+          <Card title={td.readinessReview} action={<Link className="text-xs text-brand-700 hover:underline" href="/readiness">{t.readiness.title}</Link>}>
+            {flagged.length === 0 ? <p className="text-sm text-muted">{td.noFlags}</p> : (
+              <ul className="divide-y divide-line text-sm">
+                {flagged.map((e) => (
+                  <li key={e.id} className="flex items-center justify-between py-2">
+                    <Link href={`/athletes/${e.athlete_id}`} className="font-medium hover:text-brand-700">{e.athletes.full_name}</Link>
+                    <span className="flex items-center gap-2">
+                      <span className="num text-xs text-muted">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}</span>
+                      <Badge tone="amber">{t.readiness.flagged}{e.pain_reported ? " · ⚠" : ""}</Badge>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-3 text-xs text-muted">{t.readiness.flagHelp}</p>
+          </Card>
+  );
+  const injuriesCard = (
+          <OpenInjuriesCard injuries={(injuries.data ?? []) as unknown as OpenInjury[]} today={today} t={t} href="/injuries" showAthlete />
+  );
   return (
     <>
       <PageHeader
         title={`${td.greeting}, ${profile.full_name.split(" ")[0] || profile.email}`}
         subtitle={t.roles[profile.role]}
         actions={
-          <>
-            <ButtonLink variant="secondary" href="/testing/new">{td.recordTest}</ButtonLink>
-            <ButtonLink variant="secondary" href="/training/new">{td.newProgram}</ButtonLink>
-            <ButtonLink href="/athletes/new">{td.addAthlete}</ButtonLink>
-          </>
+          // Each role gets the shortcuts of its own work.
+          orgRole === "physiotherapist" ? (
+            <>
+              <ButtonLink variant="secondary" href="/testing/new">{td.recordTest}</ButtonLink>
+              <ButtonLink variant="secondary" href="/gps">{t.gps.title}</ButtonLink>
+              <ButtonLink href="/injuries">{t.injury.nav}</ButtonLink>
+            </>
+          ) : orgRole === "head_of_performance" ? (
+            <>
+              <ButtonLink variant="secondary" href="/testing/new">{td.recordTest}</ButtonLink>
+              <ButtonLink variant="secondary" href="/gps">{t.gps.title}</ButtonLink>
+              <ButtonLink href="/training/new">{td.newProgram}</ButtonLink>
+            </>
+          ) : (
+            <>
+              <ButtonLink variant="secondary" href="/testing/new">{td.recordTest}</ButtonLink>
+              <ButtonLink variant="secondary" href="/training/new">{td.newProgram}</ButtonLink>
+              <ButtonLink href="/athletes/new">{td.addAthlete}</ButtonLink>
+            </>
+          )
         }
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -88,23 +125,7 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
         <div className="mt-6 space-y-6">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">{td.needsAttention}</h2>
           <div className="grid gap-6 lg:grid-cols-2">
-          <Card title={td.readinessReview} action={<Link className="text-xs text-brand-700 hover:underline" href="/readiness">{t.readiness.title}</Link>}>
-            {flagged.length === 0 ? <p className="text-sm text-muted">{td.noFlags}</p> : (
-              <ul className="divide-y divide-line text-sm">
-                {flagged.map((e) => (
-                  <li key={e.id} className="flex items-center justify-between py-2">
-                    <Link href={`/athletes/${e.athlete_id}`} className="font-medium hover:text-brand-700">{e.athletes.full_name}</Link>
-                    <span className="flex items-center gap-2">
-                      <span className="num text-xs text-muted">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}</span>
-                      <Badge tone="amber">{t.readiness.flagged}{e.pain_reported ? " · ⚠" : ""}</Badge>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-3 text-xs text-muted">{t.readiness.flagHelp}</p>
-          </Card>
-          <OpenInjuriesCard injuries={(injuries.data ?? []) as unknown as OpenInjury[]} today={today} t={t} href="/injuries" showAthlete />
+{orgRole === "physiotherapist" ? <>{injuriesCard}{readinessCard}</> : <>{readinessCard}{injuriesCard}</>}
           </div>
           <AlertsCard alerts={alerts} names={alertNameMap} t={t} />
           <Card title={td.recentTests} action={<Link className="text-xs text-brand-700 hover:underline" href="/testing">{t.testing.title}</Link>}>

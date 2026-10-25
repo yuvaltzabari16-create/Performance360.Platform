@@ -2,11 +2,22 @@ import { ButtonLink, Card, Checkbox, Field, FlashMessage, Input, PageHeader, Sel
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { cookies } from "next/headers";
 import { requireProfile } from "@/lib/auth";
+import { NOTIFICATION_CATEGORIES, mutedCategories } from "@/lib/notification-categories";
+import { canAccess, type Section } from "@/lib/permissions";
 import { IDLE_COOKIE, parseIdleMinutes } from "@/lib/security/idle";
 import { DeleteAccountCard } from "./security/DeleteAccountCard";
 import { IdleTimeoutCard } from "./security/IdleTimeoutCard";
 import { TwoFactorCard } from "./security/TwoFactorCard";
-import { deactivateAccount, updateSettings } from "./actions";
+import { deactivateAccount, signOutEverywhere, updateSettings } from "./actions";
+
+const EXPORTS: { dataset: string; section: Section }[] = [
+  { dataset: "athletes", section: "athletes" },
+  { dataset: "tests", section: "testing" },
+  { dataset: "injuries", section: "injuries" },
+  { dataset: "gps", section: "gps" },
+  { dataset: "readiness", section: "readiness" },
+  { dataset: "wearables", section: "wearables" },
+];
 
 export const metadata = { title: "Settings" };
 
@@ -40,12 +51,30 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <div><Checkbox name="notif_in_app" label={ts.inApp} defaultChecked={profile.notification_prefs?.in_app ?? true} /></div>
               <div><Checkbox name="notif_email" label={ts.emailNotif} defaultChecked={profile.notification_prefs?.email ?? false} /></div>
               <p className="text-xs text-muted">{ts.emailNotifHelp}</p>
+              <p className="pt-2 text-sm font-medium text-ink">{ts.notifyAbout}</p>
+              <div className="grid gap-1 sm:grid-cols-2">
+                {NOTIFICATION_CATEGORIES.map((c) => (
+                  <Checkbox key={c} name={`notify_${c}`} label={ts.categories[c]} defaultChecked={!mutedCategories(profile.notification_prefs).includes(c)} />
+                ))}
+              </div>
             </fieldset>
             <div className="sm:col-span-2"><SubmitButton pendingText={t.common.saving}>{t.common.save}</SubmitButton></div>
           </form>
         </Card>
         <Card title={ts.security}>
-          <ButtonLink variant="secondary" href="/auth/update-password">{ts.changePassword}</ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink variant="secondary" href="/auth/update-password">{ts.changePassword}</ButtonLink>
+            <form action={signOutEverywhere}><ConfirmSubmit variant="secondary" message={ts.signOutEverywhereConfirm}>{ts.signOutEverywhere}</ConfirmSubmit></form>
+          </div>
+          <p className="mt-2 text-xs text-muted">{ts.signOutEverywhereHelp}</p>
+        </Card>
+        <Card title={ts.exports}>
+          <p className="mb-3 text-xs text-muted">{ts.exportsHelp}</p>
+          <ul className="grid gap-2 sm:grid-cols-2" data-testid="export-list">
+            {EXPORTS.filter((e) => canAccess(e.section, profile.role, org?.org_role ?? null)).map((e) => (
+              <li key={e.dataset}><ButtonLink variant="secondary" href={`/export/${e.dataset}`} prefetch={false} className="w-full">{ts.exportNames[e.dataset as keyof typeof ts.exportNames]}</ButtonLink></li>
+            ))}
+          </ul>
         </Card>
         <TwoFactorCard t={t} />
         <IdleTimeoutCard t={t} minutes={parseIdleMinutes((await cookies()).get(IDLE_COOKIE)?.value)} />

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, EmptyState, FlashMessage, PageHeader, Stat } from "@/components/ui";
+import { Badge, ButtonLink, EmptyState, FlashMessage, PageHeader, Stat } from "@/components/ui";
 import { InjurySection } from "@/components/injury/InjurySection";
 import type { InjuryRow } from "@/components/injury/types";
 import { requireProfile } from "@/lib/auth";
@@ -41,7 +41,7 @@ export default async function InjuriesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title={ti.boardTitle} subtitle={ti.boardSubtitle} />
+      <PageHeader title={ti.boardTitle} subtitle={ti.boardSubtitle} actions={<ButtonLink href="/export/injuries" variant="secondary" prefetch={false}>{t.common.exportCsv}</ButtonLink>} />
       <FlashMessage error={sp.error} ok={sp.ok} />
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Stat label={ti.kpiOpen} value={open.length} />

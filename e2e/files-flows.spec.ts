@@ -98,6 +98,10 @@ test.describe.serial("Files in every category", () => {
     await panel.locator('input[type="file"]').setInputFiles({ name: "run.exe", mimeType: "application/octet-stream", buffer: Buffer.from("x") });
     await panel.getByRole("button", { name: "Attach file" }).click();
     await expect(page.getByText(/file type is not allowed/)).toBeVisible();
+    // A program renamed to a document is refused by its content.
+    await panel.locator('input[type="file"]').setInputFiles({ name: "holiday.pdf", mimeType: "application/pdf", buffer: Buffer.from("MZ\x90\x00 not a pdf") });
+    await panel.getByRole("button", { name: "Attach file" }).click();
+    await expect(page.getByText(/does not match its type/)).toBeVisible();
     // Download: the right bytes, always as an attachment.
     const res = await page.request.get(injuryFileHref);
     expect(res.status()).toBe(200);
@@ -113,7 +117,7 @@ test.describe.serial("Files in every category", () => {
     await physio.waitForURL(/\/athletes\/[0-9a-f-]{36}$/);
     athleteUrl = physio.url();
     await expect(physio.getByTestId("files-injury").first().getByRole("link", { name: "mri-report.pdf" })).toBeVisible();
-    await attach(physio, "injury", "rehab-plan.docx", "plan");
+    await attach(physio, "injury", "rehab-plan.docx", "PK\x03\x04plan");
     await attach(physio, "athlete", "consent-form.pdf", "%PDF consent");
 
     const hop = await login(browser, people.hop);
@@ -123,7 +127,7 @@ test.describe.serial("Files in every category", () => {
     await hop.getByRole("button", { name: "Create" }).click();
     await hop.waitForURL(/\/training\/[0-9a-f-]{36}$/);
     programUrl = hop.url();
-    await attach(hop, "training", "periodization.xlsx", "sheet");
+    await attach(hop, "training", "periodization.xlsx", "PK\x03\x04sheet");
 
     await hop.goto("/gps/import");
     await hop.getByLabel("Session title").fill("Files session");

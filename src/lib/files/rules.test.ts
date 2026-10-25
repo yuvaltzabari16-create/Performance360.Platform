@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_FILE_BYTES, formatBytes, fileProblem, fromByteaHex, toByteaHex } from "./rules";
+import { MAX_FILE_BYTES, contentProblem, formatBytes, fileProblem, fromByteaHex, toByteaHex } from "./rules";
 
 describe("fileProblem", () => {
   it("accepts documents and images", () => {
@@ -25,5 +25,26 @@ describe("helpers", () => {
     const hex = toByteaHex(new Uint8Array([1, 2, 255]));
     expect(hex).toBe("\\x0102ff");
     expect([...fromByteaHex(hex)]).toEqual([1, 2, 255]);
+  });
+});
+
+describe("contentProblem", () => {
+  const bytes = (...v: number[]) => new Uint8Array([...v, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  it("accepts content that matches the extension", () => {
+    expect(contentProblem("a.pdf", bytes(0x25, 0x50, 0x44, 0x46))).toBeNull();
+    expect(contentProblem("a.png", bytes(0x89, 0x50, 0x4e, 0x47))).toBeNull();
+    expect(contentProblem("a.JPG", bytes(0xff, 0xd8, 0xff))).toBeNull();
+    expect(contentProblem("a.xlsx", bytes(0x50, 0x4b, 0x03, 0x04))).toBeNull();
+    expect(contentProblem("a.csv", new TextEncoder().encode("a,b\n1,2\n"))).toBeNull();
+  });
+  it("rejects a file whose content is something else", () => {
+    expect(contentProblem("a.pdf", new TextEncoder().encode("<html>"))).toBe("content_mismatch");
+    expect(contentProblem("a.png", bytes(0xff, 0xd8, 0xff))).toBe("content_mismatch");
+    expect(contentProblem("a.csv", bytes(0x61, 0x00, 0x62))).toBe("content_mismatch");
+  });
+  it("rejects renamed programs", () => {
+    expect(contentProblem("holiday.pdf", bytes(0x4d, 0x5a))).toBe("content_mismatch");
+    expect(contentProblem("notes.txt", new TextEncoder().encode("#!/bin/sh\nrm -rf /"))).toBe("content_mismatch");
+    expect(contentProblem("x.png", bytes(0x7f, 0x45, 0x4c, 0x46))).toBe("content_mismatch");
   });
 });

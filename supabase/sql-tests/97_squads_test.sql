@@ -85,3 +85,12 @@ select public.archive_squad(:'s1');
 select public.archive_squad(:'s2');
 set request.jwt.claim.sub = :c1;
 select tests.check((select count(*) from public.athletes) = 3, 'with no active squads the roster is open to coaches again');
+
+-- Notification categories: a muted category is not delivered, others still are.
+set request.jwt.claim.sub = :c1;
+update public.profiles set notification_prefs = '{"in_app": true, "muted": ["injury"]}'::jsonb where id = :c1;
+reset role;
+select public.notify(:c1, 'injury.update', 'Muted', 'x', null);
+select public.notify(:c1, 'program.assigned', 'Kept', 'x', null);
+select tests.check((select count(*) from public.notifications where user_id = :c1 and title = 'Muted') = 0, 'a muted category is not delivered');
+select tests.check((select count(*) from public.notifications where user_id = :c1 and title = 'Kept') = 1, 'other categories still arrive');

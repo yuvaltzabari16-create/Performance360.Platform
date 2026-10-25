@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { done, fail, safeNext, str, uuid } from "@/lib/forms";
-import { fileProblem, isAttachmentKind, toByteaHex } from "@/lib/files/rules";
+import { contentProblem, fileProblem, isAttachmentKind, toByteaHex } from "@/lib/files/rules";
 
 /** Uploads one file to a record (message, injury, GPS session, athlete testing / documents, program). */
 export async function uploadAttachment(formData: FormData) {
@@ -18,6 +18,8 @@ export async function uploadAttachment(formData: FormData) {
   const problem = fileProblem(file.name, file.size);
   if (problem) fail(back, t.files.errors[problem]);
   const bytes = new Uint8Array(await file.arrayBuffer());
+  const mismatch = contentProblem(file.name, bytes);
+  if (mismatch) fail(back, t.files.errors[mismatch]);
   const { error } = await supabase.rpc("add_attachment", { p_kind: kind, p_ref: ref, p_athlete: athlete, p_name: file.name, p_data: toByteaHex(bytes) });
   if (error) fail(back, t.files.errors.generic);
   revalidatePath(back.split("?")[0]);

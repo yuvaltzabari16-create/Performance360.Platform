@@ -6,6 +6,13 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Squads**: the director and head of performance split the roster into squads and assign coaches. A head coach or assistant coach then sees only the athletes of their squads (database-enforced, including roster lists, GPS, injuries, wearables and notifications). Teams without squads behave as before.
+- **Staff alerts**: coach, physiotherapist and head-of-performance dashboards flag high or low workload ratio and low shared recovery.
+- **Data export**: CSV downloads (athletes, tests, injuries, GPS, readiness, wearables) from the relevant pages and from Settings, limited to what the signed-in person can already see; spreadsheet formulas are defused.
+- **Settings**: notification categories (injuries, messages, plans, team, connections), sign out on all devices, and a download hub.
+- **Role logins**: choosing a login shows what it opens and where to sign up; dashboards and shortcuts differ for the physiotherapist and the head of performance.
+- **Scheduled WHOOP sync**: optional daily job (`vercel.json`, needs `CRON_SECRET` and `SUPABASE_SERVICE_ROLE_KEY`) through service-only database functions.
+- **Uploads**: file content is checked against its type; renamed programs and mismatched files are refused (a plausibility check, not a virus scan).
 - **Workload ratio**: the GPS page shows each athlete's 7-day load against their 28-day weekly average, flags ratios above 1.5 or below 0.8, and says "not enough history" under two weeks of data. Staff only.
 - **AI chat assistant**: a floating help panel for every role (director, head coach, head of performance, physiotherapist, team staff, personal trainer, athlete) that explains how to use the app and answers training questions. It sees no player data, never diagnoses or clears anyone, and is rate limited per user (`AI_CHAT_REQUESTS_PER_HOUR`, default 40).
 - **Wearables**: athletes connect WHOOP (OAuth, encrypted tokens, 30-day sync) or import WHOOP / Fitbit export files; recovery, HRV, resting heart rate, sleep and strain with charts; private until the athlete shares with staff and the director; disconnect and erase. Fitbit live link waits for Google Health API access.
