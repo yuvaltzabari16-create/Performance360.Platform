@@ -29,5 +29,5 @@
 | messages_return_to_play, revoke_rls_auto_enable_execute | applied (written by another session; not in this repo) |
 | injuries, role_scoping, gps, director_and_messages, role_access_v2, attachments_and_physio_gps, consent_and_minors | applied (repo file names carry the live version numbers) |
 | `delete_account` (`delete_my_account`) | **pending: run `manual/pending_delete_functions.sql`** |
-| wearables | applied once the athlete features ship (see below) |
+| wearables | applied (without `wearable_erase_data`, which is in `manual/`) |
 | `delete_gps_session`, `remove_attachment`, `wearable_erase_data` | **pending: same file** |
