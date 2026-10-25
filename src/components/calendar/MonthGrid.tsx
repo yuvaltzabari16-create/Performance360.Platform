@@ -4,8 +4,8 @@ import type { CalendarEvent, EventStatus, GridDay } from "@/lib/calendar";
 
 /** Colour per completion status (also written as text in the day panel, never colour alone). */
 export const STATUS_TONE: Record<EventStatus, string> = {
-  planned: "bg-brand-50 text-brand-900 ring-brand-200",
-  completed: "bg-brand-600 text-white ring-brand-700",
+  planned: "bg-brand-100/80 text-brand-900 ring-brand-200",
+  completed: "bg-gradient-to-b from-brand-500 to-brand-600 text-white ring-brand-700/40",
   partial: "bg-amber-100 text-amber-950 ring-amber-300",
   skipped: "bg-slate-100 text-slate-600 ring-slate-300 line-through",
 };
@@ -39,8 +39,8 @@ export function MonthGrid({ weeks, eventsByDate, selected, today, hrefFor, weekd
   moreLabel: (n: number) => string;
 }) {
   return (
-    <div role="grid" aria-label="Calendar" className="overflow-hidden rounded-2xl border border-line bg-surface">
-      <div role="row" className="grid grid-cols-7 border-b border-line bg-canvas text-center text-xs font-medium text-muted">
+    <div role="grid" aria-label="Calendar" className="overflow-hidden rounded-3xl border border-white/80 bg-white/85 shadow-[var(--shadow-lift)] backdrop-blur-sm">
+      <div role="row" className="grid grid-cols-7 border-b border-line/60 bg-brand-50/50 text-center text-xs font-medium text-muted">
         {weekdays.map((d) => <div key={d} role="columnheader" className="py-2">{d}</div>)}
       </div>
       {weeks.map((week, wi) => (
@@ -66,7 +66,7 @@ export function MonthGrid({ weeks, eventsByDate, selected, today, hrefFor, weekd
                   {Number(day.iso.slice(8))}
                 </span>
                 {chips.slice(0, 3).map((c) => (
-                  <span key={c.key} className={cx("truncate rounded-md px-1.5 py-0.5 text-[11px] leading-4 ring-1 ring-inset", STATUS_TONE[c.status])}>
+                  <span key={c.key} className={cx("truncate rounded-lg px-2 py-0.5 text-[11px] font-medium leading-4 ring-1 ring-inset", STATUS_TONE[c.status])}>
                     <bdi>{c.title}</bdi>{c.count > 1 ? ` · ${c.count}` : ""}
                   </span>
                 ))}

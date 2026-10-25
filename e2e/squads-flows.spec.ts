@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Locator, type Page } from "@playwright/test";
 
 // Squads: a head coach sees only the athletes of the squad assigned to them.
 const run = Date.now().toString(36);
@@ -30,6 +30,13 @@ async function login(browser: Browser, who: { email: string }) {
   await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL(/\/dashboard/);
   return page;
+}
+
+/** Clicks a save button and waits for the server action to answer, so the next step never races it. */
+async function saved(page: Page, button: Locator) {
+  await Promise.all([page.waitForResponse((r) => r.request().method() === "POST"), button.click()]);
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(400); // the refreshed page re-renders the forms; do not pick a value into one about to be replaced
 }
 
 async function joinAsAthlete(browser: Browser, who: { name: string; email: string }) {
@@ -92,15 +99,14 @@ test.describe.serial("Squads", () => {
     // Coaches: Carl -> Under 19, Cora -> Seniors.
     const squads = dir.getByTestId("squads").locator("li");
     await squads.filter({ hasText: "Under 19" }).getByLabel("Carl Coach").check();
-    await squads.filter({ hasText: "Under 19" }).getByRole("button", { name: "Save" }).click();
+    await saved(dir, squads.filter({ hasText: "Under 19" }).getByRole("button", { name: "Save" }));
     await squads.filter({ hasText: "Seniors" }).getByLabel("Cora Coach").check();
-    await squads.filter({ hasText: "Seniors" }).getByRole("button", { name: "Save" }).click();
+    await saved(dir, squads.filter({ hasText: "Seniors" }).getByRole("button", { name: "Save" }));
     // Athletes.
     await dir.getByLabel("Squad: Ann Under19").selectOption({ label: "Under 19" });
-    await dir.locator("tr", { hasText: "Ann Under19" }).getByRole("button", { name: "Save" }).click();
+    await saved(dir, dir.locator("tr", { hasText: "Ann Under19" }).getByRole("button", { name: "Save" }));
     await dir.getByLabel("Squad: Ben Seniors").selectOption({ label: "Seniors" });
-    await dir.locator("tr", { hasText: "Ben Seniors" }).getByRole("button", { name: "Save" }).click();
-    await expect(dir.getByLabel("Squad: Ben Seniors")).toHaveValue(/.+/);
+    await saved(dir, dir.locator("tr", { hasText: "Ben Seniors" }).getByRole("button", { name: "Save" }));
   });
 
   test("each head coach sees only their squad", async ({ browser }) => {

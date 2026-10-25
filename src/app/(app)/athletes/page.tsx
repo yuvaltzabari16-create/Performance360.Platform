@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select, Table, Td } from "@/components/ui";
+import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select, Table, Td, Avatar } from "@/components/ui";
 import { requireSection } from "@/lib/auth";
 import { ageFromDob } from "@/lib/metrics";
 import { containsPattern, sanitizeSearchTerm } from "@/lib/security/query";
@@ -86,7 +86,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
             <option value="name">A–Z</option>
             <option value="recent">↓ {t.common.date}</option>
           </Select>
-          <button className="rounded-lg border border-line bg-white px-3 text-sm hover:bg-canvas" type="submit">{t.common.filter}</button>
+          <button className="rounded-xl border border-line bg-white/90 px-4 text-sm hover:border-brand-200 hover:bg-white" type="submit">{t.common.filter}</button>
         </div>
       </form>
 
@@ -102,9 +102,14 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
             {athletes.map((a) => (
               <tr key={a.id} className="hover:bg-canvas/60">
                 <Td>
-                  <Link href={`/athletes/${a.id}`} className="font-medium text-ink hover:text-brand-700">{a.full_name}</Link>
-                  {missingGuardianConsent(a as Athlete, new Date().toISOString().slice(0, 10)) && <span className="ms-2 align-middle"><Badge tone="red">{t.minors.missingBadge}</Badge></span>}
-                  {a.email && <div className="text-xs text-muted">{a.email}</div>}
+                  <div className="flex items-center gap-3">
+                    <Avatar name={a.full_name} />
+                    <div className="min-w-0">
+                      <Link href={`/athletes/${a.id}`} className="font-semibold text-ink hover:text-brand-700">{a.full_name}</Link>
+                      {missingGuardianConsent(a as Athlete, new Date().toISOString().slice(0, 10)) && <span className="ms-2 align-middle"><Badge tone="red">{t.minors.missingBadge}</Badge></span>}
+                      {a.email && <div className="text-xs text-muted">{a.email}</div>}
+                    </div>
+                  </div>
                 </Td>
                 <Td>{a.sport ?? "—"}</Td>
                 <Td>{a.team_name ?? "—"}</Td>

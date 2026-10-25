@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/app/actions";
-import { Logo } from "@/components/ui";
+import { Avatar, Logo } from "@/components/ui";
 import { AssistantWidget } from "@/components/assistant/AssistantWidget";
 import { assistantRole } from "@/lib/ai/assistant-roles";
 import { LegalFooter } from "@/components/legal/LegalFooter";
@@ -15,15 +15,18 @@ export function AppShell({ profile, org, t, unread, children }: { profile: Profi
   const aRole = assistantRole(profile.role, org?.org_role ?? null);
   const { starters, ...assistantLabels } = t.assistant;
   const userBlock = (
-    <div className="border-t border-white/10 p-3">
-      <div className="px-3 pb-2">
-        <div className="truncate text-sm font-medium text-white">{profile.full_name || profile.email}</div>
-        <div className="truncate text-xs text-white/50">{org ? `${t.orgRoles[org.org_role]} · ${org.org_name}` : t.roles[profile.role]}</div>
+    <div className="border-t border-line/70 p-3">
+      <div className="flex items-center gap-3 px-2 pb-3">
+        <Avatar name={profile.full_name || profile.email} />
+        <div className="min-w-0">
+          <div className="truncate text-sm font-semibold text-ink">{profile.full_name || profile.email}</div>
+          <div className="truncate text-xs text-muted">{org ? `${t.orgRoles[org.org_role]} · ${org.org_name}` : t.roles[profile.role]}</div>
+        </div>
       </div>
-      <div className="flex items-center justify-between px-1 text-white">
+      <div className="flex items-center justify-between px-1 text-ink-soft">
         <LanguageSwitch locale={profile.locale} />
         <form action={signOut}>
-          <button className="rounded-md px-2 py-1 text-xs text-white/70 hover:text-white" type="submit">{t.common.signOut}</button>
+          <button className="rounded-lg px-2 py-1 text-xs text-ink-soft hover:bg-brand-50 hover:text-ink" type="submit">{t.common.signOut}</button>
         </form>
       </div>
     </div>
@@ -32,18 +35,20 @@ export function AppShell({ profile, org, t, unread, children }: { profile: Profi
   return (
     <div className="min-h-dvh lg:flex">
       {/* Desktop sidebar */}
-      <aside className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-charcoal lg:flex">
-        <Link href="/dashboard" className="px-6 py-5 text-white"><Logo className="text-base" /></Link>
+      <aside className="no-print sticky top-0 hidden h-dvh w-72 shrink-0 p-4 lg:block">
+       <div className="flex h-full flex-col rounded-3xl border border-white/80 bg-white/80 shadow-[var(--shadow-lift)] backdrop-blur-md">
+        <Link href="/dashboard" className="px-6 py-6 text-ink"><Logo className="text-base" /></Link>
         <nav className="flex-1 overflow-y-auto px-3" aria-label="Main"><NavLinks items={items} unread={unread} /></nav>
         {userBlock}
+       </div>
       </aside>
 
       {/* Mobile top bar with disclosure menu (works without JavaScript) */}
       <div className="no-print sticky top-0 z-30 lg:hidden">
-        <details className="group bg-charcoal">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-white [&::-webkit-details-marker]:hidden">
+        <details className="group border-b border-line/70 bg-white/85 shadow-[var(--shadow-card)] backdrop-blur-md">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-ink [&::-webkit-details-marker]:hidden">
             <Logo className="text-sm" />
-            <span className="flex items-center gap-2 text-sm text-white/80">
+            <span className="flex items-center gap-2 text-sm text-ink-soft">
               {unread > 0 && <span className="num rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold text-white">{unread}</span>}
               {t.nav.menu}
             </span>

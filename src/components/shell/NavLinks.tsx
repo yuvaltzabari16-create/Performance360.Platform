@@ -25,7 +25,7 @@ const paths: Record<NavIcon, string> = {
 export function NavLinks({ items, unread }: { items: NavItem[]; unread: number }) {
   const pathname = usePathname();
   return (
-    <ul className="space-y-0.5">
+    <ul className="space-y-1">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(item.href + "/");
         return (
@@ -34,11 +34,11 @@ export function NavLinks({ items, unread }: { items: NavItem[]; unread: number }
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cx(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                active ? "bg-white/10 font-medium text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition-colors",
+                active ? "bg-gradient-to-b from-brand-50 to-brand-100/70 font-semibold text-brand-800 shadow-[inset_0_0_0_1px_rgba(124,207,160,0.45)]" : "text-ink-soft hover:bg-brand-50/70 hover:text-ink",
               )}
             >
-              <svg viewBox="0 0 24 24" className={cx("size-4 shrink-0", active && "text-brand-300")} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg viewBox="0 0 24 24" className={cx("size-[18px] shrink-0", active ? "text-brand-600" : "text-muted")} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d={paths[item.icon]} />
               </svg>
               <span className="flex-1 truncate">{item.label}</span>

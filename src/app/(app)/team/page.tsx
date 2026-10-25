@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, Button, Card, EmptyState, Field, FlashMessage, Input, PageHeader, Select, Stat, Table, Td } from "@/components/ui";
+import { Avatar, Badge, Button, Card, EmptyState, Field, FlashMessage, Input, PageHeader, Select, Stat, Table, Td } from "@/components/ui";
 import { ConfirmSubmit, CopyButton, ShareButton, SubmitButton } from "@/components/ui/client";
 import { isTeamDirector, requireProfile } from "@/lib/auth";
 import { siteUrl } from "@/lib/site";
@@ -106,9 +106,14 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           return (
             <tr key={m.user_id}>
               <Td>
-                <span className="font-medium"><bdi>{person?.full_name || person?.email || "—"}</bdi></span>
-                {self && <span className="ms-2 text-xs text-muted">({t.team.yourRole})</span>}
-                <div className="text-xs text-muted"><bdi>{person?.email}</bdi></div>
+                <div className="flex items-center gap-3">
+                  <Avatar name={person?.full_name || person?.email || "?"} />
+                  <div className="min-w-0">
+                    <span className="font-semibold"><bdi>{person?.full_name || person?.email || "—"}</bdi></span>
+                    {self && <span className="ms-2 text-xs text-muted">({t.team.yourRole})</span>}
+                    <div className="text-xs text-muted"><bdi>{person?.email}</bdi></div>
+                  </div>
+                </div>
               </Td>
               <Td>
                 {director ? (
