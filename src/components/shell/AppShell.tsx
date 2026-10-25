@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Logo } from "@/components/ui";
+import { AssistantWidget } from "@/components/assistant/AssistantWidget";
+import { assistantRole } from "@/lib/ai/assistant-roles";
 import { LegalFooter } from "@/components/legal/LegalFooter";
 import type { Dictionary } from "@/lib/i18n";
 import type { OrgMembership, Profile, UserRole } from "@/lib/types";
@@ -10,6 +12,8 @@ import { navFor } from "./nav";
 
 export function AppShell({ profile, org, t, unread, children }: { profile: Profile & { role: UserRole }; org: OrgMembership | null; t: Dictionary; unread: number; children: React.ReactNode }) {
   const items = navFor(profile.role, t, org?.org_role ?? null);
+  const aRole = assistantRole(profile.role, org?.org_role ?? null);
+  const { starters, ...assistantLabels } = t.assistant;
   const userBlock = (
     <div className="border-t border-white/10 p-3">
       <div className="px-3 pb-2">
@@ -56,6 +60,7 @@ export function AppShell({ profile, org, t, unread, children }: { profile: Profi
         <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
         <footer className="no-print space-y-2 px-4 py-6 text-center text-xs text-muted sm:px-8"><p>{t.footer.disclaimer}</p><LegalFooter t={t} /></footer>
       </div>
+      <AssistantWidget labels={assistantLabels} starters={starters[aRole]} roleKey={aRole} />
     </div>
   );
 }
