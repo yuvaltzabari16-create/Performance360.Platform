@@ -34,6 +34,7 @@ Nothing here needs code changes.
 | `LEGAL_REVIEWED` | after legal review | `1` removes the draft notice |
 | `ACCESSIBILITY_COORDINATOR`, `ACCESSIBILITY_EMAIL`, `ACCESSIBILITY_PHONE` | before launch | Israeli accessibility statement contact |
 | `CRON_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | optional | Switch on the scheduled WHOOP sync (`vercel.json` runs it daily; Vercel's free plan allows one run a day). Without them the route answers 404 and athletes use "Sync now" |
+| `RESEND_API_KEY` + `MAIL_FROM` | optional | Daily email copies of notifications for people who turned them on (also needs `CRON_SECRET` and the service-role key) |
 | `ANTHROPIC_API_KEY` | optional | Switches on the AI workout assistant and the chat assistant (`AI_MODEL`, `AI_REQUESTS_PER_HOUR`, `AI_CHAT_REQUESTS_PER_HOUR` tune them) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | recommended | Cloudflare Turnstile on public forms |
 | `BOT_GUARD_SECRET` | recommended | Random string; signs the form time-trap token |

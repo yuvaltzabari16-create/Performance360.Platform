@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Email notifications**: people who turn on email notifications get a daily email copy of new notifications (Resend; optional, needs `RESEND_API_KEY`, `MAIL_FROM`, `CRON_SECRET` and the service-role key). Hebrew mails are right to left; links stay inside the app.
 - **Squads**: the director and head of performance split the roster into squads and assign coaches. A head coach or assistant coach then sees only the athletes of their squads (database-enforced, including roster lists, GPS, injuries, wearables and notifications). Teams without squads behave as before.
 - **Staff alerts**: coach, physiotherapist and head-of-performance dashboards flag high or low workload ratio and low shared recovery.
 - **Data export**: CSV downloads (athletes, tests, injuries, GPS, readiness, wearables) from the relevant pages and from Settings, limited to what the signed-in person can already see; spreadsheet formulas are defused.

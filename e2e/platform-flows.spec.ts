@@ -38,6 +38,13 @@ test.describe.serial("Platform", () => {
     expect(await ok.json()).toEqual({ due: expect.any(Number), synced: expect.any(Number), failed: expect.any(Number) });
   });
 
+  test("the email job needs its secret and reports what it sent", async ({ request }) => {
+    expect((await request.get("/api/cron/notification-emails")).status()).toBe(401);
+    const ok = await request.get("/api/cron/notification-emails", { headers: { authorization: "Bearer e2e-cron-secret-0123456789" } });
+    expect(ok.status()).toBe(200);
+    expect(await ok.json()).toEqual({ due: expect.any(Number), sent: expect.any(Number), failed: 0 });
+  });
+
   test("a trainer exports CSV; formulas are defused; strangers get nothing", async ({ page, browser }) => {
     await signupTrainer(page);
     await page.goto("/athletes/new");

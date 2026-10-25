@@ -1,3 +1,4 @@
 {
-  "crons": [{ "path": "/api/cron/wearables-sync", "schedule": "0 4 * * *" }]
+  "crons": [{ "path": "/api/cron/wearables-sync", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/notification-emails", "schedule": "0 6 * * *" }]
 }

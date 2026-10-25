@@ -688,7 +688,7 @@ const en = {
     notifications: "Notifications",
     inApp: "In-app notifications",
     emailNotif: "Email notifications",
-    emailNotifHelp: "Email delivery is not configured yet; this preference is saved for when it is.",
+    emailNotifHelp: "A daily email with the notifications you did not open. Sent only when the operator has set up email.",
     security: "Security",
     changePassword: "Change password",
     account: "Account",

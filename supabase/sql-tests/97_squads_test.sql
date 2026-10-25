@@ -94,3 +94,14 @@ select public.notify(:c1, 'injury.update', 'Muted', 'x', null);
 select public.notify(:c1, 'program.assigned', 'Kept', 'x', null);
 select tests.check((select count(*) from public.notifications where user_id = :c1 and title = 'Muted') = 0, 'a muted category is not delivered');
 select tests.check((select count(*) from public.notifications where user_id = :c1 and title = 'Kept') = 1, 'other categories still arrive');
+
+-- Email copies: only people who opted in, only unsent, service role only.
+reset role;
+select public.notify(:hop, 'program.assigned', 'Email me', 'x', '/dashboard');
+update public.profiles set notification_prefs = '{"in_app": true, "email": true}'::jsonb where id = :hop;
+select tests.check((select count(*) from public.notification_email_due(50) where title = 'Email me') = 1, 'opted-in people have emails due');
+select tests.check((select count(*) from public.notification_email_due(50) where title = 'Kept') = 0, 'people who did not opt in get no email');
+select public.notification_mark_emailed(array(select id from public.notifications where title = 'Email me'));
+select tests.check((select count(*) from public.notification_email_due(50) where title = 'Email me') = 0, 'a sent notification is not sent twice');
+select tests.throws($$set role authenticated; select * from public.notification_email_due(5)$$) as mail_user \gset
+select tests.check(:'mail_user'::boolean, 'app users cannot read the email queue');

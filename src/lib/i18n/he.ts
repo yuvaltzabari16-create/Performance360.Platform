@@ -690,7 +690,7 @@ const he: Dictionary = {
     notifications: "התראות",
     inApp: "התראות באפליקציה",
     emailNotif: "התראות באימייל",
-    emailNotifHelp: "שליחת אימיילים עדיין לא מוגדרת; ההעדפה נשמרת לשימוש עתידי.",
+    emailNotifHelp: "מייל יומי עם ההתראות החדשות. נשלח רק כשהמפעיל הגדיר שליחת מיילים.",
     security: "אבטחה",
     changePassword: "שינוי סיסמה",
     account: "חשבון",
