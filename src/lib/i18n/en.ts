@@ -996,6 +996,12 @@ const en = {
     connectAvailable: "Available now",
     definitions: "How metrics are calculated",
     defText: "High-speed running is above 19.8 km/h and sprinting above 25.2 km/h. A sprint is at least 1 second above the sprint speed. Accelerations and decelerations are efforts beyond 3 m/s² for at least 0.5 seconds. Load is the sum of speed changes divided by 10 and is calculated by Performance360, not a vendor's proprietary figure. Summary imports keep the vendor's own numbers.",
+    workload: {
+      title: "Workload ratio",
+      help: "Load in the last 7 days compared with the weekly average of the last 28 days. Above 1.5 or below 0.8 is worth a conversation. It is a prompt, not a diagnosis.",
+      athlete: "Athlete", acute: "7 days", chronic: "Weekly avg (28 d)", ratio: "Ratio",
+      status: { high: "High", ok: "In range", low: "Low", unknown: "Not enough history" },
+    },
     medical: "GPS figures describe workload; they do not diagnose anything.",
   },
   messages: {

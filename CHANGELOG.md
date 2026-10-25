@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Workload ratio**: the GPS page shows each athlete's 7-day load against their 28-day weekly average, flags ratios above 1.5 or below 0.8, and says "not enough history" under two weeks of data. Staff only.
 - **AI chat assistant**: a floating help panel for every role (director, head coach, head of performance, physiotherapist, team staff, personal trainer, athlete) that explains how to use the app and answers training questions. It sees no player data, never diagnoses or clears anyone, and is rate limited per user (`AI_CHAT_REQUESTS_PER_HOUR`, default 40).
 - **Wearables**: athletes connect WHOOP (OAuth, encrypted tokens, 30-day sync) or import WHOOP / Fitbit export files; recovery, HRV, resting heart rate, sleep and strain with charts; private until the athlete shares with staff and the director; disconnect and erase. Fitbit live link waits for Google Health API access.
 - **Engineering**: CI (lint, types, unit, licenses, build, SQL tests), `npm run verify`, PR template, Dependabot,

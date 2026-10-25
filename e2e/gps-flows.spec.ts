@@ -110,6 +110,9 @@ test.describe.serial("GPS", () => {
     await page.getByRole("button", { name: "Load sample session" }).click();
     await expect(page.getByText("Sample data").first()).toBeVisible();
     await expect(page.getByTestId("pitch-heat-map")).toBeVisible();
+    await page.goto("/gps");
+    await expect(page.getByTestId("gps-workload")).toBeVisible();
+    await expect(page.getByTestId("gps-workload").getByText("Not enough history").first()).toBeVisible();
     if (shots) await page.screenshot({ path: `${shots}/gps-sample.png`, fullPage: true });
   });
 

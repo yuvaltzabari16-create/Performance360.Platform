@@ -5,6 +5,7 @@ import { Badge, ButtonLink, Card, EmptyState, FlashMessage, PageHeader, Stat } f
 import { ConfirmSubmit } from "@/components/ui/client";
 import { requireSection } from "@/lib/auth";
 import { average, formatDistance, type GpsMetricRow, type GpsSessionRow } from "@/lib/gps/format";
+import { workloads } from "@/lib/gps/workload";
 import { canImportGps } from "@/lib/permissions";
 import { loadSampleSession } from "./actions";
 
@@ -23,13 +24,23 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
   const { data: sessionData } = await query;
   const sessions = (sessionData ?? []) as GpsSessionRow[];
   const ids = sessions.map((s) => s.id);
-  const { data: metricData } = ids.length ? await supabase.from("gps_session_metrics").select("session_id, athlete_id, total_distance_m, hsr_distance_m, sprint_count, max_speed_kmh").in("session_id", ids) : { data: [] };
-  const metrics = (metricData ?? []) as Pick<GpsMetricRow, "session_id" | "athlete_id" | "total_distance_m" | "hsr_distance_m" | "sprint_count" | "max_speed_kmh">[];
+  const { data: metricData } = ids.length ? await supabase.from("gps_session_metrics").select("session_id, athlete_id, total_distance_m, hsr_distance_m, sprint_count, max_speed_kmh, player_load").in("session_id", ids) : { data: [] };
+  const metrics = (metricData ?? []) as Pick<GpsMetricRow, "session_id" | "athlete_id" | "total_distance_m" | "hsr_distance_m" | "sprint_count" | "max_speed_kmh" | "player_load">[];
   const of = (id: string) => metrics.filter((m) => m.session_id === id);
 
   const latest = sessions[0];
   const latestRows = latest ? of(latest.id) : [];
   const trend = sessions.slice(0, 12).reverse().map((s) => ({ date: s.session_date.slice(5), distance: Math.round(average(of(s.id).map((m) => m.total_distance_m))) }));
+
+  // Workload ratio per athlete (staff only; an athlete's own page keeps to their sessions).
+  const dateOf = new Map(sessions.map((s) => [s.id, s.session_date]));
+  const load = workloads(metrics.map((m) => ({ athleteId: m.athlete_id, date: dateOf.get(m.session_id) ?? "", load: Number(m.player_load) || m.total_distance_m / 100 })).filter((e) => e.date));
+  const loadIds = load.map((w) => w.athleteId);
+  const { data: loadNames } = isAthlete || !loadIds.length ? { data: [] } : org?.org_role === "director"
+    ? { data: ((await supabase.rpc("org_roster")).data ?? []).map((r: { athlete_id: string; full_name: string }) => ({ id: r.athlete_id, full_name: r.full_name })) }
+    : await supabase.from("athletes").select("id, full_name").in("id", loadIds);
+  const nameOf = (id: string) => ((loadNames ?? []) as { id: string; full_name: string }[]).find((a) => a.id === id)?.full_name ?? "—";
+  const tone = { high: "red", low: "amber", ok: "green", unknown: "gray" } as const;
 
   return (
     <>
@@ -67,6 +78,28 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
           {trend.length >= 2 && (
             <Card title={tg.trend}>
               <TrendChart data={trend} series={[{ key: "distance", label: tg.distance, color: "#23985e" }]} unit="m" />
+            </Card>
+          )}
+
+          {!isAthlete && load.length > 0 && (
+            <Card title={tg.workload.title}>
+              <p className="mb-3 text-xs text-muted">{tg.workload.help}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" data-testid="gps-workload">
+                  <thead><tr className="text-start text-xs text-muted"><th className="py-1 text-start">{tg.workload.athlete}</th><th className="text-end">{tg.workload.acute}</th><th className="text-end">{tg.workload.chronic}</th><th className="text-end">{tg.workload.ratio}</th><th className="text-end">&nbsp;</th></tr></thead>
+                  <tbody className="divide-y divide-line">
+                    {load.map((w) => (
+                      <tr key={w.athleteId}>
+                        <td className="py-2"><bdi>{nameOf(w.athleteId)}</bdi></td>
+                        <td className="num text-end">{w.acute}</td>
+                        <td className="num text-end">{w.chronic}</td>
+                        <td className="num text-end font-semibold">{w.ratio ?? "—"}</td>
+                        <td className="text-end"><Badge tone={tone[w.status]}>{tg.workload.status[w.status]}</Badge></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Card>
           )}
 
