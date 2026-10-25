@@ -174,7 +174,7 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.getByRole("button", { name: "Filter" }).click();
     await page.getByRole("link", { name: /Zercher Squat/ }).click();
     await expect(page.locator('iframe[src^="https://www.youtube-nocookie.com/embed/EuDizUUiHEo"]')).toHaveCount(1);
-    await expect(page.getByRole("link", { name: "Open on YouTube ↗" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=EuDizUUiHEo");
+    await expect(page.getByRole("link", { name: "Open on YouTube" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=EuDizUUiHEo");
 
     await page.goto("/exercises/feed?category=rehab");
     await expect(page.locator("iframe")).toHaveCount(0); // thumbnails only until tapped
