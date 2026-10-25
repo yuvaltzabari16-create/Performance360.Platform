@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Wearables**: athletes connect WHOOP (OAuth, encrypted tokens, 30-day sync) or import WHOOP / Fitbit export files; recovery, HRV, resting heart rate, sleep and strain with charts; private until the athlete shares with staff and the director; disconnect and erase. Fitbit live link waits for Google Health API access.
 - **Engineering**: CI (lint, types, unit, licenses, build, SQL tests), `npm run verify`, PR template, Dependabot,
   contributing guide, architecture notes, ADRs, generated roles matrix (`docs/ROLES.md`), known-issues register.
 - **Legal and consent**: privacy policy and terms of use (English and Hebrew, draft until reviewed), required

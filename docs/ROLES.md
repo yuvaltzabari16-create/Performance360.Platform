@@ -18,6 +18,7 @@ row-level security (see ADR 0002). ✓ means the login can open the section.
 | Injuries | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Messages | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | GPS | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Wearables | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Personal Code |  | ✓ |  |  | ✓ | ✓ |  |
 | Connect to a coach |  |  |  |  |  |  | ✓ |
 | Notifications | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

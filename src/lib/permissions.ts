@@ -6,11 +6,11 @@
 import type { OrgRole, UserRole } from "./types";
 
 export const SECTIONS = [
-  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "messages", "gps", "code", "connect", "notifications", "settings",
+  "dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "messages", "gps", "wearables", "code", "connect", "notifications", "settings",
 ] as const;
 export type Section = (typeof SECTIONS)[number];
 
-const COMMON: Section[] = ["dashboard", "messages", "notifications", "settings"];
+const COMMON: Section[] = ["dashboard", "messages", "wearables", "notifications", "settings"];
 
 /** Sections per team role. Roles missing here get the full professional set. */
 const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {

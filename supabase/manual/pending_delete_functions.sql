@@ -82,4 +82,18 @@ end $$;
 revoke execute on function public.remove_attachment(uuid) from public, anon;
 grant execute on function public.remove_attachment(uuid) to authenticated;
 
+-- 4. Erase stored wearable days (Wearables -> Erase stored data); needs the wearables migration first
+create or replace function public.wearable_erase_data(p_provider text)
+returns integer language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_n integer;
+begin
+  delete from public.wearable_daily where athlete_id = public.wearable_me() and provider = p_provider;
+  get diagnostics v_n = row_count;
+  perform public.write_audit('wearable.erased', 'wearable_daily', p_provider, jsonb_build_object('days', v_n));
+  return v_n;
+end $$;
+revoke execute on function public.wearable_erase_data(text) from public, anon;
+grant execute on function public.wearable_erase_data(text) to authenticated;
+
 notify pgrst, 'reload schema';

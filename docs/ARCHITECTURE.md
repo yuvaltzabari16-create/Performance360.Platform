@@ -38,6 +38,7 @@ Rules of thumb
 | Testing and readiness | `(app)/testing`, `readiness` | `metrics.ts` | `charts/` |
 | Injuries and return to play | `(app)/injuries`, athlete page | `injury.ts`, `injury-data.ts` | `injury/` |
 | GPS and wearables | `(app)/gps` | `gps/` (csv, samples, summary, metrics, demo) | `gps/` |
+| Wearables | `(app)/wearables`, `app/api/wearables` | `wearables/` (crypto, whoop, file-import, server) | `wearables/` |
 | Messages and files | `(app)/messages`, `app/files` | `files/` | `files/` |
 | Teams and roster | `(app)/team`, `teams`, `connect`, `code` | `types.ts` | |
 | Security | `middleware.ts`, `(auth)` | `security/` | `security/` |
@@ -51,7 +52,7 @@ Rules of thumb
 `training_programs → program_phases → training_sessions → session_exercises`, `program_assignments`,
 `workout_completions` · `test_definitions`, `test_results` · `readiness_entries` ·
 `injuries`, `injury_events` (append-only) · `gps_sessions`, `gps_session_metrics` ·
-`direct_messages` · `attachments` · `notifications`, `audit_log`.
+`direct_messages` · `attachments` · `wearable_connections`, `wearable_tokens`, `wearable_daily` · `notifications`, `audit_log`.
 
 Access helpers used by policies: `can_access_athlete`, `is_athlete_professional`, `is_primary_coach`,
 `is_own_athlete_record`, `director_sees_athlete`, `can_view_gps`, `can_view_attachment`.
