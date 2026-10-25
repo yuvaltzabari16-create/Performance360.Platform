@@ -112,6 +112,9 @@ test.describe.serial("Squads", () => {
     await expect(a.getByTestId("my-squads")).toContainText("Under 19");
     await expect(a.getByText("Ben Seniors")).toHaveCount(0);
 
+    await a.goto("/dashboard");
+    await expect(a.getByTestId("staff-alerts")).toContainText("Nothing to flag right now.");
+
     const b = await login(browser, people.coachB);
     await b.goto("/athletes");
     await expect(b.getByText("Ben Seniors")).toBeVisible();

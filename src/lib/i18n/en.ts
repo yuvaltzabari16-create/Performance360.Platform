@@ -168,6 +168,12 @@ const en = {
     body: "Performance360 needs a Supabase project. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in .env.local, apply the migrations in supabase/migrations, then restart the dev server.",
   },
   dashboard: {
+    alerts: {
+      title: "Alerts",
+      none: "Nothing to flag right now.",
+      kinds: { workload_high: "Workload high", workload_low: "Workload low", recovery_low: "Low recovery" },
+      help: "Workload: last 7 days against the 28-day weekly average (flag above 1.5 or below 0.8). Recovery: only from athletes who share their wearable data. These are prompts for a conversation, not diagnoses.",
+    },
     needsAttention: "Needs attention",
     greeting: "Welcome back",
     activeAthletes: "Active athletes",

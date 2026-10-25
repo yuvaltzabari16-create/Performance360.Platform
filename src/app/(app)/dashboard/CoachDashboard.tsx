@@ -6,6 +6,8 @@ import { bestTrial, readinessFlag, wellnessIndex } from "@/lib/metrics";
 import type { ReadinessEntry } from "@/lib/types";
 import { round } from "@/lib/units";
 import { OpenInjuriesCard, type OpenInjury } from "@/components/injury/OpenInjuriesCard";
+import { AlertsCard } from "@/components/dashboard/AlertsCard";
+import { staffAlerts } from "@/lib/alerts";
 import { isoDaysAgo } from "./dates";
 
 // All figures below are counted from the database; nothing is estimated or seeded.
@@ -23,6 +25,24 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
     supabase.from("readiness_entries").select("*, athletes(full_name)").gte("entry_date", isoDaysAgo(21)).order("entry_date", { ascending: false }).limit(3000),
     supabase.from("injuries").select("id, athlete_id, body_area, stage, injury_date, athletes(full_name)").eq("status", "open").order("injury_date", { ascending: true }).limit(6),
   ]);
+
+  // Alerts come from rows the database lets this person read: squad-scoped, and wearables only when shared.
+  const [{ data: loadRows }, { data: dailyRows }] = await Promise.all([
+    supabase.from("gps_session_metrics").select("athlete_id, player_load, total_distance_m, gps_sessions!inner(session_date)").gte("gps_sessions.session_date", isoDaysAgo(40)).limit(3000),
+    supabase.from("wearable_daily").select("athlete_id, day, recovery_score").gte("day", isoDaysAgo(3)).limit(1000),
+  ]);
+  const alerts = staffAlerts(
+    ((loadRows ?? []) as unknown as { athlete_id: string; player_load: number | null; total_distance_m: number; gps_sessions: { session_date: string } | { session_date: string }[] }[]).map((r) => ({
+      athleteId: r.athlete_id,
+      date: (Array.isArray(r.gps_sessions) ? r.gps_sessions[0] : r.gps_sessions).session_date,
+      load: Number(r.player_load) || r.total_distance_m / 100,
+    })),
+    ((dailyRows ?? []) as { athlete_id: string; day: string; recovery_score: number | null }[]).map((r) => ({ athleteId: r.athlete_id, day: r.day, recovery: r.recovery_score === null ? null : Number(r.recovery_score) })),
+    today,
+  );
+  const alertIds = [...new Set(alerts.map((a) => a.athleteId))];
+  const { data: alertNames } = alertIds.length ? await supabase.from("athletes").select("id, full_name").in("id", alertIds) : { data: [] };
+  const alertNameMap = new Map((alertNames ?? []).map((a) => [a.id as string, a.full_name as string]));
 
   const entries = (readinessRecent.data ?? []) as (ReadinessEntry & { athletes: { full_name: string } })[];
   const byAthlete = new Map<string, typeof entries>();
@@ -86,6 +106,7 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
           </Card>
           <OpenInjuriesCard injuries={(injuries.data ?? []) as unknown as OpenInjury[]} today={today} t={t} href="/injuries" showAthlete />
           </div>
+          <AlertsCard alerts={alerts} names={alertNameMap} t={t} />
           <Card title={td.recentTests} action={<Link className="text-xs text-brand-700 hover:underline" href="/testing">{t.testing.title}</Link>}>
             {(recentTests.data ?? []).length === 0 ? <p className="text-sm text-muted">{t.testing.empty}</p> : (
               <ul className="divide-y divide-line text-sm">

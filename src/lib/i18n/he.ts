@@ -170,6 +170,12 @@ const he: Dictionary = {
     body: "Performance360 דורשת פרויקט Supabase. הגדירו NEXT_PUBLIC_SUPABASE_URL ו-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY בקובץ .env.local, הריצו את המיגרציות שבתיקייה supabase/migrations והפעילו מחדש את השרת.",
   },
   dashboard: {
+    alerts: {
+      title: "התראות",
+      none: "אין כרגע מה לסמן.",
+      kinds: { workload_high: "עומס גבוה", workload_low: "עומס נמוך", recovery_low: "התאוששות נמוכה" },
+      help: "עומס: 7 הימים האחרונים מול הממוצע השבועי של 28 ימים (סימון מעל 1.5 או מתחת ל-0.8). התאוששות: רק מספורטאים ששיתפו נתוני חיישן. אלה נקודות לשיחה, לא אבחנות.",
+    },
     needsAttention: "דורש תשומת לב",
     greeting: "ברוכים השבים",
     activeAthletes: "ספורטאים פעילים",
