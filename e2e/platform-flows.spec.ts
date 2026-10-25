@@ -1,8 +1,14 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // Data export, richer settings, per-role login panels and the scheduled sync endpoint.
 const run = Date.now().toString(36);
 const password = "correct-horse-42";
+/** Clicks a save button and waits for the server action to answer before the next step. */
+async function saved(page: Page, button: Locator) {
+  await Promise.all([page.waitForResponse((r) => r.request().method() === "POST"), button.click()]);
+  await page.waitForLoadState("networkidle");
+}
+
 const trainer = { name: "Pat Exporter", email: `pf.trainer.${run}@example.com` };
 
 async function signupTrainer(page: Page) {
@@ -86,11 +92,10 @@ test.describe.serial("Platform", () => {
     await expect(list.getByRole("link", { name: "GPS sessions" })).toBeVisible();
 
     await page.getByLabel("Injuries and return to play").uncheck();
-    await page.locator("form", { has: page.getByLabel("Injuries and return to play") }).getByRole("button", { name: "Save" }).click();
-    await page.waitForURL(/ok=/);
+    await saved(page, page.locator("form", { has: page.getByLabel("Injuries and return to play") }).getByRole("button", { name: "Save" }));
     await page.goto("/settings");
     await expect(page.getByLabel("Injuries and return to play")).not.toBeChecked();
-    await expect(page.getByLabel("Messages")).toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Messages" })).toBeChecked();
 
     page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: "Sign out on all devices" }).click();
@@ -143,5 +148,65 @@ test.describe.serial("Platform", () => {
     await expect(phone.getByTestId("quick-sheet").getByRole("link", { name: "Record a test" })).toBeVisible();
     await phone.keyboard.press("Escape");
     await expect(phone.getByTestId("quick-sheet")).toHaveCount(0);
+  });
+
+  test("settings: profile details, preferences, display and email change", async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage();
+    const signIn = async () => {
+      await page.goto("/login");
+      await page.getByLabel("Email").fill(trainer.email);
+      await page.getByLabel("Password").fill(password);
+      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.waitForURL(/\/(dashboard|calendar)/);
+    };
+    await signIn();
+    await page.goto("/settings");
+    for (const j of ["Profile", "Preferences", "Appearance", "Notifications", "Security", "Privacy and data", "Account"]) {
+      await expect(page.getByRole("navigation", { name: "Settings" }).getByRole("link", { name: j })).toBeVisible();
+    }
+
+    // Profile: phone and job title are saved.
+    await page.getByLabel("Phone").fill("+972 50 123 4567");
+    await page.getByLabel("Job title").fill("Strength coach");
+    await saved(page, page.locator("form", { has: page.getByLabel("Job title") }).getByRole("button", { name: "Save" }));
+    await page.goto("/settings");
+    await expect(page.getByLabel("Phone")).toHaveValue("+972 50 123 4567");
+    await expect(page.getByLabel("Job title")).toHaveValue("Strength coach");
+
+    // Preferences: week starts on Saturday, 12-hour clock, open the calendar after sign-in.
+    await page.getByLabel("Week starts on").selectOption("saturday");
+    await page.getByLabel("Clock").selectOption("12h");
+    await page.getByLabel("Open after sign-in").selectOption("calendar");
+    await saved(page, page.locator("form", { has: page.getByLabel("Week starts on") }).getByRole("button", { name: "Save" }));
+    await page.goto("/settings");
+    await expect(page.getByLabel("Week starts on")).toHaveValue("saturday");
+    await expect(page.getByLabel("Clock")).toHaveValue("12h");
+    await expect(page.getByLabel("Open after sign-in")).toHaveValue("calendar");
+
+    // Display: large text and reduced motion apply to the whole page.
+    await page.goto("/settings");
+    await page.getByLabel("Text size").selectOption("large");
+    await page.getByLabel("Reduce motion").check();
+    await saved(page, page.locator("form", { has: page.getByLabel("Text size") }).getByRole("button", { name: "Save" }));
+    await expect(page.locator("html")).toHaveAttribute("data-text", "large");
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "reduce");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe("18px");
+    await page.goto("/settings");
+    await page.getByLabel("Text size").selectOption("normal");
+    await page.getByLabel("Reduce motion").uncheck();
+    await saved(page, page.locator("form", { has: page.getByLabel("Text size") }).getByRole("button", { name: "Save" }));
+    await expect(page.locator("html")).toHaveAttribute("data-text", "normal");
+
+    // Email change checks the address first.
+    await page.getByLabel("New email address").fill("not-an-email");
+    await page.locator("form", { has: page.getByLabel("New email address") }).evaluate((f) => (f as HTMLFormElement).setAttribute("novalidate", ""));
+    await page.getByRole("button", { name: "Send confirmation" }).click();
+    await expect(page.getByText("Enter a valid email address.")).toBeVisible();
+
+    // The chosen start page is where the next sign-in lands.
+    await page.getByRole("button", { name: "Sign out" }).first().click();
+    await page.waitForURL(/\/login/);
+    await signIn();
+    await expect(page).toHaveURL(/\/calendar/);
   });
 });

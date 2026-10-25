@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MonthGrid, STATUS_TONE } from "@/components/calendar/MonthGrid";
 import { Badge, Card, EmptyState, PageHeader, cx } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
+import { parsePreferences, weekStartDay } from "@/lib/preferences";
 import { buildEvents, monthGrid, parseMonth, shiftMonth, type CalendarAssignment, type CalendarEvent, type CalendarSession } from "@/lib/calendar";
 
 export const metadata = { title: "Calendar" };
@@ -18,7 +19,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
   const today = new Date().toISOString().slice(0, 10);
   const { year, month } = parseMonth(sp.m, today);
-  const weeks = monthGrid(year, month, locale === "he" ? 0 : 1);
+  const weeks = monthGrid(year, month, weekStartDay(parsePreferences(profile.preferences).week_start, locale));
   const first = weeks[0][0].iso;
   const last = weeks[5][6].iso;
   const selected = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today >= first && today <= last ? today : `${year}-${String(month).padStart(2, "0")}-01`;

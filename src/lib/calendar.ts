@@ -21,8 +21,8 @@ export interface GridDay {
   inMonth: boolean;
 }
 
-/** Six rows of seven days covering a month. `weekStartsOn`: 0 = Sunday, 1 = Monday. */
-export function monthGrid(year: number, month: number, weekStartsOn: 0 | 1): GridDay[][] {
+/** Six rows of seven days covering a month. `weekStartsOn`: 0 = Sunday, 1 = Monday, 6 = Saturday. */
+export function monthGrid(year: number, month: number, weekStartsOn: 0 | 1 | 6): GridDay[][] {
   const first = Date.UTC(year, month - 1, 1);
   const offset = (new Date(first).getUTCDay() - weekStartsOn + 7) % 7;
   const start = first - offset * DAY_MS;

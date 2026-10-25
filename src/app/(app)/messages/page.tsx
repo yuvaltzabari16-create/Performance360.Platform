@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hour12Option, parsePreferences } from "@/lib/preferences";
 import { Badge, Card, EmptyState, Field, FlashMessage, PageHeader, Select, Textarea, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { requireSection } from "@/lib/auth";
@@ -99,7 +100,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                               <bdi>{f.file_name}</bdi> <span className="num">({formatBytes(f.size_bytes)})</span>
                             </a>
                           ))}
-                          <div className={cx("num mt-1 text-[10px]", mine ? "text-white/70" : "text-muted")}>{new Date(m.created_at).toLocaleString(profile.locale, { dateStyle: "short", timeStyle: "short" })}</div>
+                          <div className={cx("num mt-1 text-[10px]", mine ? "text-white/70" : "text-muted")}>{new Date(m.created_at).toLocaleString(profile.locale, { dateStyle: "short", timeStyle: "short", ...hour12Option(parsePreferences(profile.preferences).time_format) })}</div>
                         </div>
                       </li>
                     );

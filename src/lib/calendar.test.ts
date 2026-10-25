@@ -15,6 +15,9 @@ describe("calendar maths", () => {
     expect(new Date(sun[0][0].iso + "T00:00:00Z").getUTCDay()).toBe(0);
     const mon = monthGrid(2026, 10, 1);
     expect(new Date(mon[0][0].iso + "T00:00:00Z").getUTCDay()).toBe(1);
+    const sat = monthGrid(2026, 10, 6);
+    expect(new Date(sat[0][0].iso + "T00:00:00Z").getUTCDay()).toBe(6);
+    expect(sat.flat().filter((d) => d.inMonth)).toHaveLength(31);
     expect(sun.flat().filter((d) => d.inMonth)).toHaveLength(31);
     expect(sun.flat().find((d) => d.iso === "2026-10-01")?.inMonth).toBe(true);
   });

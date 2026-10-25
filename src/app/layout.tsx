@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCookieLocale } from "@/lib/i18n";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, parseTheme, themeAttr } from "@/lib/theme/theme";
+import { MOTION_COOKIE, TEXT_COOKIE, parseMotion, parseTextSize } from "@/lib/preferences";
 
 export const metadata: Metadata = {
   title: { default: "Performance360", template: "%s · Performance360" },
@@ -21,9 +22,12 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = isSupabaseConfigured ? (await getSession()).locale : await getCookieLocale();
-  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  const jar = await cookies();
+  const theme = parseTheme(jar.get(THEME_COOKIE)?.value);
+  const textSize = parseTextSize(jar.get(TEXT_COOKIE)?.value);
+  const motion = parseMotion(jar.get(MOTION_COOKIE)?.value);
   return (
-    <html lang={locale} dir={dirFor(locale)} data-theme={themeAttr(theme)}>
+    <html lang={locale} dir={dirFor(locale)} data-theme={themeAttr(theme)} data-text={textSize} data-motion={motion}>
       <body className="min-h-dvh">
         {/* Keyboard users can jump past the navigation; visible only while focused. */}
         <a href="#main-content" className="sr-only z-50 rounded-xl bg-surface px-4 py-2 text-sm font-medium text-brand-800 shadow focus:not-sr-only focus:fixed focus:start-3 focus:top-3">

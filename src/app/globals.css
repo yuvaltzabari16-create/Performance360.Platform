@@ -180,3 +180,13 @@ input.ios-switch:checked::after {
 @media print {
   .glass { background: none; backdrop-filter: none; }
 }
+
+/* Display settings from Settings: text size scales everything (the app is built in rem), and "reduce motion" switches animation off. */
+html[data-text="small"] { font-size: 15px; }
+html[data-text="large"] { font-size: 18px; }
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

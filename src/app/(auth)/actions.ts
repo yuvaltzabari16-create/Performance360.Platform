@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 import { fail, safeNext, str } from "@/lib/forms";
 import { TERMS_VERSION } from "@/lib/legal/operator";
+import { parsePreferences, startPath } from "@/lib/preferences";
+import { sectionsFor } from "@/lib/permissions";
 import { isLoginRole, matchesLoginRole } from "@/lib/login-roles";
 import { siteUrl } from "@/lib/site";
 import type { OrgRole, UserRole } from "@/lib/types";
@@ -48,7 +50,21 @@ export async function login(formData: FormData) {
   // Accounts with two-factor authentication must pass the second step before reaching the app.
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(next)}`);
-  redirect(next);
+  redirect(await startPage(supabase, next));
+}
+
+/** After sign-in the default landing page ("/dashboard") becomes the page the person chose in Settings, if their role may open it. */
+async function startPage(supabase: Awaited<ReturnType<typeof createClient>>, next: string): Promise<string> {
+  if (next !== "/dashboard") return next;
+  const { data: userData } = await supabase.auth.getUser();
+  const uid = userData.user?.id;
+  if (!uid) return next;
+  const [{ data: prof }, { data: member }] = await Promise.all([
+    supabase.from("profiles").select("role, preferences").eq("id", uid).maybeSingle(),
+    supabase.from("organization_members").select("org_role").eq("user_id", uid).eq("status", "active").maybeSingle(),
+  ]);
+  if (!prof?.role) return next;
+  return startPath(parsePreferences(prof.preferences).start_page, sectionsFor(prof.role as UserRole, (member?.org_role as OrgRole | null) ?? null));
 }
 
 export async function signup(formData: FormData) {

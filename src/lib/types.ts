@@ -71,6 +71,9 @@ export interface Profile {
   locale: Locale;
   units: Units;
   notification_prefs: { in_app: boolean; email: boolean; muted?: string[] };
+  preferences?: Record<string, unknown> | null;
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
   is_platform_admin: boolean;
   onboarded_at: string | null;
   deactivated_at: string | null;

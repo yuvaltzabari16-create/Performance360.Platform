@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **Settings, expanded**: grouped sections with a jump bar (profile, preferences, appearance, notifications, security, privacy and data, account). New: phone and job title, week start (Monday, Sunday or Saturday), 12 or 24-hour clock, the page to open after sign-in, text size, reduce motion, change email, consent record, wearable-sharing shortcut and a JSON export button next to the CSV downloads.
 - **Professional icons**: text symbols and emoji (stars, arrows, check marks, play signs) are replaced by one set of outline icons in the app.
 - **Quick actions**: a "+" tab in the phone tab bar and a "Quick actions" button in the sidebar open a sheet of one-tap actions for the role (add athlete, record a test, new program, log an injury, message, import GPS, daily check-in, ...). Only actions the login may do appear.
 - **Dark mode and iOS design**: Auto / Light / Dark appearance (Settings, sidebar and sign-in pages; remembered, no flash) with the green kept in both; iOS-style large titles, grouped inset cards, translucent material bars, springy press feedback, switch toggles, tinted buttons and an iOS-style bottom tab bar with a "Menu" sheet on phones.
