@@ -4,7 +4,8 @@ import { ConfirmSubmit, CopyButton, ShareButton, SubmitButton } from "@/componen
 import { isTeamDirector, requireProfile } from "@/lib/auth";
 import { siteUrl } from "@/lib/site";
 import { ORG_ROLES, type OrgRole } from "@/lib/types";
-import { changeMemberRole, createInvite, leaveTeam, regenerateAthleteCode, removeFromRoster, removeMember, revokeCode } from "./actions";
+import { SquadsCard } from "@/components/team/SquadsCard";
+import { changeMemberRole, createInvite, leaveTeam, regenerateAthleteCode, removeFromRoster, removeMember, revokeCode, setAthleteSquad } from "./actions";
 
 export const metadata = { title: "My Team" };
 
@@ -55,6 +56,19 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const athleteCode = (codes ?? []).find((c) => c.kind === "athlete");
   const invites = (codes ?? []).filter((c) => c.kind === "staff" && (!c.expires_at || new Date(c.expires_at) > new Date()));
   const rosterRows = (roster ?? []) as { athlete_id: string; full_name: string; sport: string | null; position: string | null; has_account: boolean; consent_source: string; joined_at: string }[];
+  const canManageSquads = org.org_role === "director" || org.org_role === "head_of_performance";
+  const [{ data: squadRows }, { data: squadCoachRows }, { data: assignRows }, { data: mySquadRows }] = await Promise.all([
+    supabase.from("squads").select("id, name").eq("org_id", org.org_id).eq("status", "active").order("name"),
+    supabase.from("squad_coaches").select("squad_id, user_id").eq("status", "active"),
+    supabase.from("organization_athletes").select("athlete_id, squad_id").eq("org_id", org.org_id).eq("status", "active"),
+    supabase.rpc("my_squads"),
+  ]);
+  const squads = (squadRows ?? []) as { id: string; name: string }[];
+  const squadOf = new Map((assignRows ?? []).map((r) => [r.athlete_id as string, r.squad_id as string | null]));
+  const coachMembers = (members ?? []).filter((m) => m.org_role === "head_coach" || m.org_role === "assistant_coach")
+    .map((m) => ({ id: m.user_id as string, name: nameOf(m.user_id)?.full_name || nameOf(m.user_id)?.email || "—" }));
+  const mySquads = (mySquadRows ?? []) as { id: string; name: string }[];
+  const isSquadCoach = org.org_role === "head_coach" || org.org_role === "assistant_coach";
   const canManageRoster = org.org_role === "head_coach" || org.org_role === "head_of_performance";
 
   return (
@@ -77,6 +91,12 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         <Stat label={tt.readinessToday} value={summary?.readiness_today ?? 0} />
       </div>
       <p className="mt-2 text-xs text-muted">{tt.aggregateNote}</p>
+
+      {isSquadCoach && squads.length > 0 && (
+        <p className="mt-4 rounded-lg border border-line bg-surface px-4 py-3 text-sm" data-testid="my-squads">
+          {mySquads.length ? <><b>{tt.squads.yours}:</b> <bdi>{mySquads.map((q) => q.name).join(", ")}</bdi></> : tt.squads.noneAssigned}
+        </p>
+      )}
 
       <h2 className="mb-3 mt-8 text-sm font-semibold text-ink">{tt.staff}</h2>
       <Table head={[t.common.name, tt.yourRole, tt.memberSince, ""]}>
@@ -121,7 +141,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       {rosterRows.length === 0 ? (
         <EmptyState title={tt.roster} body={tt.rosterEmpty} />
       ) : (
-        <Table head={[t.common.name, t.athletes.sport, t.athletes.position, tt.onRoster, ""]}>
+        <Table head={[t.common.name, t.athletes.sport, t.athletes.position, tt.squads.column, tt.onRoster, ""]}>
           {rosterRows.map((r) => (
             <tr key={r.athlete_id}>
               <Td>
@@ -132,6 +152,18 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               </Td>
               <Td>{r.sport ?? "—"}</Td>
               <Td>{r.position ?? "—"}</Td>
+              <Td>
+                {canManageSquads ? (
+                  <form action={setAthleteSquad} className="flex items-center gap-1">
+                    <input type="hidden" name="athlete_id" value={r.athlete_id} />
+                    <Select name="squad_id" defaultValue={squadOf.get(r.athlete_id) ?? ""} aria-label={`${tt.squads.column}: ${r.full_name}`} className="max-w-36 py-1.5">
+                      <option value="">{tt.squads.unassigned}</option>
+                      {squads.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+                    </Select>
+                    <SubmitButton variant="secondary" className="px-2.5 py-1.5 text-xs">{t.common.save}</SubmitButton>
+                  </form>
+                ) : <bdi>{squads.find((q) => q.id === squadOf.get(r.athlete_id))?.name ?? tt.squads.unassigned}</bdi>}
+              </Td>
               <Td>
                 <span className="text-xs text-ink-soft">{r.consent_source === "athlete" ? tt.consentAthlete : tt.consentStaff}</span>
                 <div className="num text-xs text-muted">{r.joined_at.slice(0, 10)}</div>
@@ -150,6 +182,10 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
         </Table>
       )}
       <p className="mt-2 text-xs text-muted">{tt.rosterNote}</p>
+
+      {(canManageSquads || squads.length > 0) && (
+        <SquadsCard t={t} squads={squads} coaches={coachMembers} assigned={(squadCoachRows ?? []) as { squad_id: string; user_id: string }[]} counts={squads.map((q) => [q.id, [...squadOf.values()].filter((v) => v === q.id).length] as const)} canManage={canManageSquads} />
+      )}
 
       {director && (
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

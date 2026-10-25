@@ -107,3 +107,51 @@ export async function joinTeamExisting(formData: FormData) {
     default: fail(back, t.onboarding.invalidStaffCode);
   }
 }
+
+/** Squads: organised by the director and the head of performance; the database enforces who may. */
+export async function createSquad(formData: FormData) {
+  const { supabase, t } = await requireProfile();
+  const name = str(formData, "name", 60);
+  if (!name) fail("/team", t.common.required);
+  const { error } = await supabase.rpc("create_squad", { p_name: name });
+  if (error) fail("/team", error.message.includes("already exists") ? t.team.squads.duplicate : t.common.notAllowed);
+  revalidatePath("/", "layout");
+  done("/team", t.common.saved);
+}
+
+export async function archiveSquad(formData: FormData) {
+  const { supabase, t } = await requireProfile();
+  const id = uuid(formData, "squad_id");
+  if (!id) fail("/team", t.common.notFound);
+  const { error } = await supabase.rpc("archive_squad", { p_squad: id });
+  if (error) fail("/team", t.common.notAllowed);
+  revalidatePath("/", "layout");
+  done("/team", t.common.saved);
+}
+
+/** The form lists every coach of the team; checked ones are switched on, the rest off. */
+export async function saveSquadCoaches(formData: FormData) {
+  const { supabase, t } = await requireProfile();
+  const id = uuid(formData, "squad_id");
+  if (!id) fail("/team", t.common.notFound);
+  const on = new Set(formData.getAll("on").map(String));
+  for (const raw of formData.getAll("coach")) {
+    const user = String(raw);
+    if (!/^[0-9a-f-]{36}$/i.test(user)) continue;
+    const { error } = await supabase.rpc("set_squad_coach", { p_squad: id, p_user: user, p_on: on.has(user) });
+    if (error) fail("/team", t.common.notAllowed);
+  }
+  revalidatePath("/", "layout");
+  done("/team", t.common.saved);
+}
+
+export async function setAthleteSquad(formData: FormData) {
+  const { supabase, t } = await requireProfile();
+  const athlete = uuid(formData, "athlete_id");
+  if (!athlete) fail("/team", t.common.notFound);
+  const squad = uuid(formData, "squad_id");
+  const { error } = await supabase.rpc("set_athlete_squad", { p_athlete: athlete, p_squad: squad ?? null });
+  if (error) fail("/team", t.common.notAllowed);
+  revalidatePath("/", "layout");
+  done("/team", t.common.saved);
+}
