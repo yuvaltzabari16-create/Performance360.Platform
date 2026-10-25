@@ -6,6 +6,7 @@ The product has not been released publicly yet, so everything is under *Unreleas
 ## Unreleased
 
 ### Added
+- **AI chat assistant**: a floating help panel for every role (director, head coach, head of performance, physiotherapist, team staff, personal trainer, athlete) that explains how to use the app and answers training questions. It sees no player data, never diagnoses or clears anyone, and is rate limited per user (`AI_CHAT_REQUESTS_PER_HOUR`, default 40).
 - **Wearables**: athletes connect WHOOP (OAuth, encrypted tokens, 30-day sync) or import WHOOP / Fitbit export files; recovery, HRV, resting heart rate, sleep and strain with charts; private until the athlete shares with staff and the director; disconnect and erase. Fitbit live link waits for Google Health API access.
 - **Engineering**: CI (lint, types, unit, licenses, build, SQL tests), `npm run verify`, PR template, Dependabot,
   contributing guide, architecture notes, ADRs, generated roles matrix (`docs/ROLES.md`), known-issues register.

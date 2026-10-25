@@ -33,7 +33,7 @@ Nothing here needs code changes.
 | `OPERATOR_NAME`, `OPERATOR_ADDRESS`, `OPERATOR_EMAIL`, `PRIVACY_EMAIL` | before launch | Shown on /privacy and /terms |
 | `LEGAL_REVIEWED` | after legal review | `1` removes the draft notice |
 | `ACCESSIBILITY_COORDINATOR`, `ACCESSIBILITY_EMAIL`, `ACCESSIBILITY_PHONE` | before launch | Israeli accessibility statement contact |
-| `ANTHROPIC_API_KEY` | optional | Switches on the AI workout assistant (`AI_MODEL`, `AI_REQUESTS_PER_HOUR` tune it) |
+| `ANTHROPIC_API_KEY` | optional | Switches on the AI workout assistant and the chat assistant (`AI_MODEL`, `AI_REQUESTS_PER_HOUR`, `AI_CHAT_REQUESTS_PER_HOUR` tune them) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | recommended | Cloudflare Turnstile on public forms |
 | `BOT_GUARD_SECRET` | recommended | Random string; signs the form time-trap token |
 | `PAYMENT_PLANS`, `PAYMENT_ALLOWED_HOSTS` | when selling | Hosted checkout only; see `.env.example` |
