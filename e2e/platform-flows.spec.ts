@@ -117,4 +117,31 @@ test.describe.serial("Platform", () => {
     await page.emulateMedia({ colorScheme: "dark" });
     await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(11, 15, 13)");
   });
+
+  test("quick actions: one tap to the short actions, on desktop and on a phone", async ({ browser }) => {
+    const login = async (width: number, height: number) => {
+      const page = await (await browser.newContext({ viewport: { width, height } })).newPage();
+      await page.goto("/login");
+      await page.getByLabel("Email").fill(trainer.email);
+      await page.getByLabel("Password").fill(password);
+      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.waitForURL(/\/dashboard/);
+      return page;
+    };
+    const desk = await login(1280, 800);
+    await desk.getByRole("button", { name: "Quick actions" }).click();
+    const sheet = desk.getByTestId("quick-sheet");
+    for (const name of ["Add athlete", "Record a test", "New program", "Log an injury", "New message", "Import GPS file", "My personal code"]) {
+      await expect(sheet.getByRole("link", { name })).toBeVisible();
+    }
+    await sheet.getByRole("link", { name: "Add athlete" }).click();
+    await desk.waitForURL(/\/athletes\/new/);
+    await expect(desk.getByTestId("quick-sheet")).toHaveCount(0); // closes after use
+
+    const phone = await login(390, 844);
+    await phone.getByRole("navigation", { name: "Tabs" }).getByRole("button", { name: "Quick actions" }).click();
+    await expect(phone.getByTestId("quick-sheet").getByRole("link", { name: "Record a test" })).toBeVisible();
+    await phone.keyboard.press("Escape");
+    await expect(phone.getByTestId("quick-sheet")).toHaveCount(0);
+  });
 });

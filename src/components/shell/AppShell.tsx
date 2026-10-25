@@ -9,12 +9,15 @@ import type { OrgMembership, Profile, UserRole } from "@/lib/types";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { NavLinks } from "./NavLinks";
 import { TabBar } from "./TabBar";
+import { QuickButton } from "./QuickButton";
 import { ThemeSwitch } from "./ThemeSwitch";
+import { quickActionsFor } from "@/lib/quick-actions";
 import type { Theme } from "@/lib/theme/theme";
 import { navFor } from "./nav";
 
 export function AppShell({ profile, org, t, unread, theme, children }: { profile: Profile & { role: UserRole }; org: OrgMembership | null; t: Dictionary; unread: number; theme: Theme; children: React.ReactNode }) {
   const items = navFor(profile.role, t, org?.org_role ?? null);
+  const quick = quickActionsFor(profile.role, org?.org_role ?? null, t);
   const aRole = assistantRole(profile.role, org?.org_role ?? null);
   const { starters, ...assistantLabels } = t.assistant;
   const themeLabels = { system: t.settings.themeNames.system, light: t.settings.themeNames.light, dark: t.settings.themeNames.dark };
@@ -45,6 +48,7 @@ export function AppShell({ profile, org, t, unread, theme, children }: { profile
       <aside className="no-print sticky top-0 hidden h-dvh w-72 shrink-0 p-4 lg:block">
         <div className="glass flex h-full flex-col rounded-[28px] shadow-[var(--shadow-lift)] ring-1 ring-line/60">
           <Link href="/dashboard" className="px-6 py-6 text-ink"><Logo className="text-base" /></Link>
+          <QuickButton actions={quick} title={t.quick.title} closeLabel={t.quick.close} />
           <nav className="flex-1 overflow-y-auto px-3" aria-label="Main"><NavLinks items={items} unread={unread} /></nav>
           {userBlock}
         </div>
@@ -57,7 +61,7 @@ export function AppShell({ profile, org, t, unread, theme, children }: { profile
           <Avatar name={profile.full_name || profile.email} size="sm" />
         </div>
       </div>
-      <TabBar items={items} unread={unread} moreLabel={t.nav.menu} closeLabel={t.common.close}>{userBlock}</TabBar>
+      <TabBar items={items} unread={unread} moreLabel={t.nav.menu} closeLabel={t.common.close} quick={quick} quickLabel={t.quick.title}>{userBlock}</TabBar>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {profile.deactivated_at && (
