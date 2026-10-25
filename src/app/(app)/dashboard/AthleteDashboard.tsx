@@ -4,6 +4,7 @@ import { ButtonLink, Card, EmptyState, PageHeader } from "@/components/ui";
 import { getMyAthleteId, requireProfile } from "@/lib/auth";
 import type { Dictionary } from "@/lib/i18n";
 import { bestTrial } from "@/lib/metrics";
+import { missingGuardianConsent } from "@/lib/minors";
 import type { TrainingSession } from "@/lib/types";
 import { OpenInjuriesCard, type OpenInjury } from "@/components/injury/OpenInjuriesCard";
 import { isoDaysAgo } from "./dates";
@@ -30,7 +31,7 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
   }
 
   const [{ data: me }, { data: assignments }, { data: todayEntry }, { data: completions }, { data: notes }, { data: tests }, { data: rels }, { data: injuries }] = await Promise.all([
-    supabase.from("athletes").select("short_term_goals, long_term_goals").eq("id", athleteId).single(),
+    supabase.from("athletes").select("short_term_goals, long_term_goals, date_of_birth, guardian_consent_at").eq("id", athleteId).single(),
     supabase.from("program_assignments").select("program_id, start_date, training_programs(title)").eq("athlete_id", athleteId).eq("status", "active"),
     supabase.from("readiness_entries").select("id").eq("athlete_id", athleteId).eq("entry_date", today).maybeSingle(),
     supabase.from("workout_completions").select("session_id, status").eq("athlete_id", athleteId),
@@ -55,6 +56,12 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
   return (
     <>
       <PageHeader title={`${td.greeting}, ${profile.full_name.split(" ")[0] || ""}`} actions={<ButtonLink variant="secondary" href={`/athletes/${athleteId}`}>{t.athletes.myProfile}</ButtonLink>} />
+      {me && missingGuardianConsent(me, today) && (
+        <div role="note" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">
+          <span>{t.minors.selfBanner}</span>
+          <ButtonLink variant="secondary" href={`/athletes/${athleteId}/edit`}>{t.minors.fixLink}</ButtonLink>
+        </div>
+      )}
       <section aria-label={td.todayWorkout} className="mb-6 rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-5">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-brand-700">{td.todayWorkout}</h2>
         {todaySessions.length === 0 ? (

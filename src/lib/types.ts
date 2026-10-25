@@ -105,6 +105,10 @@ export interface Athlete {
   limitations: string | null;
   rehab_status: string | null;
   training_modifications: string | null;
+  guardian_name: string | null;
+  guardian_contact: string | null;
+  guardian_consent_at: string | null;
+  guardian_consent_source: "staff_recorded" | "athlete_declared" | null;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;

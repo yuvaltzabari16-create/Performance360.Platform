@@ -3,6 +3,7 @@ import { Badge, ButtonLink, EmptyState, FlashMessage, Input, PageHeader, Select,
 import { requireSection } from "@/lib/auth";
 import { ageFromDob } from "@/lib/metrics";
 import { containsPattern, sanitizeSearchTerm } from "@/lib/security/query";
+import { missingGuardianConsent } from "@/lib/minors";
 import type { Athlete } from "@/lib/types";
 
 export const metadata = { title: "Athletes" };
@@ -22,7 +23,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
 
   let query = supabase
     .from("athletes")
-    .select("id, full_name, email, sport, team_name, position, date_of_birth, status, user_id, competitive_level, updated_at", { count: "exact" })
+    .select("id, full_name, email, sport, team_name, position, date_of_birth, guardian_consent_at, status, user_id, competitive_level, updated_at", { count: "exact" })
     .eq("status", status);
   if (q) {
     // Only plain text reaches the filter string: PostgREST syntax and LIKE wildcards are stripped/escaped.
@@ -99,6 +100,7 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
               <tr key={a.id} className="hover:bg-canvas/60">
                 <Td>
                   <Link href={`/athletes/${a.id}`} className="font-medium text-ink hover:text-brand-700">{a.full_name}</Link>
+                  {missingGuardianConsent(a as Athlete, new Date().toISOString().slice(0, 10)) && <span className="ms-2 align-middle"><Badge tone="red">{t.minors.missingBadge}</Badge></span>}
                   {a.email && <div className="text-xs text-muted">{a.email}</div>}
                 </Td>
                 <Td>{a.sport ?? "—"}</Td>

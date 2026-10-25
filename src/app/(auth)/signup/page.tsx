@@ -36,6 +36,12 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         <Field label={t.auth.fullName}><Input name="full_name" autoComplete="name" required maxLength={120} /></Field>
         <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
         <Field label={t.auth.password} hint={t.auth.passwordRule}><Input type="password" name="password" autoComplete="new-password" minLength={8} required /></Field>
+        <label className="flex items-start gap-2.5 text-sm text-ink-soft">
+          <input type="checkbox" name="accept_terms" required className="mt-0.5 size-4 shrink-0 rounded border-line accent-brand-600" />
+          <span>
+            {t.auth.acceptPrefix} <Link className="font-medium text-brand-700 underline" href="/terms" target="_blank">{t.auth.acceptTerms}</Link> {t.auth.acceptAnd}<Link className="font-medium text-brand-700 underline" href="/privacy" target="_blank">{t.auth.acceptPrivacy}</Link>
+          </span>
+        </label>
         <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.signup}</SubmitButton>
       </form>
       <p className="mt-6 text-sm text-ink-soft">

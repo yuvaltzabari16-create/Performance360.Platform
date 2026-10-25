@@ -12,6 +12,7 @@ import { isUuid } from "@/lib/forms";
 import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, wellnessIndex } from "@/lib/metrics";
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
+import { missingGuardianConsent } from "@/lib/minors";
 import { InjurySection } from "@/components/injury/InjurySection";
 import { loadInjuries } from "@/lib/injury-data";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
@@ -27,6 +28,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   if (!data) notFound();
   const a = data as Athlete;
   const isSelf = a.user_id === user.id;
+  const minorWithoutConsent = missingGuardianConsent(a, new Date().toISOString().slice(0, 10));
   const ta = t.athletes;
 
   const [rels, assignments, completions, results, readiness, notes, dupes] = await Promise.all([
@@ -123,7 +125,14 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
         {a.status === "archived" && <Badge tone="amber">{t.common.archived}</Badge>}
         {a.user_id ? <Badge tone="green">{ta.linked}</Badge> : <Badge>{ta.notLinked}</Badge>}
         {(dupes.data?.length ?? 0) > 0 && <Badge tone="amber">{ta.possibleDuplicate}</Badge>}
+        {minorWithoutConsent && <Badge tone="red">{t.minors.missingBadge}</Badge>}
       </div>
+      {minorWithoutConsent && (
+        <div role="note" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <span>{isSelf ? t.minors.selfBanner : t.minors.missingBanner}</span>
+          {(isPrimary || isSelf) && <ButtonLink variant="secondary" href={`/athletes/${a.id}/edit`}>{t.minors.fixLink}</ButtonLink>}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth";
 import { fail, safeNext, str } from "@/lib/forms";
+import { TERMS_VERSION } from "@/lib/legal/operator";
 import { isLoginRole, matchesLoginRole } from "@/lib/login-roles";
 import { siteUrl } from "@/lib/site";
 import type { OrgRole, UserRole } from "@/lib/types";
@@ -61,13 +62,14 @@ export async function signup(formData: FormData) {
   const onboard = next.startsWith("/onboarding") ? next : `/onboarding?next=${encodeURIComponent(next)}`;
   await requireHuman(formData, back, t.auth.botBlocked);
   if (!email || !fullName) fail(back, t.common.required);
+  if (formData.get("accept_terms") !== "on") fail(back, t.auth.acceptRequired);
   if (typeof password !== "string" || password.length < 8) fail(back, t.auth.passwordRule);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName, locale },
+      data: { full_name: fullName, locale, terms_version: TERMS_VERSION },
       emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(onboard)}`,
     },
   });

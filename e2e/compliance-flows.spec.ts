@@ -13,6 +13,7 @@ async function registerCoach(page: Page, tag: string) {
   await page.getByLabel("Full name").fill(me.name);
   await page.getByLabel("Email").fill(me.email);
   await page.getByLabel("Password").fill(password);
+  await page.getByLabel(/I agree to the/).check();
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL(/\/onboarding/);
   await page.getByLabel("Your profession").selectOption("sc_coach");
