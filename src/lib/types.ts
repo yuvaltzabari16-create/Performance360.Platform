@@ -234,3 +234,50 @@ export interface ReadinessEntry {
   pain_notes: string | null;
   notes: string | null;
 }
+
+export interface Message {
+  id: string;
+  athlete_id: string;
+  coach_id: string;
+  sender_id: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export type RtpPhaseStatus = "locked" | "in_progress" | "cleared";
+
+export interface RtpPlan {
+  id: string;
+  athlete_id: string;
+  created_by: string;
+  title: string;
+  context: string | null;
+  status: "active" | "completed" | "cancelled";
+  created_at: string;
+}
+
+export interface RtpPhase {
+  id: string;
+  plan_id: string;
+  position: number;
+  title: string;
+  description: string | null;
+  criteria: string[];
+  status: RtpPhaseStatus;
+  started_at: string | null;
+  cleared_by_name: string | null;
+  cleared_by_role: string | null;
+  clearance_note: string | null;
+  cleared_at: string | null;
+}
+
+export interface RtpExercise {
+  id: string;
+  phase_id: string;
+  position: number;
+  name: string;
+  prescription: string | null;
+  last_done_at: string | null;
+  times_done: number;
+}
