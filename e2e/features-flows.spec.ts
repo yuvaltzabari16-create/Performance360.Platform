@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // Competitor-inspired features: AI workout assistant, calendar, athlete "today" view, quick assign.
-// The AI call runs against the mock provider (server started with AI_PROVIDER=mock).
+// The session builder runs entirely inside the app: no outside service or special server settings are needed.
 const run = Date.now().toString(36);
 const password = "correct-horse-42";
 const coach = { name: "Feature Coach", email: `feat.coach.${run}@example.com` };
@@ -33,8 +33,11 @@ async function loginCoach(page: Page) {
   await page.waitForURL(/\/dashboard/);
 }
 
-test.describe.serial("Assistant, calendar and today view", () => {
-  test("the AI assistant previews a library-only workout and adds it", async ({ page }) => {
+let generated: string[] = [];
+let generatedCount = 0;
+
+test.describe.serial("Session builder, calendar and today view", () => {
+  test("the session builder previews a library-only workout, offers another version and adds it", async ({ page }) => {
     await signUpCoach(page);
     await page.goto("/code");
     inviteUrl = (await page.locator(".tracking-\\[0\\.2em\\]").innerText()).trim();
@@ -47,15 +50,21 @@ test.describe.serial("Assistant, calendar and today view", () => {
     await page.getByRole("button", { name: "Add session" }).click();
     await expect(page.getByRole("heading", { name: /AI day/ })).toBeVisible();
 
-    await page.getByRole("button", { name: /Build with AI/ }).click();
+    await page.getByRole("button", { name: /Auto-build session/ }).click();
     await page.getByLabel("Describe the session").fill("Lower body power, 60 minutes");
     await page.getByRole("button", { name: "Generate workout" }).click();
-    await expect(page.getByText(/Matched 5 of 6 exercises/)).toBeVisible();   // the invented exercise is dropped
-    await expect(page.getByText("An Invented Exercise")).toHaveCount(0);
+    const preview = page.getByRole("region", { name: "Generated workout preview" });
+    await expect(preview.getByText(/exercises from your library/)).toBeVisible();
+    await expect(preview.getByText("Power session lower body · 60 min")).toBeVisible();
+    const first = await preview.innerText();
+    await page.getByRole("button", { name: "Another version" }).click();
+    await expect.poll(async () => (await preview.innerText().catch(() => first)) !== first).toBe(true);   // a different pick from the same library
     await page.getByRole("button", { name: "Add to this session" }).click();
-    await expect(page.getByRole("link", { name: "Barbell Front Squat" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Box Jumps" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Reps\s*3x4/ }).first()).toBeVisible();
+    const added = page.locator('a[href^="/exercises/"]');
+    await expect(added.nth(1)).toBeVisible();
+    generated = [(await added.nth(0).innerText()).trim(), (await added.nth(1).innerText()).trim()];
+    generatedCount = await added.count();
+    await expect(page.getByRole("button", { name: /Reps\s*\d+x\d+/ }).first()).toBeVisible();
   });
 
   test("the athlete joins, the coach assigns the program from the builder", async ({ browser, page }) => {
@@ -103,10 +112,10 @@ test.describe.serial("Assistant, calendar and today view", () => {
     await athletePage.waitForURL(/\/dashboard/);
     await expect(athletePage.getByText("Today's workout")).toBeVisible();
     await athletePage.getByRole("link", { name: "Start workout" }).click();
-    await expect(athletePage.getByText("0 of 5 exercises done")).toBeVisible();
-    await athletePage.getByRole("checkbox", { name: /Barbell Front Squat/ }).check();
-    await athletePage.getByRole("checkbox", { name: /Box Jumps/ }).check();
-    await expect(athletePage.getByText("2 of 5 exercises done")).toBeVisible();
+    await expect(athletePage.getByText(`0 of ${generatedCount} exercises done`)).toBeVisible();
+    await athletePage.getByRole("checkbox", { name: generated[0] }).check();
+    await athletePage.getByRole("checkbox", { name: generated[1] }).check();
+    await expect(athletePage.getByText(`2 of ${generatedCount} exercises done`)).toBeVisible();
     await athletePage.getByRole("button", { name: "Save" }).click();
     await expect(athletePage.getByText("Saved")).toBeVisible();
 

@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
-// The chat assistant is available to every role and speaks to each role's own scope (AI_PROVIDER=mock echoes the role).
+// The built-in assistant is available to every role and answers from that role's own topics.
 const run = Date.now().toString(36);
 const password = "correct-horse-42";
 const people = {
@@ -32,15 +32,15 @@ async function login(browser: Browser, who: { email: string }) {
   return page;
 }
 
-/** Opens the assistant, asks a question and checks the reply names the expected role. */
-async function ask(page: Page, role: string, question: string) {
+/** Opens the assistant, asks a question and checks the answer is the expected topic for that role. */
+async function ask(page: Page, role: string, question: string, topic: string) {
   const box = page.getByTestId("assistant");
   await expect(box).toHaveAttribute("data-role", role);
   await box.getByRole("button", { name: "Open the assistant" }).click();
   await expect(page.getByRole("dialog", { name: "Professional consultant" })).toBeVisible();
   await page.getByLabel("Type your question").fill(question);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await expect(page.getByTestId("assistant-log").getByText(`[mock assistant · ${role}] ${question}`)).toBeVisible();
+  await expect(page.getByTestId("assistant-log").getByText(topic).first()).toBeVisible();
   if (process.env.E2E_SCREENSHOTS) await page.screenshot({ path: `${process.env.E2E_SCREENSHOTS}/assistant-${role}.png` });
 }
 
@@ -84,18 +84,18 @@ test.describe.serial("Assistant for every role", () => {
   });
 
   test("each role gets the assistant, in its own scope", async ({ browser }) => {
-    await ask(await login(browser, people.director), "director", "What can I see?");
-    await ask(await login(browser, people.hop), "head_of_performance", "How do I plan a block?");
-    await ask(await login(browser, people.physio), "physiotherapist", "Stages of return to play?");
-    await ask(await login(browser, people.athlete), "athlete", "How do I connect my WHOOP?");
-    await ask(await login(browser, people.trainer), "personal_trainer", "How do athletes connect to me?");
+    await ask(await login(browser, people.director), "director", "How do I invite a new coach?", "Inviting staff");
+    await ask(await login(browser, people.hop), "head_of_performance", "How would you plan a four-week block with a taper?", "A training block with a taper");
+    await ask(await login(browser, people.physio), "physiotherapist", "Stages of return to play?", "Return-to-play decisions and criteria");
+    await ask(await login(browser, people.athlete), "athlete", "How do I connect my WHOOP?", "Connecting a wearable");
+    await ask(await login(browser, people.trainer), "personal_trainer", "When should I refer a client to a physiotherapist or doctor?", "When to refer to a physiotherapist or doctor");
   });
 
   test("starter questions, clearing and closing work; there is no assistant on public pages", async ({ browser, page }) => {
     const ath = await login(browser, people.athlete);
     await ath.getByTestId("assistant").getByRole("button", { name: "Open the assistant" }).click();
     await ath.getByRole("button", { name: "What do my recovery and sleep numbers really tell me?" }).click();
-    await expect(ath.getByTestId("assistant-log").getByText(/\[mock assistant · athlete\] What do my recovery and sleep numbers really tell me\?/)).toBeVisible();
+    await expect(ath.getByTestId("assistant-log").getByText("What recovery and sleep numbers mean")).toBeVisible();
     await ath.getByRole("button", { name: "Clear" }).click();
     await expect(ath.getByRole("button", { name: "How can I recover better between a match and the next training?" })).toBeVisible();
     await ath.keyboard.press("Escape");

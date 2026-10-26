@@ -1,6 +1,6 @@
 {
   "byLicense": {
-    "MIT": 59,
+    "MIT": 58,
     "Apache-2.0": 18,
     "LGPL-3.0-or-later": 10,
     "Apache-2.0 AND LGPL-3.0-or-later AND MIT": 1,
@@ -461,11 +461,6 @@
       "name": "playwright-core",
       "version": "1.56.1",
       "license": "Apache-2.0"
-    },
-    {
-      "name": "postcss",
-      "version": "8.4.31",
-      "license": "MIT"
     },
     {
       "name": "react",

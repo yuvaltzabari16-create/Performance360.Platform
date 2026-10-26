@@ -55,7 +55,7 @@ const privacyEn: PolicyDoc = {
     },
     {
       title: "Service providers and transfers abroad",
-      body: ["We use providers to host and run the service: database and authentication hosting, application hosting, and email delivery. If the AI workout builder or the chat assistant is switched on, the text you type into it is sent to the AI provider to generate a reply; the assistant does not receive your athletes' or your own records, and you should not enter personal or health details there. Providers may process data outside Israel. We choose providers that commit to appropriate security and data-protection terms."],
+      body: ["We use providers to host and run the service: database and authentication hosting, application hosting, and email delivery. The workout builder and the chat assistant run inside the service itself and do not send what you type to any outside provider. Providers may process data outside Israel. We choose providers that commit to appropriate security and data-protection terms."],
     },
     {
       title: "How long we keep data and how to delete it",
@@ -91,7 +91,7 @@ const termsEn: PolicyDoc = {
     { title: "Your content and responsibilities", body: ["You are responsible for the information you enter and for having the right to enter it. Coaches and clubs who add athletes must have the athlete's consent and, for minors, the consent of a parent or guardian. Do not upload unlawful, harmful or infringing content."] },
     { title: "Files and imports", body: ["You may attach documents and images of the allowed types, up to 5 MB each, and import wearable export files. Files are made available only to the people allowed to see the record they belong to. We may remove files that break these terms."] },
     { title: "Acceptable use", body: ["Do not disrupt or overload the service, probe or bypass its security, scrape data, send spam through it, or use it to harass others. We may limit or suspend accounts that do."] },
-    { title: "AI assistant", body: ["When enabled, the AI workout builder drafts workouts from your instructions and the chat assistant answers questions about the app and training. Drafts and answers can be wrong; a qualified person must review them before use, and the assistant does not diagnose or clear anyone. Do not enter personal or health details into the assistant."] },
+    { title: "Session builder and assistant", body: ["The automatic session builder drafts workouts from your instructions using your own exercise library and fixed rules, and the chat assistant answers questions about the app and training from a written knowledge base. Both run inside the service. Drafts and answers can be wrong or incomplete; a qualified person must review them before use, and the assistant does not diagnose or clear anyone."] },
     { title: "Payments and third-party links", body: ["Payments, if any, are handled by an external payment provider; Performance360 does not collect card details. Some links to products or services may be affiliate links, as stated on the disclosures page."] },
     { title: "Availability", body: ["We work to keep the service available but do not promise it will always be uninterrupted or error-free. Keep your own copies of information you cannot afford to lose."] },
     { title: "Liability", body: ["To the extent the law allows, the operator is not liable for indirect or consequential loss, or for decisions taken on the basis of information in the app. Nothing here limits liability that cannot be limited by law."] },
@@ -138,7 +138,7 @@ const privacyHe: PolicyDoc = {
     },
     {
       title: "ספקי שירות והעברה לחו\"ל",
-      body: ["אנחנו משתמשים בספקים לאחסון והפעלת השירות: אחסון מסד נתונים והזדהות, אחסון האפליקציה ושליחת מיילים. אם בונה האימונים עם AI או עוזר הצ'אט מופעלים, הטקסט שאתה מקליד בהם נשלח לספק ה-AI לצורך יצירת תשובה; העוזר אינו מקבל את הרשומות של הספורטאים או שלך, ואין להזין בו פרטים אישיים או בריאותיים. ספקים עשויים לעבד מידע מחוץ לישראל. אנחנו בוחרים ספקים שמתחייבים לאבטחה ולתנאי הגנת מידע הולמים."],
+      body: ["אנחנו משתמשים בספקים לאחסון והפעלת השירות: אחסון מסד נתונים והזדהות, אחסון האפליקציה ושליחת מיילים. בונה האימונים ועוזר הצ'אט פועלים בתוך השירות עצמו ואינם שולחים את מה שאתה מקליד לאף ספק חיצוני. ספקים עשויים לעבד מידע מחוץ לישראל. אנחנו בוחרים ספקים שמתחייבים לאבטחה ולתנאי הגנת מידע הולמים."],
     },
     {
       title: "כמה זמן שומרים ואיך מוחקים",
@@ -174,7 +174,7 @@ const termsHe: PolicyDoc = {
     { title: "התוכן שלכם ואחריותכם", body: ["אתם אחראים למידע שאתם מזינים ולכך שיש לכם זכות להזין אותו. מאמנים ומועדונים שמוסיפים ספורטאים חייבים לקבל את הסכמתם, ובקטינים את הסכמת הורה או אפוטרופוס. אסור להעלות תוכן בלתי חוקי, מזיק או מפר זכויות."] },
     { title: "קבצים וייבוא", body: ["אפשר לצרף מסמכים ותמונות מהסוגים המותרים, עד 5 מ״ב כל אחד, ולייבא קובצי חיישנים. קבצים זמינים רק למי שמורשה לראות את הרשומה שאליה הם שייכים. אנחנו רשאים להסיר קבצים שמפרים את התנאים."] },
     { title: "שימוש מותר", body: ["אסור להפריע לשירות או להעמיס עליו, לבדוק או לעקוף את האבטחה שלו, לגרד ממנו מידע, לשלוח דרכו ספאם או להשתמש בו להטרדה. אנחנו רשאים להגביל או להשעות חשבונות שעושים זאת."] },
-    { title: "עוזר ה-AI", body: ["כשהם מופעלים, בונה האימונים עם AI כותב טיוטות אימון לפי ההוראות שלכם ועוזר הצ'אט עונה על שאלות על האפליקציה ועל אימון. טיוטות ותשובות עלולות להיות שגויות; איש מקצוע מוסמך חייב לעבור עליהן לפני שימוש, והעוזר אינו מאבחן או מאשר חזרה לפעילות. אל תזינו בעוזר פרטים אישיים או בריאותיים."] },
+    { title: "בונה האימונים והעוזר", body: ["בונה האימונים האוטומטי כותב טיוטות אימון לפי ההוראות שלכם, מתוך ספריית התרגילים שלכם ולפי כללים קבועים, ועוזר הצ'אט עונה על שאלות על האפליקציה ועל אימון מתוך מאגר ידע כתוב. שניהם פועלים בתוך השירות. טיוטות ותשובות עלולות להיות שגויות או חלקיות; איש מקצוע מוסמך חייב לעבור עליהן לפני שימוש, והעוזר אינו מאבחן או מאשר חזרה לפעילות."] },
     { title: "תשלומים וקישורים חיצוניים", body: ["תשלומים, אם יהיו, מטופלים על ידי ספק סליקה חיצוני; Performance360 אינה אוספת פרטי כרטיס. חלק מהקישורים למוצרים או שירותים עשויים להיות קישורי שותפים, כמפורט בעמוד הגילויים."] },
     { title: "זמינות", body: ["אנחנו פועלים לשמור על זמינות השירות אך אין הבטחה שיפעל ברציפות וללא תקלות. שמרו עותקים של מידע שאי אפשר לוותר עליו."] },
     { title: "אחריות", body: ["במידה שהדין מתיר, המפעיל אינו אחראי לנזק עקיף או תוצאתי, או להחלטות שהתקבלו על סמך מידע באפליקציה. אין בכך הגבלה של אחריות שאי אפשר להגביל על פי דין."] },

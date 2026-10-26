@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { libraryOutline } from "./prompt";
-import { buildPreview, exerciseKey } from "./workout";
+import { buildPreview, exerciseKey } from "./preview";
 
 const library = [
   { id: "11111111-1111-4111-8111-111111111111", name: "Barbell Front Squat" },
@@ -8,7 +7,7 @@ const library = [
   { id: "33333333-3333-4333-8333-333333333333", name: "Cat / Cow" },
 ];
 
-describe("AI workout validation", () => {
+describe("workout preview validation", () => {
   const raw = {
     title: "  Power day ",
     blocks: [
@@ -38,8 +37,5 @@ describe("AI workout validation", () => {
     expect(buildPreview(null, library)).toBeNull();
     expect(buildPreview({ blocks: "x" }, library)).toBeNull();
     expect(buildPreview({ title: "t", blocks: [{ section: "strength", exercises: [{ name: "Nope" }] }] }, library)).toBeNull();
-  });
-  it("lists the library compactly for the prompt", () => {
-    expect(libraryOutline([{ name: "A", category: "strength" }, { name: "B", category: "strength" }, { name: "C", category: "core" }])).toBe("strength: A; B\ncore: C");
   });
 });

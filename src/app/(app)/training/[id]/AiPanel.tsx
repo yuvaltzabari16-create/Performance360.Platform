@@ -3,13 +3,13 @@
 import { Icon } from "@/components/ui/Icon";
 import { useEffect, useState, useTransition } from "react";
 import { FIELD_KEYS, FIELD_TONES } from "@/lib/builder-fields";
-import type { WorkoutPreview } from "@/lib/ai/workout";
+import type { WorkoutPreview } from "@/lib/generator/preview";
 import type { Dictionary } from "@/lib/i18n";
 import { cx } from "@/components/ui";
 import { applyWorkoutPreview, generateWorkoutPreview } from "../ai-actions";
 
 /**
- * "Build with AI" drawer: describe a session, review the generated preview (only exercises from
+ * Session builder drawer: describe a session, review the generated preview (only exercises from
  * the coach's library), then add it to the current session. Nothing is saved until "Add".
  */
 interface Props {
@@ -24,6 +24,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
   const ai = tt.builder.ai;
   const [pending, startTransition] = useTransition();
   const [prompt, setPrompt] = useState("");
+  const [seed, setSeed] = useState(0);
   const [preview, setPreview] = useState<WorkoutPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,9 +36,11 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
 
   const generate = () =>
     startTransition(async () => {
+      const next = preview ? seed + 1 : 0;
+      setSeed(next);
       setError(null);
       setPreview(null);
-      const r = await generateWorkoutPreview({ prompt });
+      const r = await generateWorkoutPreview({ prompt, seed: next });
       if (r.ok) setPreview(r.preview);
       else setError(r.error);
     });
@@ -62,7 +65,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
           <span className="mb-1.5 block">{ai.describe}</span>
           <textarea
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e) => { setPrompt(e.target.value); setSeed(0); }}
             rows={5}
             maxLength={800}
             placeholder={ai.placeholder}
@@ -83,7 +86,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
           <section aria-label={ai.previewTitle} className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">{ai.previewTitle}</h3>
             {preview.title && <p className="text-sm font-semibold text-ink"><bdi>{preview.title}</bdi></p>}
-            <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900">{ai.matched.replace("{m}", String(preview.matched)).replace("{t}", String(preview.suggested))}</p>
+            <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900">{ai.matched.replace("{t}", String(preview.matched))}</p>
             {preview.blocks.map((b, i) => (
               <div key={`${b.section}-${i}`} className="rounded-xl border border-line">
                 <div className="border-b border-line px-3 py-2 text-sm font-medium text-ink">{i + 1}. {tt.sections[b.section]}</div>
@@ -110,7 +113,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
 
       <div className="flex gap-2 border-t border-line p-3">
         <button type="button" onClick={generate} disabled={pending || prompt.trim().length < 3} className="flex-1 rounded-lg border border-brand-600 bg-surface px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
-          {pending && !preview ? ai.generating : ai.generate}
+          {pending && !preview ? ai.generating : preview ? ai.another : ai.generate}
         </button>
         {preview && (
           <button type="button" onClick={apply} disabled={pending} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">{ai.apply}</button>

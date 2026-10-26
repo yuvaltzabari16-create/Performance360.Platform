@@ -19,7 +19,7 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
 | Team accounts (director, staff roles, invitations, consented roster; live on the Supabase project since 2026-10-22), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
-| Workout builder with AI assistant, training calendar, athlete "Today's workout" | Working (AI needs `ANTHROPIC_API_KEY`) |
+| Workout builder with automatic session builder, training calendar, athlete "Today's workout" | Working (rule-based, runs inside the app, no outside service) |
 | Return to play: injury timeline, staff injury board, clearance by qualified roles | Working |
 | GPS and wearables: CSV import (StatSports, Catapult, Polar, generic), distance, speed zones, sprints, heat maps | Working (live vendor sync needs vendor API access) |
 | Role logins: director (read-only club view), head coach, head of performance, physiotherapist, athlete, personal trainer | Working |

@@ -5,6 +5,9 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Changed
+- **No outside AI service.** The workout generator and the chat assistant now run entirely inside the app. "Auto-build session" picks exercises from your own library by focus, region, level, equipment and injury area (English and Hebrew requests, "Another version" for variety) and prescribes sets, reps, rest and RPE from fixed templates. The assistant answers from a hand-written, role-specific knowledge base in English and Hebrew, declines to diagnose or clear anyone, and says plainly when it has no answer. `ANTHROPIC_API_KEY`, `AI_*` settings and the mock provider are gone; nothing you type leaves the app.
+
 ### Added
 - **Settings, expanded**: grouped sections with a jump bar (profile, preferences, appearance, notifications, security, privacy and data, account). New: phone and job title, week start (Monday, Sunday or Saturday), 12 or 24-hour clock, the page to open after sign-in, text size, reduce motion, change email, consent record, wearable-sharing shortcut and a JSON export button next to the CSV downloads.
 - **Professional icons**: text symbols and emoji (stars, arrows, check marks, play signs) are replaced by one set of outline icons in the app.
