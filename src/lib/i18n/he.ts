@@ -1152,7 +1152,7 @@ const he: Dictionary = {
     disconnected: "נותק.",
     lastSync: "סנכרון אחרון",
     never: "אף פעם",
-    notConfigured: "WHOOP עדיין לא מופעל בשרת הזה. המפעיל צריך להוסיף פרטי אפליקציית WHOOP (ראו מדריך הפריסה). אפשר בינתיים לייבא קובץ ייצוא מ-WHOOP.",
+    notConfigured: "חיבור ישיר ל-WHOOP יגיע בקרוב. בינתיים אפשר לייבא למטה את קובץ הייצוא של WHOOP, וההתאוששות, ה-HRV והשינה יופיעו באותו אופן.",
     fitbitNote: "ה-API הנוכחי של Fitbit נסגר ב-30 באוקטובר 2026, והמחליף שלו, Google Health API, דורש אישור מגוגל. חיבור חי ל-Fitbit יתווסף כשתינתן גישה. עד אז, ייבאו את קובצי הייצוא של Fitbit.",
     import: "ייבוא קובצי ייצוא",
     importHelp: "WHOOP: physiological_cycles.csv. ‏Fitbit: ‏sleep-*.json, ‏resting_heart_rate-*.json וקובץ ה-CSV של סיכום HRV יומי. או CSV עם עמודת date ועמודות כמו recovery_score, ‏hrv_ms, ‏resting_hr, ‏sleep_hours.",

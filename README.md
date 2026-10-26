@@ -24,7 +24,7 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | GPS and wearables: CSV import (StatSports, Catapult, Polar, generic), distance, speed zones, sprints, heat maps | Working (live vendor sync needs vendor API access) |
 | Role logins: director (read-only club view), head coach, head of performance, physiotherapist, athlete, personal trainer | Working |
 | Messages and file attachments in every category | Working |
-| Wearables: WHOOP connection and Fitbit / WHOOP file import, shared with staff only by the athlete's choice | Working (live WHOOP needs developer credentials; Fitbit live waits for Google approval) |
+| Wearables: WHOOP connection and Fitbit / WHOOP file import, shared with staff only by the athlete's choice | Working (live WHOOP is switched off until WHOOP approves the app, then `WHOOP_LIVE=1`; Fitbit live waits for Google approval) |
 | Security and compliance: CSP, https, rate limits, bot guard, two-factor, idle sign-out, account deletion, privacy policy, terms, parental consent for minors | Working (legal texts are a draft until reviewed) |
 | Reports/PDF, Google Calendar, payments, nutrition and custom forms, video feed, research library, subscriptions | **Not built yet** |
 

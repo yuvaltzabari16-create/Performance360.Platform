@@ -1150,7 +1150,7 @@ const en = {
     disconnected: "Disconnected.",
     lastSync: "Last sync",
     never: "never",
-    notConfigured: "WHOOP is not switched on for this server yet. The operator needs to add WHOOP app credentials (see the deployment guide). You can still import your WHOOP export file.",
+    notConfigured: "Connecting WHOOP directly is coming soon. Until then, import your WHOOP export file below and your recovery, HRV and sleep show up the same way.",
     fitbitNote: "Fitbit's current web API closes on 30 October 2026 and its replacement, the Google Health API, needs approval from Google. A live Fitbit connection will be added when access is granted. Until then, import your Fitbit export files.",
     import: "Import export files",
     importHelp: "WHOOP: physiological_cycles.csv. Fitbit: sleep-*.json, resting_heart_rate-*.json and the daily HRV summary CSV. Or a CSV with a date column and columns such as recovery_score, hrv_ms, resting_hr, sleep_hours.",
