@@ -35,15 +35,14 @@ Nothing here needs code changes.
 | `ACCESSIBILITY_COORDINATOR`, `ACCESSIBILITY_EMAIL`, `ACCESSIBILITY_PHONE` | before launch | Israeli accessibility statement contact |
 | `CRON_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | optional | Switch on the scheduled WHOOP sync (`vercel.json` runs it daily; Vercel's free plan allows one run a day). Without them the route answers 404 and athletes use "Sync now" |
 | `RESEND_API_KEY` + `MAIL_FROM` | optional | Daily email copies of notifications for people who turned them on (also needs `CRON_SECRET` and the service-role key) |
-| `ANTHROPIC_API_KEY` | optional | Switches on the AI workout assistant and the chat assistant (`AI_MODEL`, `AI_REQUESTS_PER_HOUR`, `AI_CHAT_REQUESTS_PER_HOUR` tune them) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | recommended | Cloudflare Turnstile on public forms |
 | `BOT_GUARD_SECRET` | recommended | Random string; signs the form time-trap token |
 | `PAYMENT_PLANS`, `PAYMENT_ALLOWED_HOSTS` | when selling | Hosted checkout only; see `.env.example` |
 | `WEARABLE_TOKEN_KEY` | for wearables | 32 random bytes in base64 (`openssl rand -base64 32`); encrypts stored device tokens. Do not rotate without asking athletes to reconnect |
-| `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET` | for live WHOOP | From the WHOOP developer dashboard; redirect URI `<site>/api/wearables/whoop/callback`; scopes `offline read:recovery read:sleep read:cycles` |
+| `WHOOP_LIVE`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET` | for live WHOOP, after WHOOP approves the app | Leave unset until then: athletes see "coming soon" and can still import a WHOOP export file, and the scheduled sync does nothing. Set `WHOOP_LIVE=1` once approved. Keys from the WHOOP developer dashboard; redirect URI `<site>/api/wearables/whoop/callback`; scopes `offline read:recovery read:sleep read:cycles` |
 | `RATE_LIMIT_*` | optional | Defaults are sensible |
 
-   Never set `WEARABLES_MOCK`, `RATE_LIMIT_DISABLED`, `BOT_GUARD_MIN_MS` or `AI_PROVIDER=mock` in production (tests only).
+   Never set `WEARABLES_MOCK`, `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
 4. Domain: add the domain in *Settings → Domains*; HTTPS is automatic and the app redirects http to https
    and sends HSTS.
 5. Note: the rate limiter keeps counters in memory per server instance. For several instances or heavy

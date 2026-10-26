@@ -2,31 +2,30 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfessional } from "@/lib/auth";
-import { requestWorkout } from "@/lib/ai/provider";
-import { buildPreview, type WorkoutPreview } from "@/lib/ai/workout";
+import { generateWorkout, type LibraryExercise } from "@/lib/generator/generate";
+import { buildPreview, type WorkoutPreview } from "@/lib/generator/preview";
 import { FIELD_KEYS, parseField, type ExercisePatch, type FieldKey } from "@/lib/builder-fields";
 import { SESSION_SECTIONS } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
 import type { BuilderResult } from "./builder-actions";
 
-// Server actions behind "Build with AI": generate a preview, then apply what the coach accepts.
+// Server actions behind the workout generator: generate a preview, then apply what the coach accepts.
 
 export type PreviewResult = { ok: true; preview: WorkoutPreview } | { ok: false; error: string };
 
-/** Asks the model for a session and returns a library-validated preview (nothing is saved yet). */
-export async function generateWorkoutPreview(input: { prompt: string }): Promise<PreviewResult> {
-  const { supabase, user, t } = await requireProfessional();
+/** Builds a session from the request using the coach's library and returns a validated preview (nothing is saved yet). `seed` asks for another version. */
+export async function generateWorkoutPreview(input: { prompt: string; seed?: number }): Promise<PreviewResult> {
+  const { supabase, t } = await requireProfessional();
   const errors = t.training.builder.ai.errors;
   const prompt = String(input?.prompt ?? "").trim();
   if (prompt.length < 3) return { ok: false, error: errors.tooShort };
 
-  const { data } = await supabase.from("exercises").select("id, name, category").eq("archived", false).order("name").limit(1000);
-  const library = (data ?? []) as { id: string; name: string; category: string }[];
+  const { data } = await supabase.from("exercises").select("id, name, category, movement_pattern, primary_muscles, equipment, difficulty").eq("archived", false).order("name").limit(1000);
+  const library = (data ?? []) as LibraryExercise[];
   if (library.length === 0) return { ok: false, error: errors.empty };
 
-  const result = await requestWorkout(prompt, library, user.id);
-  if (!result.ok) return { ok: false, error: errors[result.error] };
-  const preview = buildPreview(result.raw, library);
+  const seed = Number.isInteger(input?.seed) ? Math.abs(Number(input.seed)) % 1000 : 0;
+  const preview = buildPreview(generateWorkout(prompt, library, seed), library);
   return preview ? { ok: true, preview } : { ok: false, error: errors.empty };
 }
 

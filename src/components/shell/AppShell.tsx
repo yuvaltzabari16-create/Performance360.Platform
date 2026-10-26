@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import { Avatar, Logo } from "@/components/ui";
 import { AssistantWidget } from "@/components/assistant/AssistantWidget";
-import { assistantRole } from "@/lib/ai/assistant-roles";
+import { assistantRole } from "@/lib/assistant/roles";
 import { LegalFooter } from "@/components/legal/LegalFooter";
 import type { Dictionary } from "@/lib/i18n";
 import type { OrgMembership, Profile, UserRole } from "@/lib/types";

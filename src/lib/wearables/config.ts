@@ -19,7 +19,11 @@ export interface WhoopConfig {
   redirectUri: string;
 }
 
-/** Null when WHOOP credentials or the token key are missing (the connect button is then disabled). */
+/**
+ * Null when live WHOOP is switched off, or its credentials or the token key are missing (the connect button is then
+ * disabled and the sync jobs do nothing). Live WHOOP stays off until the operator sets WHOOP_LIVE=1, which is done only
+ * after WHOOP has approved the developer app; importing a WHOOP export file works regardless.
+ */
 export function whoopConfig(): WhoopConfig | null {
   if (!tokenKey()) return null;
   if (MOCK) {
@@ -31,7 +35,7 @@ export function whoopConfig(): WhoopConfig | null {
   }
   const clientId = process.env.WHOOP_CLIENT_ID?.trim();
   const clientSecret = process.env.WHOOP_CLIENT_SECRET?.trim();
-  if (!clientId || !clientSecret) return null;
+  if (process.env.WHOOP_LIVE !== "1" || !clientId || !clientSecret) return null;
   return {
     clientId, clientSecret,
     authUrl: "https://api.prod.whoop.com/oauth/oauth2/auth", tokenUrl: "https://api.prod.whoop.com/oauth/oauth2/token",

@@ -115,7 +115,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
       <div className="mb-4 flex flex-wrap gap-2">
         <Badge tone={program.status === "active" ? "green" : program.status === "archived" ? "gray" : "amber"}>{tt.statuses[program.status]}</Badge>
         {program.is_template && <Badge tone="blue">{tt.templates}</Badge>}
-        {program.ai_generated && <Badge tone="amber">AI draft</Badge>}
+        {program.ai_generated && <Badge tone="amber">{tt.builder.ai.draft}</Badge>}
         <Badge>v{program.version}</Badge>
       </div>
       {isOwner && (assignments ?? []).length > 0 && (

@@ -33,7 +33,7 @@ Rules of thumb
 | Area | Pages / actions | Logic (`src/lib`) | Components |
 | --- | --- | --- | --- |
 | Roles and menus | `(app)/layout.tsx`, `login` | `permissions.ts`, `permissions-matrix.ts`, `login-roles.ts` | `shell/` |
-| Training planner and builder | `(app)/training` | `builder-fields.ts`, `catalog.ts`, `ai/` | `training/` |
+| Training planner and builder | `(app)/training` | `builder-fields.ts`, `catalog.ts`, `generator/` | `training/` |
 | Calendar and today view | `(app)/calendar`, `dashboard` | `calendar.ts` | `calendar/` |
 | Testing and readiness | `(app)/testing`, `readiness` | `metrics.ts` | `charts/` |
 | Injuries and return to play | `(app)/injuries`, athlete page | `injury.ts`, `injury-data.ts` | `injury/` |

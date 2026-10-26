@@ -2,16 +2,16 @@ import { FIELD_KEYS, fieldEditValue, parseField, type ExercisePatch, type FieldK
 import { SESSION_SECTIONS, type SessionSection } from "@/lib/catalog";
 
 /**
- * Turns a model's workout suggestion into something safe to save.
+ * Turns a generated workout into something safe to save.
  *
- * The model is only trusted for ideas: every exercise must exist in the coach's library
- * (anything else is dropped), sections must be known, and every prescription value goes through
- * the same parser the builder uses. Pure functions, so the rules are easy to test.
+ * Every exercise must exist in the coach's library (anything else is dropped), sections must be
+ * known, and every prescription value goes through the same parser the builder uses.
+ * Pure functions, so the rules are easy to test.
  */
 
 export interface LibraryRef { id: string; name: string }
 
-/** One exercise as returned by the model (loosely typed on purpose: it is untrusted input). */
+/** One exercise as produced by the generator (loosely typed on purpose: it is validated again here). */
 export interface RawExercise {
   name?: unknown; sets?: unknown; reps?: unknown; restSeconds?: unknown; rpe?: unknown; loadKg?: unknown;
   percent1rm?: unknown; durationSeconds?: unknown; distanceMeters?: unknown; tempo?: unknown;
@@ -31,52 +31,6 @@ export interface WorkoutPreview {
   matched: number;
   suggested: number;
 }
-
-/** JSON schema the model must follow (used as the forced tool input). */
-export const WORKOUT_TOOL = {
-  name: "build_workout",
-  description: "Return the planned training session as sections with exercises taken only from the provided library.",
-  input_schema: {
-    type: "object",
-    properties: {
-      title: { type: "string", description: "Short session title" },
-      blocks: {
-        type: "array",
-        minItems: 1,
-        maxItems: 8,
-        items: {
-          type: "object",
-          properties: {
-            section: { type: "string", enum: [...SESSION_SECTIONS] },
-            exercises: {
-              type: "array",
-              minItems: 1,
-              maxItems: 8,
-              items: {
-                type: "object",
-                properties: {
-                  name: { type: "string", description: "Exact exercise name from the library list" },
-                  sets: { type: "integer", minimum: 1, maximum: 10 },
-                  reps: { type: "string", description: "e.g. 8, 8-10, 30s each side" },
-                  restSeconds: { type: "integer", minimum: 0, maximum: 600 },
-                  rpe: { type: "number", minimum: 0, maximum: 10 },
-                  loadKg: { type: "number", minimum: 0 },
-                  percent1rm: { type: "number", minimum: 0, maximum: 120 },
-                  durationSeconds: { type: "integer", minimum: 1 },
-                  distanceMeters: { type: "number", minimum: 0 },
-                  tempo: { type: "string" },
-                },
-                required: ["name"],
-              },
-            },
-          },
-          required: ["section", "exercises"],
-        },
-      },
-    },
-    required: ["title", "blocks"],
-  },
-} as const;
 
 /** Same normalisation as the library import: lowercase letters/digits, trailing "s" dropped. */
 export const exerciseKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/s$/, "");
@@ -109,7 +63,7 @@ function valuesFor(raw: RawExercise): Partial<Record<FieldKey, string>> {
   return values;
 }
 
-/** Validates the model output against the library and returns a preview the coach can accept. */
+/** Validates the generated workout against the library and returns a preview the coach can accept. */
 export function buildPreview(raw: unknown, library: LibraryRef[]): WorkoutPreview | null {
   if (!raw || typeof raw !== "object") return null;
   const data = raw as { title?: unknown; blocks?: unknown };
