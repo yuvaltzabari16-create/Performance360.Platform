@@ -91,6 +91,43 @@ test.describe.serial("Assistant for every role", () => {
     await ask(await login(browser, people.trainer), "personal_trainer", "When should I refer a client to a physiotherapist or doctor?", "When to refer to a physiotherapist or doctor");
   });
 
+  test("data questions are answered from the person's own data and scope", async ({ browser }) => {
+    const send = async (page: Page, q: string) => {
+      const box = page.getByTestId("assistant");
+      await box.getByRole("button", { name: "Open the assistant" }).click();
+      await page.getByLabel("Type your question").fill(q);
+      await page.getByRole("button", { name: "Send", exact: true }).click();
+      return page.getByTestId("assistant-log");
+    };
+    // The athlete submits today's check-in, then asks for it and for things with no data.
+    const ath = await login(browser, people.athlete);
+    await ath.goto("/readiness");
+    await ath.getByLabel("Sleep (hours)").fill("7.5");
+    for (const [label, value] of [["Sleep quality", "4"], ["Fatigue", "2"], ["Muscle soreness", "2"], ["Stress", "2"], ["Mood", "4"], ["Motivation", "5"]]) {
+      await ath.locator("fieldset", { has: ath.getByText(label, { exact: true }) }).locator(`input[value="${value}"]`).check({ force: true });
+    }
+    await ath.getByRole("button", { name: "Submit check-in" }).click();
+    await expect(ath.getByText("Check-in saved.")).toBeVisible();
+    let log = await send(ath, "show my readiness");
+    await expect(log.getByText("Wellness check-ins")).toBeVisible();
+    await expect(log).toContainText("wellness index 4.2 out of 5");
+    await ath.getByRole("button", { name: "Clear" }).click();
+    await ath.getByLabel("Type your question").fill("show my injuries");
+    await ath.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(ath.getByTestId("assistant-log").getByText("no open injuries recorded")).toBeVisible();
+    await expect(ath.getByTestId("assistant-log").getByText("Pia Physio")).toHaveCount(0);
+
+    // Staff see the athlete by name in their scope.
+    const hop = await login(browser, people.hop);
+    log = await send(hop, "which athletes have not checked in today");
+    await expect(log.getByText("Checked in today: 1 of 1")).toBeVisible();
+    await hop.getByRole("button", { name: "Clear" }).click();
+    await hop.getByLabel("Type your question").fill("show alerts");
+    await hop.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(hop.getByTestId("assistant-log").getByText("What needs attention")).toBeVisible();
+    await expect(hop.getByTestId("assistant-log").getByText("No workload or recovery alerts")).toBeVisible();
+  });
+
   test("starter questions, clearing and closing work; there is no assistant on public pages", async ({ browser, page }) => {
     const ath = await login(browser, people.athlete);
     await ath.getByTestId("assistant").getByRole("button", { name: "Open the assistant" }).click();

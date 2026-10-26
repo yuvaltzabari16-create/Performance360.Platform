@@ -1189,7 +1189,7 @@ const en = {
     open: "Open the assistant",
     close: "Close the assistant",
     title: "Professional consultant",
-    intro: "Ask about training, load and recovery, rehabilitation principles, running a department, or how to use the app. I answer from a library written for your role, and tell you when I have no answer. I can't see your athletes or figures.",
+    intro: "Ask about training, load and recovery, rehabilitation principles, running a department, or how to use the app. I answer from a library written for your role, and tell you when I have no answer. Ask for your own numbers too: \"show my workload\", or as staff \"who is at risk?\".",
     privacy: "Everything runs inside the app and nothing you type is sent elsewhere. I don't diagnose, prescribe or clear anyone to play: a qualified professional decides. Check anything that matters.",
     copy: "Copy",
     copied: "Copied",
