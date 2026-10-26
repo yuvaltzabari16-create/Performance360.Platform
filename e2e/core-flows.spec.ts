@@ -18,7 +18,8 @@ async function signup(page: Page, who: { name: string; email: string }, startUrl
   await page.getByLabel("Full name").fill(who.name);
   await page.getByLabel("Email").fill(who.email);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByLabel(/I agree to the/).check();
+    await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL(/\/onboarding/);
 }
 
@@ -42,9 +43,15 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Fathletes/);
   });
 
-  test("coach registers, onboards and gets a personal code", async ({ page }) => {
-    await signup(page, coach);
-    await page.getByLabel("Strength & Conditioning Coach").check();
+  test("coach registers as a Personal Trainer account and gets a personal code", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("[data-account-type]")).toHaveCount(3); // Team, Personal Trainer, Athlete
+    await page.locator('[data-account-type="independent"]').click();
+    await page.waitForURL(/\/signup/);
+    await expect(page.getByText("Account type")).toBeVisible();
+    await signup(page, coach, page.url());
+    await expect(page).toHaveURL(/type=independent/);
+    await page.getByLabel("Your profession").selectOption("sc_coach");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/dashboard/);
     await expect(page.getByText("Active athletes")).toBeVisible();
@@ -79,7 +86,7 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.goto(`/join/${code}`);
     await expect(page.getByText(code)).toBeVisible();
     await signup(page, athlete, page.url());
-    await expect(page.getByLabel("Athlete")).toBeChecked();
+    await expect(page.getByLabel("Your full name")).toHaveValue("Dana Athlete");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/connect\?code=/);
     await expect(page.getByText("Coach Alpha")).toBeVisible();
@@ -110,20 +117,30 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.getByPlaceholder("Lower body strength").fill("Speed day");
     await page.getByLabel("Planned duration (min)").fill("60");
     await page.getByRole("button", { name: "Add session" }).click();
-    await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Day 1 · Speed day/ })).toBeVisible();
 
-    await page.getByText("+ Add exercise").click();
-    await page.locator('select[name="exercise_id"]').selectOption({ label: "10 m Acceleration Sprint" });
-    await page.locator('form:has(button:text("Add exercise")) input[name="sets"]').fill("6");
-    await page.locator('form:has(button:text("Add exercise")) input[name="reps"]').fill("1");
-    await page.locator('form:has(button:text("Add exercise")) input[name="rest_s"]').fill("120");
-    await page.getByRole("button", { name: "Add exercise" }).click();
-    await expect(page.getByText("6 × 1")).toBeVisible();
+    // Builder: add a block, pick an exercise from the library, fill prescription chips.
+    await page.getByRole("button", { name: "+ Add block" }).click();
+    await page.getByRole("menuitem", { name: "Strength" }).click();
+    await page.getByLabel("Search exercises…").fill("Goblet Squat");
+    await page.getByRole("button", { name: /^(\+ Add )?Goblet Squat$/ }).click();
+    await page.getByRole("button", { name: "Close library" }).click();
+    await expect(page.getByRole("link", { name: "Goblet Squat" })).toBeVisible();
+    await page.getByRole("button", { name: "+ Field" }).click();
+    await page.getByRole("menuitem", { name: "Reps" }).click();
+    await page.getByLabel("Reps", { exact: true }).fill("6x1");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: /Reps\s*6x1/ })).toBeVisible();
+    await page.getByRole("button", { name: "+ Field" }).click();
+    await page.getByRole("menuitem", { name: "Rest" }).click();
+    await page.getByLabel("Rest", { exact: true }).fill("2:00");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("button", { name: /Rest\s*120s/ })).toBeVisible();
 
     await page.getByLabel("Copy this week to week").fill("2");
     await page.getByRole("button", { name: "Duplicate week" }).click();
     await page.waitForURL(/week=2/);
-    await expect(page.getByText("Day 1 · Speed day")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Day 1 · Speed day/ })).toBeVisible();
 
     await page.goto(programUrl);
     await page.locator('select[name="athlete_ids"]').selectOption({ label: "Dana Athlete" });
@@ -137,7 +154,7 @@ test.describe.serial("Performance360 core workflows", () => {
   test("coach records a jump test with trials", async ({ browser }) => {
     const page = await login(browser, coach);
     await page.goto(`/testing/new?athlete=${athleteRecordUrl.split("/").pop()}`);
-    await page.locator('select[name="r0_test"]').selectOption({ label: "Countermovement Jump (cm ↑)" });
+    await page.locator('select[name="r0_test"]').selectOption({ label: "Countermovement Jump (cm)" });
     await page.getByLabel("Trial 1", { exact: true }).fill("38.1");
     await page.getByLabel("Trial 2", { exact: true }).fill("39.4");
     await page.getByLabel("Trial 3", { exact: true }).fill("38.9");
@@ -147,6 +164,23 @@ test.describe.serial("Performance360 core workflows", () => {
     await expect(page.getByText("Countermovement Jump")).toBeVisible();
     await expect(page.locator("dd", { hasText: "39.4" }).first()).toBeVisible();
     await snap(page, "06-testing");
+  });
+
+  test("exercise library has the coach list with a video for every exercise", async ({ browser }) => {
+    const page = await login(browser, coach);
+    await page.goto("/exercises");
+    await expect(page.getByText(/^(3[4-9]\d|[4-9]\d\d) videos$/)).toBeVisible();
+    await page.getByPlaceholder("Search exercises…").fill("Zercher");
+    await page.getByRole("button", { name: "Filter" }).click();
+    await page.getByRole("link", { name: /Zercher Squat/ }).click();
+    await expect(page.locator('iframe[src^="https://www.youtube-nocookie.com/embed/EuDizUUiHEo"]')).toHaveCount(1);
+    await expect(page.getByRole("link", { name: "Open on YouTube" })).toHaveAttribute("href", "https://www.youtube.com/watch?v=EuDizUUiHEo");
+
+    await page.goto("/exercises/feed?category=rehab");
+    await expect(page.locator("iframe")).toHaveCount(0); // thumbnails only until tapped
+    await page.getByRole("button", { name: /Tap to play: Knee Flexion Range of Motion/ }).click();
+    await expect(page.locator('iframe[src*="kF_CyoZihCE"][src*="start=115"][src*="autoplay=1"]')).toHaveCount(1);
+    await snap(page, "05b-video-feed");
   });
 
   test("athlete sees training, logs a session, checks in and sees results", async ({ browser }) => {
@@ -188,8 +222,8 @@ test.describe.serial("Performance360 core workflows", () => {
   });
 
   test("a different coach cannot see or open the first coach's athletes", async ({ page }) => {
-    await signup(page, other);
-    await page.getByLabel("Athletic Performance Coach").check();
+    await signup(page, other, "/signup?next=%2Fonboarding%3Ftype%3Dindependent");
+    await page.getByLabel("Your profession").selectOption("performance_coach");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForURL(/\/dashboard/);
     await page.goto("/athletes");
@@ -220,8 +254,10 @@ test.describe.serial("Performance360 core workflows", () => {
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.waitForURL(/\/dashboard/);
-    await page.getByText("Menu").click();
-    await expect(page.getByRole("link", { name: "My Training" }).last()).toBeVisible();
+    // Phones get a bottom tab bar; "Menu" opens the sheet with every section.
+    await expect(page.getByRole("navigation", { name: "Tabs" })).toBeVisible();
+    await page.getByRole("navigation", { name: "Tabs" }).getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("dialog").getByRole("link", { name: "My Training" })).toBeVisible();
     await snap(page, "10-mobile-menu");
   });
 });

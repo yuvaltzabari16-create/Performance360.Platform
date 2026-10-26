@@ -1,9 +1,8 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-// Unit tests live next to the code in src/. The e2e/ folder holds Playwright
-// specs, which Vitest must not collect (they call Playwright's test.describe).
+// Unit tests live next to the code in src/; e2e/ is run by Playwright.
 export default defineConfig({
-  test: {
-    include: ["src/**/*.test.ts"],
-  },
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  test: { include: ["src/**/*.test.ts"] },
 });

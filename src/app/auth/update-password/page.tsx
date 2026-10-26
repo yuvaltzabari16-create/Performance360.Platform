@@ -9,7 +9,7 @@ export default async function UpdatePasswordPage({ searchParams }: { searchParam
   const { t, user } = await getSession();
   if (!user) redirect("/login?next=/auth/update-password");
   return (
-    <main className="mx-auto max-w-sm px-4 py-16">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-sm px-4 py-16">
       <Logo className="mb-8 text-lg text-ink" />
       <Card title={t.auth.updatePassword}>
         <FlashMessage error={sp.error} />

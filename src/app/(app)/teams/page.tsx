@@ -8,8 +8,11 @@ export const metadata = { title: "Teams" };
 
 export default async function TeamsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, user, t } = await requireProfessional();
-  const { data: teams } = await supabase.from("teams").select("id, name, sport, season, team_members(count)").eq("owner_id", user.id).order("name");
+  const { supabase, user, org, t } = await requireProfessional();
+  const readOnly = org?.org_role === "director"; // the director sees every squad of the club, and manages none
+  let query = supabase.from("teams").select("id, name, sport, season, team_members(count)").order("name");
+  if (!readOnly) query = query.eq("owner_id", user.id);
+  const { data: teams } = await query;
   return (
     <>
       <PageHeader title={t.teams.title} />
@@ -32,7 +35,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
             </ul>
           )}
         </div>
-        <Card title={t.teams.new}>
+        {!readOnly && <Card title={t.teams.new}>
           <form action={createTeam} className="space-y-3">
             <Field label={t.teams.name}><Input name="name" required maxLength={120} /></Field>
             <Field label={t.athletes.sport}><Input name="sport" /></Field>
@@ -41,7 +44,7 @@ export default async function TeamsPage({ searchParams }: { searchParams: Promis
             <SubmitButton>{t.common.create}</SubmitButton>
           </form>
           <p className="mt-4 text-xs text-muted">{t.teams.accessNote}</p>
-        </Card>
+        </Card>}
       </div>
     </>
   );

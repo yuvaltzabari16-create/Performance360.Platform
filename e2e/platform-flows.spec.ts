@@ -1,0 +1,212 @@
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+// Data export, richer settings, per-role login panels and the scheduled sync endpoint.
+const run = Date.now().toString(36);
+const password = "correct-horse-42";
+/** Clicks a save button and waits for the server action to answer before the next step. */
+async function saved(page: Page, button: Locator) {
+  await Promise.all([page.waitForResponse((r) => r.request().method() === "POST"), button.click()]);
+  await page.waitForLoadState("networkidle");
+}
+
+const trainer = { name: "Pat Exporter", email: `pf.trainer.${run}@example.com` };
+
+async function signupTrainer(page: Page) {
+  await page.goto("/signup?next=%2Fonboarding%3Ftype%3Dindependent");
+  await page.getByLabel("Full name").fill(trainer.name);
+  await page.getByLabel("Email").fill(trainer.email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByLabel(/I agree to the/).check();
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL(/\/onboarding/);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.waitForURL(/\/dashboard/);
+}
+
+test.describe.serial("Platform", () => {
+  test("each login shows what it opens", async ({ page }) => {
+    await page.goto("/login?as=head_coach");
+    const panel = page.getByTestId("login-role-panel");
+    await expect(panel).toContainText("Your squads only");
+    await expect(panel).toContainText("Training Planner");
+    await page.goto("/login?as=director");
+    await expect(page.getByTestId("login-role-panel")).toContainText("read-only");
+    await expect(page.getByTestId("login-role-panel")).not.toContainText("Training Planner");
+    await page.goto("/login?as=athlete");
+    await expect(page.getByTestId("login-role-panel")).toContainText("You decide what staff can see");
+  });
+
+  test("the scheduled sync endpoint needs its secret", async ({ request }) => {
+    expect((await request.get("/api/cron/wearables-sync")).status()).toBe(401);
+    expect((await request.get("/api/cron/wearables-sync", { headers: { authorization: "Bearer wrong-secret-value-0000000" } })).status()).toBe(401);
+    const ok = await request.get("/api/cron/wearables-sync", { headers: { authorization: "Bearer e2e-cron-secret-0123456789" } });
+    expect(ok.status()).toBe(200);
+    expect(await ok.json()).toEqual({ due: expect.any(Number), synced: expect.any(Number), failed: expect.any(Number) });
+  });
+
+  test("the email job needs its secret and reports what it sent", async ({ request }) => {
+    expect((await request.get("/api/cron/notification-emails")).status()).toBe(401);
+    const ok = await request.get("/api/cron/notification-emails", { headers: { authorization: "Bearer e2e-cron-secret-0123456789" } });
+    expect(ok.status()).toBe(200);
+    expect(await ok.json()).toEqual({ due: expect.any(Number), sent: expect.any(Number), failed: 0 });
+  });
+
+  test("a trainer exports CSV; formulas are defused; strangers get nothing", async ({ page, browser }) => {
+    await signupTrainer(page);
+    await page.goto("/athletes/new");
+    await page.getByLabel("Name *").fill("=HYPERLINK(\"http://x\")");
+    await page.getByRole("button", { name: "Save" }).click();
+    await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/);
+    await page.goto("/athletes/new");
+    await page.getByLabel("Name *").fill("Plain Athlete");
+    await page.getByRole("button", { name: "Save" }).click();
+    await page.waitForURL(/\/athletes\/[0-9a-f-]{36}$/);
+
+    const res = await page.request.get("/export/athletes");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("text/csv");
+    expect(res.headers()["content-disposition"]).toContain("performance360-athletes-");
+    const text = await res.text();
+    expect(text.charCodeAt(0)).toBe(0xfeff);
+    expect(text).toContain("Plain Athlete");
+    expect(text).toContain("'=HYPERLINK"); // never starts with =
+    expect(text).not.toMatch(/(^|,|\n)=HYPERLINK/);
+    expect((await page.request.get("/export/gps")).status()).toBe(200);
+    expect((await page.request.get("/export/nonsense")).status()).toBe(404);
+
+    const stranger = await (await browser.newContext()).newPage();
+    const out = await stranger.request.get("/export/athletes", { maxRedirects: 0 });
+    expect([301, 302, 303, 307, 308, 401]).toContain(out.status());
+  });
+
+  test("settings: download list, notification categories, sign out everywhere", async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(trainer.email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForURL(/\/dashboard/);
+    await page.goto("/settings");
+    const list = page.getByTestId("export-list");
+    await expect(list.getByRole("link", { name: "Athletes" })).toBeVisible();
+    await expect(list.getByRole("link", { name: "GPS sessions" })).toBeVisible();
+
+    await page.getByLabel("Injuries and return to play").uncheck();
+    await saved(page, page.locator("form", { has: page.getByLabel("Injuries and return to play") }).getByRole("button", { name: "Save" }));
+    await page.goto("/settings");
+    await expect(page.getByLabel("Injuries and return to play")).not.toBeChecked();
+    await expect(page.getByRole("checkbox", { name: "Messages" })).toBeChecked();
+
+    page.once("dialog", (d) => d.accept());
+    await page.getByRole("button", { name: "Sign out on all devices" }).click();
+    await page.waitForURL(/\/login/);
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test("appearance: dark mode keeps the green, is remembered and follows the choice", async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto("/login");
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/); // "Auto": the device decides
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bg).not.toBe("rgb(243, 246, 244)"); // not the light canvas
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); // remembered
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Light" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    // the system choice follows the device
+    await page.getByTestId("theme-switch").getByRole("button", { name: "Auto" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(11, 15, 13)");
+  });
+
+  test("quick actions: one tap to the short actions, on desktop and on a phone", async ({ browser }) => {
+    const login = async (width: number, height: number) => {
+      const page = await (await browser.newContext({ viewport: { width, height } })).newPage();
+      await page.goto("/login");
+      await page.getByLabel("Email").fill(trainer.email);
+      await page.getByLabel("Password").fill(password);
+      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.waitForURL(/\/dashboard/);
+      return page;
+    };
+    const desk = await login(1280, 800);
+    await desk.getByRole("button", { name: "Quick actions" }).click();
+    const sheet = desk.getByTestId("quick-sheet");
+    for (const name of ["Add athlete", "Record a test", "New program", "Log an injury", "New message", "Import GPS file", "My personal code"]) {
+      await expect(sheet.getByRole("link", { name })).toBeVisible();
+    }
+    await sheet.getByRole("link", { name: "Add athlete" }).click();
+    await desk.waitForURL(/\/athletes\/new/);
+    await expect(desk.getByTestId("quick-sheet")).toHaveCount(0); // closes after use
+
+    const phone = await login(390, 844);
+    await phone.getByRole("navigation", { name: "Tabs" }).getByRole("button", { name: "Quick actions" }).click();
+    await expect(phone.getByTestId("quick-sheet").getByRole("link", { name: "Record a test" })).toBeVisible();
+    await phone.keyboard.press("Escape");
+    await expect(phone.getByTestId("quick-sheet")).toHaveCount(0);
+  });
+
+  test("settings: profile details, preferences, display and email change", async ({ browser }) => {
+    const page = await (await browser.newContext()).newPage();
+    const signIn = async () => {
+      await page.goto("/login");
+      await page.getByLabel("Email").fill(trainer.email);
+      await page.getByLabel("Password").fill(password);
+      await page.getByRole("button", { name: "Sign in" }).click();
+      await page.waitForURL(/\/(dashboard|calendar)/);
+    };
+    await signIn();
+    await page.goto("/settings");
+    for (const j of ["Profile", "Preferences", "Appearance", "Notifications", "Security", "Privacy and data", "Account"]) {
+      await expect(page.getByRole("navigation", { name: "Settings" }).getByRole("link", { name: j })).toBeVisible();
+    }
+
+    // Profile: phone and job title are saved.
+    await page.getByLabel("Phone").fill("+972 50 123 4567");
+    await page.getByLabel("Job title").fill("Strength coach");
+    await saved(page, page.locator("form", { has: page.getByLabel("Job title") }).getByRole("button", { name: "Save" }));
+    await page.goto("/settings");
+    await expect(page.getByLabel("Phone")).toHaveValue("+972 50 123 4567");
+    await expect(page.getByLabel("Job title")).toHaveValue("Strength coach");
+
+    // Preferences: week starts on Saturday, 12-hour clock, open the calendar after sign-in.
+    await page.getByLabel("Week starts on").selectOption("saturday");
+    await page.getByLabel("Clock").selectOption("12h");
+    await page.getByLabel("Open after sign-in").selectOption("calendar");
+    await saved(page, page.locator("form", { has: page.getByLabel("Week starts on") }).getByRole("button", { name: "Save" }));
+    await page.goto("/settings");
+    await expect(page.getByLabel("Week starts on")).toHaveValue("saturday");
+    await expect(page.getByLabel("Clock")).toHaveValue("12h");
+    await expect(page.getByLabel("Open after sign-in")).toHaveValue("calendar");
+
+    // Display: large text and reduced motion apply to the whole page.
+    await page.goto("/settings");
+    await page.getByLabel("Text size").selectOption("large");
+    await page.getByLabel("Reduce motion").check();
+    await saved(page, page.locator("form", { has: page.getByLabel("Text size") }).getByRole("button", { name: "Save" }));
+    await expect(page.locator("html")).toHaveAttribute("data-text", "large");
+    await expect(page.locator("html")).toHaveAttribute("data-motion", "reduce");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe("18px");
+    await page.goto("/settings");
+    await page.getByLabel("Text size").selectOption("normal");
+    await page.getByLabel("Reduce motion").uncheck();
+    await saved(page, page.locator("form", { has: page.getByLabel("Text size") }).getByRole("button", { name: "Save" }));
+    await expect(page.locator("html")).toHaveAttribute("data-text", "normal");
+
+    // Email change checks the address first.
+    await page.getByLabel("New email address").fill("not-an-email");
+    await page.locator("form", { has: page.getByLabel("New email address") }).evaluate((f) => (f as HTMLFormElement).setAttribute("novalidate", ""));
+    await page.getByRole("button", { name: "Send confirmation" }).click();
+    await expect(page.getByText("Enter a valid email address.")).toBeVisible();
+
+    // The chosen start page is where the next sign-in lands.
+    await page.getByRole("button", { name: "Sign out" }).first().click();
+    await page.waitForURL(/\/login/);
+    await signIn();
+    await expect(page).toHaveURL(/\/calendar/);
+  });
+});

@@ -1,3 +1,6 @@
+import { Icon } from "@/components/ui/Icon";
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
 import { Badge, ButtonLink, Card, EmptyState, FlashMessage, PageHeader, Table, Td } from "@/components/ui";
 import { AutoSubmitSelect, ConfirmSubmit } from "@/components/ui/client";
@@ -18,7 +21,8 @@ function fmtPct(v: number | null) {
 
 export default async function TestingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireProfile();
+  const { supabase, user, profile, org, t } = await requireProfile();
+  const readOnly = org?.org_role === "director"; // the director reads results; staff record them
   const tt = t.testing;
   const isAthlete = profile.role === "athlete";
 
@@ -42,7 +46,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
       <>
         <PageHeader
           title={isAthlete ? tt.myTitle : tt.title}
-          actions={!isAthlete && (
+          actions={!isAthlete && !readOnly && (
             <>
               <ButtonLink variant="secondary" href="/testing/batteries">{tt.batteries}</ButtonLink>
               <ButtonLink href="/testing/new">{tt.record}</ButtonLink>
@@ -59,7 +63,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
           </form>
         )}
         {(recent ?? []).length === 0 ? (
-          <EmptyState title={tt.empty} body={isAthlete ? t.readiness.needsProfile : tt.emptyHelp} action={!isAthlete && <ButtonLink href="/testing/new">{tt.record}</ButtonLink>} />
+          <EmptyState title={tt.empty} body={isAthlete ? t.readiness.needsProfile : readOnly ? undefined : tt.emptyHelp} action={!isAthlete && !readOnly && <ButtonLink href="/testing/new">{tt.record}</ButtonLink>} />
         ) : (
           <Table head={[t.common.date, tt.athlete, tt.test, tt.best, tt.method]}>
             {(recent ?? []).map((r) => {
@@ -112,6 +116,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
       return { def, rows, bySide, limbDiff: limbDifference(left, right, def.higher_is_better), chart, sides };
     });
 
+  const testFiles = await loadAttachments(supabase, "test", [athleteId]);
   const sideColors = { both: "#23985e", left: "#2563eb", right: "#d97706" };
 
   return (
@@ -122,7 +127,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
         actions={
           <>
             {results.length > 0 && <ButtonLink variant="secondary" href={`/testing/export?athlete=${athleteId}`}>{t.common.exportCsv}</ButtonLink>}
-            {!isAthlete && <ButtonLink href={`/testing/new?athlete=${athleteId}`}>{tt.record}</ButtonLink>}
+            {!isAthlete && !readOnly && <ButtonLink href={`/testing/new?athlete=${athleteId}`}>{tt.record}</ButtonLink>}
           </>
         }
       />
@@ -142,13 +147,16 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
         )}
       </form>
       <p className="mb-5 text-xs text-muted">{tt.bestRule} {tt.measuredVsCalc} {tt.noNorms}</p>
+      <div className="mb-6 rounded-xl border border-line bg-surface p-4">
+        <AttachmentsPanel kind="test" refId={athleteId} athleteId={athleteId} back={`/testing?athlete=${athleteId}`} files={testFiles} canUpload={!isAthlete && !readOnly} userId={user.id} t={t} />
+      </div>
 
       {groups.length === 0 ? (
         <EmptyState title={tt.empty} body={tt.emptyHelp} />
       ) : (
         <div className="space-y-6">
           {groups.map(({ def, rows, bySide, limbDiff, chart, sides }) => (
-            <Card key={def.id} title={<span>{def.name} <span className="font-normal text-muted">({def.unit}, {def.higher_is_better ? "↑" : "↓"})</span></span>}>
+            <Card key={def.id} title={<span>{def.name} <span className="font-normal text-muted">({def.unit}{def.higher_is_better ? <Icon name="up" className="ms-1 size-3.5" /> : <Icon name="down" className="ms-1 size-3.5" />})</span></span>}>
               <div className="grid gap-4 lg:grid-cols-5">
                 <div className="space-y-3 lg:col-span-2">
                   {bySide.map(({ side, summary: s }) => (

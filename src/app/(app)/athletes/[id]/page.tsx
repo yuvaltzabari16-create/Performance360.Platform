@@ -1,6 +1,10 @@
+import { AttachmentsPanel } from "@/components/files/AttachmentsPanel";
+import { loadAttachments } from "@/lib/files/data";
 import Link from "next/link";
+import { DraftTextarea } from "@/components/autosave/DraftTextarea";
+import { escapeLike } from "@/lib/security/query";
 import { notFound } from "next/navigation";
-import { Badge, ButtonLink, Card, Checkbox, DefinitionList, FlashMessage, PageHeader, Textarea } from "@/components/ui";
+import { Badge, ButtonLink, Card, Checkbox, DefinitionList, FlashMessage, PageHeader } from "@/components/ui";
 import { ConfirmSubmit, SubmitButton } from "@/components/ui/client";
 import { TrendChart } from "@/components/charts/TrendChart";
 import { requireProfile } from "@/lib/auth";
@@ -8,18 +12,26 @@ import { isUuid } from "@/lib/forms";
 import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, wellnessIndex } from "@/lib/metrics";
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
+import { missingGuardianConsent } from "@/lib/minors";
+import { WearableCharts } from "@/components/wearables/WearableCharts";
+import { WearableSummary } from "@/components/wearables/WearableSummary";
+import type { DailyRow } from "@/lib/wearables/types";
+import { InjurySection } from "@/components/injury/InjurySection";
+import { loadInjuries } from "@/lib/injury-data";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
+import { addToRoster, removeFromRoster } from "../../team/actions";
 
 export default async function AthletePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireProfile();
+  const { supabase, user, profile, org, t } = await requireProfile();
   if (!isUuid(id)) notFound();
 
   const { data } = await supabase.from("athletes").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
   const a = data as Athlete;
   const isSelf = a.user_id === user.id;
+  const minorWithoutConsent = missingGuardianConsent(a, new Date().toISOString().slice(0, 10));
   const ta = t.athletes;
 
   const [rels, assignments, completions, results, readiness, notes, dupes] = await Promise.all([
@@ -30,16 +42,38 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
     supabase.from("readiness_entries").select("*").eq("athlete_id", id).order("entry_date", { ascending: false }).limit(28),
     supabase.from("athlete_notes").select("id, body, shared_with_athlete, created_at, author_id").eq("athlete_id", id).order("created_at", { ascending: false }).limit(30),
     a.email && !isSelf
-      ? supabase.from("athletes").select("id").ilike("email", a.email).neq("id", id).limit(1)
+      ? supabase.from("athletes").select("id").ilike("email", escapeLike(a.email)).neq("id", id).limit(1)
       : Promise.resolve({ data: [] as { id: string }[] }),
   ]);
 
   const relationships = rels.data ?? [];
   const myRel = relationships.find((r) => r.coach_id === user.id);
-  const isPrimary = myRel?.kind === "primary";
-  const isPro = profile.role !== "athlete";
+  // Lead access comes from a personal primary relationship or from a lead role on the athlete's team.
+  const { data: primaryFlag } = await supabase.rpc("is_primary_coach", { p_athlete: id });
+  const isPrimary = primaryFlag === true;
+  const { data: rosterRows } = await supabase
+    .from("organization_athletes")
+    .select("org_id, consent_source, consented_at, organizations(name)")
+    .eq("athlete_id", id)
+    .eq("status", "active");
+  const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
+  const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
+  const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
+  const { data: wearableData } = await supabase.from("wearable_daily").select("*").eq("athlete_id", id).gte("day", new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10)).order("day", { ascending: false }).limit(120);
+  const wearableRows = (wearableData ?? []) as DailyRow[];
+  const athleteFiles = await loadAttachments(supabase, "athlete", [id]);
+  const isDirector = org?.org_role === "director"; // read-only view of roster athletes
+  const isPro = profile.role !== "athlete" && !isDirector;
+  const { injuries, events: injuryEvents, files: injuryFiles } = await loadInjuries(supabase, [id]);
+  // Mirrors the database rule: the primary coach or a team physiotherapist on the athlete's roster records clearance.
+  const canClear = isPrimary || Boolean(org?.org_role === "physiotherapist" && onMyRoster);
 
-  const coachIds = relationships.map((r) => r.coach_id);
+  // Team staff on the athlete's roster teams (visible to the athlete and to colleagues).
+  const rosterOrgIds = (rosterRows ?? []).map((r) => r.org_id);
+  const { data: teamStaff } = rosterOrgIds.length
+    ? await supabase.from("organization_members").select("user_id, org_id, org_role").in("org_id", rosterOrgIds).eq("status", "active").neq("org_role", "director")
+    : { data: [] };
+  const coachIds = [...new Set([...relationships.map((r) => r.coach_id), ...(teamStaff ?? []).map((m) => m.user_id), ...(notes.data ?? []).map((n) => n.author_id)])];
   const { data: coachProfiles } = coachIds.length
     ? await supabase.from("profiles").select("id, full_name, role").in("id", coachIds)
     : { data: [] };
@@ -74,7 +108,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
       <PageHeader
         title={a.full_name}
         subtitle={[a.sport, a.position, a.team_name].filter(Boolean).join(" · ") || undefined}
-        crumbs={isPro ? [{ href: "/athletes", label: t.athletes.title }] : []}
+        crumbs={isPro || isDirector ? [{ href: "/athletes", label: t.athletes.title }] : []}
         actions={
           <>
             {isPro && <ButtonLink variant="secondary" href={`/testing/new?athlete=${a.id}`}>{t.testing.record}</ButtonLink>}
@@ -96,7 +130,14 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
         {a.status === "archived" && <Badge tone="amber">{t.common.archived}</Badge>}
         {a.user_id ? <Badge tone="green">{ta.linked}</Badge> : <Badge>{ta.notLinked}</Badge>}
         {(dupes.data?.length ?? 0) > 0 && <Badge tone="amber">{ta.possibleDuplicate}</Badge>}
+        {minorWithoutConsent && <Badge tone="red">{t.minors.missingBadge}</Badge>}
       </div>
+      {minorWithoutConsent && (
+        <div role="note" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <span>{isSelf ? t.minors.selfBanner : t.minors.missingBanner}</span>
+          {(isPrimary || isSelf) && <ButtonLink variant="secondary" href={`/athletes/${a.id}/edit`}>{t.minors.fixLink}</ButtonLink>}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -146,6 +187,17 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             )}
           </Card>
 
+          {!isSelf && (
+            <Card title={t.wearables.cardTitle}>
+              {wearableRows.length === 0 ? <p className="text-sm text-muted">{t.wearables.notShared}</p> : (
+                <div className="space-y-5">
+                  <WearableSummary latest={wearableRows[0]} t={t} />
+                  <WearableCharts rows={wearableRows} t={t} />
+                </div>
+              )}
+            </Card>
+          )}
+
           <Card title={ta.readinessTrend}>
             {readinessChart.length === 0 ? (
               <p className="text-sm text-muted">{t.readiness.empty}</p>
@@ -182,12 +234,27 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             )}
           </Card>
 
+          <InjurySection
+            injuries={injuries}
+            events={injuryEvents}
+            files={injuryFiles}
+            userId={user.id}
+            athleteId={a.id}
+            today={new Date().toISOString().slice(0, 10)}
+            locale={profile.locale}
+            t={t}
+            back={`/athletes/${a.id}`}
+            professional={isPro}
+            canClear={canClear}
+            canReport={!isDirector}
+          />
+
           <Card title={ta.notes}>
             <div id="notes" />
             {isPro && (
               <form action={addNote} className="mb-5 space-y-2">
                 <input type="hidden" name="athlete_id" value={a.id} />
-                <Textarea name="body" required maxLength={5000} placeholder={ta.addNote} />
+                <DraftTextarea draftKey={`note:${id}`} restoredLabel={t.settings.draftRestored} name="body" required maxLength={5000} placeholder={ta.addNote} rows={3} className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
                 <div className="flex items-center justify-between">
                   <Checkbox name="shared" label={ta.shareWithAthlete} />
                   <SubmitButton variant="secondary">{ta.addNote}</SubmitButton>
@@ -237,6 +304,11 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             </Card>
           )}
 
+          <Card title={t.files.title}>
+            <AttachmentsPanel kind="athlete" refId={a.id} athleteId={a.id} back={`/athletes/${a.id}`} files={athleteFiles} canUpload={isPro || isSelf} userId={user.id} t={t} />
+            {athleteFiles.length === 0 && !(isPro || isSelf) && <p className="text-sm text-muted">{t.files.empty}</p>}
+          </Card>
+
           <Card title={ta.assignedPrograms}>
             {(assignments.data ?? []).length === 0 ? (
               <p className="text-sm text-muted">{t.training.notAssigned}</p>
@@ -256,10 +328,16 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
           </Card>
 
           <Card title={ta.professionals}>
-            {relationships.length === 0 ? (
+            {relationships.length === 0 && (teamStaff ?? []).length === 0 ? (
               <p className="text-sm text-muted">—</p>
             ) : (
               <ul className="space-y-3 text-sm">
+                {(teamStaff ?? []).map((m) => (
+                  <li key={`team-${m.user_id}`}>
+                    <div className="font-medium"><bdi>{nameOf(m.user_id)}</bdi></div>
+                    <div className="text-xs text-muted">{t.orgRoles[m.org_role as keyof typeof t.orgRoles]} · {(rosterRows ?? []).find((r) => r.org_id === m.org_id) && (((rosterRows ?? []).find((r) => r.org_id === m.org_id)?.organizations as unknown as { name: string } | null)?.name)}</div>
+                  </li>
+                ))}
                 {relationships.map((r) => (
                   <li key={r.id} className="flex items-center justify-between gap-2">
                     <div>
@@ -278,6 +356,32 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               </ul>
             )}
           </Card>
+
+          {((rosterRows ?? []).length > 0 || canAddToRoster) && (
+            <Card title={t.team.onRoster}>
+              {(rosterRows ?? []).map((r) => (
+                <div key={r.org_id} className="mb-3 text-sm">
+                  <div className="font-medium"><bdi>{(r.organizations as unknown as { name: string } | null)?.name}</bdi></div>
+                  <div className="text-xs text-muted">{r.consent_source === "athlete" ? t.team.consentAthlete : t.team.consentStaff} · <span className="num">{r.consented_at.slice(0, 10)}</span></div>
+                </div>
+              ))}
+              {isSelf && <ButtonLink variant="secondary" href="/connect">{t.team.leave}</ButtonLink>}
+              {canRemoveFromRoster && (
+                <form action={removeFromRoster}>
+                  <input type="hidden" name="athlete_id" value={a.id} />
+                  <input type="hidden" name="back" value={`/athletes/${a.id}`} />
+                  <ConfirmSubmit variant="danger" message={t.team.removeFromRosterConfirm}>{t.team.removeFromRoster}</ConfirmSubmit>
+                </form>
+              )}
+              {canAddToRoster && (
+                <form action={addToRoster} className="space-y-2">
+                  <input type="hidden" name="athlete_id" value={a.id} />
+                  <p className="text-xs text-muted">{t.team.addToRosterHelp}</p>
+                  <SubmitButton variant="secondary">{t.team.addToRoster}</SubmitButton>
+                </form>
+              )}
+            </Card>
+          )}
 
           <Card title={ta.sections.personal}>
             <DefinitionList

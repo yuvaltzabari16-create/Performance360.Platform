@@ -1,156 +1,125 @@
 import Link from "next/link";
-import { Card, EmptyState, FlashMessage, PageHeader, Textarea, cx } from "@/components/ui";
+import { hour12Option, parsePreferences } from "@/lib/preferences";
+import { Badge, Card, EmptyState, Field, FlashMessage, PageHeader, Select, Textarea, cx } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
-import { getMyAthleteId, requireProfile } from "@/lib/auth";
+import { requireSection } from "@/lib/auth";
 import { isUuid } from "@/lib/forms";
-import type { Message } from "@/lib/types";
+import { loadAttachments } from "@/lib/files/data";
+import { ALLOWED_EXTENSIONS, formatBytes } from "@/lib/files/rules";
 import { sendMessage } from "./actions";
 
 export const metadata = { title: "Messages" };
 
-interface Thread {
-  key: string;
-  athleteId: string;
-  coachId: string;
-  name: string;
-}
+interface Message { id: string; sender_id: string; recipient_id: string; body: string; created_at: string; read_at: string | null }
+interface Contact { user_id: string; full_name: string; label: string }
 
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, user, profile, t } = await requireProfile();
+  const { supabase, user, profile, t } = await requireSection("messages");
   const tm = t.messages;
-  const isAthlete = profile.role === "athlete";
 
-  // Active connections only: a professional's access ends with the connection.
-  let threads: Thread[] = [];
-  if (isAthlete) {
-    const myAthleteId = await getMyAthleteId();
-    if (myAthleteId) {
-      const { data: rels } = await supabase
-        .from("coach_athlete_relationships")
-        .select("coach_id")
-        .eq("athlete_id", myAthleteId)
-        .eq("status", "active");
-      const coachIds = (rels ?? []).map((r) => r.coach_id as string);
-      const { data: people } = coachIds.length
-        ? await supabase.from("profiles").select("id, full_name, email").in("id", coachIds)
-        : { data: [] as { id: string; full_name: string; email: string }[] };
-      threads = coachIds.map((cid) => {
-        const p = (people ?? []).find((x) => x.id === cid);
-        return { key: cid, athleteId: myAthleteId, coachId: cid, name: p?.full_name || p?.email || "—" };
-      });
-    }
-  } else {
-    const { data: rels } = await supabase
-      .from("coach_athlete_relationships")
-      .select("athlete_id, athletes(full_name)")
-      .eq("coach_id", user.id)
-      .eq("status", "active");
-    threads = (rels ?? []).map((r) => {
-      const a = r.athletes as unknown as { full_name: string } | null;
-      return { key: r.athlete_id as string, athleteId: r.athlete_id as string, coachId: user.id, name: a?.full_name ?? "—" };
-    });
-    threads.sort((x, y) => x.name.localeCompare(y.name));
+  const [{ data: contactRows }, { data: messageRows }] = await Promise.all([
+    supabase.rpc("message_contacts"),
+    supabase.from("direct_messages").select("id, sender_id, recipient_id, body, created_at, read_at").order("created_at", { ascending: false }).limit(400),
+  ]);
+  const contacts = (contactRows ?? []) as Contact[];
+  const messages = (messageRows ?? []) as Message[];
+  const contactOf = (id: string) => contacts.find((c) => c.user_id === id);
+  const labelOf = (c: Contact) => (t.orgRoles as Record<string, string>)[c.label] ?? (t.roles as Record<string, string>)[c.label] ?? (c.label === "athlete" ? t.roles.athlete : c.label);
+
+  // One conversation per counterpart, newest first.
+  const threads = new Map<string, { last: Message; unread: number }>();
+  for (const m of messages) {
+    const other = m.sender_id === user.id ? m.recipient_id : m.sender_id;
+    const th = threads.get(other) ?? { last: m, unread: 0 };
+    if (m.recipient_id === user.id && !m.read_at) th.unread += 1;
+    threads.set(other, th);
   }
-
-  const wanted = isAthlete ? sp.coach : sp.athlete;
-  const active = threads.find((th) => th.key === wanted) ?? (threads.length === 1 ? threads[0] : undefined);
-
-  // Unread counts per thread (messages from the other party).
-  const { data: unreadRows } = await supabase
-    .from("messages")
-    .select("athlete_id, coach_id")
-    .is("read_at", null)
-    .neq("sender_id", user.id)
-    .limit(2000);
-  const unread = new Map<string, number>();
-  (unreadRows ?? []).forEach((m) => {
-    const k = (isAthlete ? m.coach_id : m.athlete_id) as string;
-    unread.set(k, (unread.get(k) ?? 0) + 1);
-  });
-
-  let messages: Message[] = [];
-  if (active && isUuid(active.athleteId) && isUuid(active.coachId)) {
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("athlete_id", active.athleteId)
-      .eq("coach_id", active.coachId)
-      .order("created_at", { ascending: true })
-      .limit(500);
-    messages = (data ?? []) as Message[];
-    if (messages.some((m) => m.sender_id !== user.id && !m.read_at)) {
-      await supabase.rpc("mark_thread_read", { p_athlete: active.athleteId, p_coach: active.coachId });
-      unread.delete(active.key);
-    }
-  }
-
-  const param = isAthlete ? "coach" : "athlete";
+  const withId = isUuid(sp.with) ? sp.with : null;
+  const active = withId ? contactOf(withId) ?? (threads.has(withId) ? { user_id: withId, full_name: tm.unknown, label: "" } : null) : null;
+  const thread = withId ? messages.filter((m) => (m.sender_id === withId && m.recipient_id === user.id) || (m.sender_id === user.id && m.recipient_id === withId)).reverse() : [];
+  const threadFiles = await loadAttachments(supabase, "message", thread.map((m) => m.id));
+  if (withId && thread.some((m) => m.recipient_id === user.id && !m.read_at)) await supabase.rpc("mark_messages_read", { p_with: withId });
 
   return (
     <>
-      <PageHeader title={tm.title} />
+      <PageHeader title={tm.title} subtitle={tm.subtitle} />
       <FlashMessage error={sp.error} ok={sp.ok} />
-      {threads.length === 0 ? (
-        <EmptyState title={tm.empty} />
+      {contacts.length === 0 && threads.size === 0 ? (
+        <EmptyState title={tm.empty} body={tm.noContacts} />
       ) : (
-        <div className="grid gap-4 md:grid-cols-[240px_1fr]">
-          <nav aria-label={tm.conversations} className="min-w-0">
-            <ul className="space-y-1">
-              {threads.map((th) => (
-                <li key={th.key}>
-                  <Link
-                    href={`/messages?${param}=${th.key}`}
-                    aria-current={active?.key === th.key ? "page" : undefined}
-                    className={cx(
-                      "flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm",
-                      active?.key === th.key ? "bg-brand-50 font-medium text-brand-800" : "hover:bg-canvas",
-                    )}
-                  >
-                    <span className="truncate">{th.name}</span>
-                    {(unread.get(th.key) ?? 0) > 0 && (
-                      <span className="num rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold text-white">
-                        {unread.get(th.key)}
-                        <span className="sr-only"> {tm.unread}</span>
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {active ? (
-            <Card title={active.name}>
-              <p className="mb-3 text-xs text-muted">{tm.accessNote}</p>
-              <ol className="mb-4 max-h-[55dvh] space-y-3 overflow-y-auto" aria-live="polite">
-                {messages.length === 0 && <li className="text-sm text-muted">{tm.noMessages}</li>}
-                {messages.map((m) => {
-                  const mine = m.sender_id === user.id;
-                  return (
-                    <li key={m.id} className={cx("flex", mine ? "justify-end" : "justify-start")}>
-                      <div className={cx("max-w-[85%] rounded-2xl px-4 py-2 text-sm", mine ? "bg-brand-600 text-white" : "bg-canvas text-ink")}>
-                        <p className="whitespace-pre-wrap break-words">{m.body}</p>
-                        <p className={cx("mt-1 text-[11px]", mine ? "text-white/75" : "text-muted")}>
-                          {mine ? tm.you : active.name} · {new Date(m.created_at).toLocaleString(profile.locale === "he" ? "he-IL" : "en-GB", { dateStyle: "short", timeStyle: "short" })}
-                          {mine && ` · ${m.read_at ? tm.read : tm.delivered}`}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-              <form action={sendMessage} className="space-y-2">
-                <input type="hidden" name="athlete_id" value={active.athleteId} />
-                <input type="hidden" name="coach_id" value={active.coachId} />
-                <label htmlFor="message-body" className="sr-only">{tm.placeholder}</label>
-                <Textarea id="message-body" name="body" rows={3} maxLength={4000} required placeholder={tm.placeholder} />
-                <SubmitButton pendingText={t.common.saving}>{tm.send}</SubmitButton>
-              </form>
+        <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+          <div className="space-y-4">
+            <Card title={tm.conversations}>
+              {threads.size === 0 ? <p className="text-sm text-muted">{tm.emptyHelp}</p> : (
+                <ul className="-my-2 divide-y divide-line" data-testid="threads">
+                  {[...threads.entries()].map(([id, th]) => {
+                    const c = contactOf(id);
+                    return (
+                      <li key={id}>
+                        <Link href={`/messages?with=${id}`} className={cx("block rounded-lg px-2 py-2.5 text-sm hover:bg-canvas", id === withId && "bg-brand-50")}>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate font-medium text-ink"><bdi>{c?.full_name ?? tm.unknown}</bdi></span>
+                            {th.unread > 0 && <Badge tone="green">{th.unread}</Badge>}
+                          </div>
+                          <div className="truncate text-xs text-muted"><bdi>{th.last.body}</bdi></div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </Card>
-          ) : (
-            <Card><p className="text-sm text-muted">{tm.choose}</p></Card>
-          )}
+            {contacts.length > 0 && (
+              <Card title={tm.newConversation}>
+                <form action="/messages" method="get" className="space-y-3">
+                  <Field label={tm.to}>
+                    <Select name="with" defaultValue="" required>
+                      <option value="" disabled>{tm.choose}</option>
+                      {contacts.map((c) => <option key={c.user_id} value={c.user_id}>{c.full_name} · {labelOf(c)}</option>)}
+                    </Select>
+                  </Field>
+                  <SubmitButton variant="secondary">{tm.newConversation}</SubmitButton>
+                </form>
+              </Card>
+            )}
+          </div>
+
+          <Card title={active ? <>{active.full_name}{active.label && <span className="ms-2 text-xs font-normal text-muted">{labelOf(active)}</span>}</> : tm.title}>
+            {!active ? <p className="text-sm text-muted">{tm.selectThread}</p> : (
+              <div className="flex min-h-80 flex-col">
+                <ul className="flex-1 space-y-3" data-testid="thread">
+                  {thread.map((m) => {
+                    const mine = m.sender_id === user.id;
+                    return (
+                      <li key={m.id} className={cx("flex", mine ? "justify-end" : "justify-start")}>
+                        <div className={cx("max-w-[80%] rounded-2xl px-3.5 py-2 text-sm", mine ? "bg-brand-600 text-white" : "bg-canvas text-ink")}>
+                          <p className="whitespace-pre-line break-words"><bdi>{m.body}</bdi></p>
+                          {threadFiles.filter((f) => f.ref_id === m.id).map((f) => (
+                            <a key={f.id} href={`/files/${f.id}`} download className={cx("mt-1.5 block truncate rounded-lg px-2 py-1 text-xs underline", mine ? "bg-white/15" : "bg-surface")}>
+                              <bdi>{f.file_name}</bdi> <span className="num">({formatBytes(f.size_bytes)})</span>
+                            </a>
+                          ))}
+                          <div className={cx("num mt-1 text-[10px]", mine ? "text-white/70" : "text-muted")}>{new Date(m.created_at).toLocaleString(profile.locale, { dateStyle: "short", timeStyle: "short", ...hour12Option(parsePreferences(profile.preferences).time_format) })}</div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {contactOf(active.user_id) && (
+                  <form action={sendMessage} className="mt-4 flex flex-col gap-2 border-t border-line pt-4 sm:flex-row">
+                    <input type="hidden" name="to" value={active.user_id} />
+                    <div className="flex-1 space-y-2">
+                      <Textarea name="body" rows={2} maxLength={4000} aria-label={tm.placeholder} placeholder={tm.placeholder} />
+                      <input type="file" name="file" aria-label={t.files.choose} accept={ALLOWED_EXTENSIONS.map((e) => `.${e}`).join(",")} className="block w-full text-xs file:me-2 file:rounded-md file:border-0 file:bg-canvas file:px-2.5 file:py-1 file:text-xs file:font-medium" />
+                    </div>
+                    <SubmitButton>{tm.send}</SubmitButton>
+                  </form>
+                )}
+                <p className="mt-3 text-xs text-muted">{tm.privacy}</p>
+              </div>
+            )}
+          </Card>
         </div>
       )}
     </>

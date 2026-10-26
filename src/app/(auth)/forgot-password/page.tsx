@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotGuardFields } from "@/components/security/BotGuardFields";
 import { Field, FlashMessage, Input } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { getSession } from "@/lib/auth";
@@ -13,6 +14,7 @@ export default async function ForgotPasswordPage({ searchParams }: { searchParam
       <p className="mb-6 text-sm text-ink-soft">{t.auth.forgotHelp}</p>
       <FlashMessage error={sp.error} ok={sp.ok} />
       <form action={requestPasswordReset} className="space-y-4">
+        <BotGuardFields />
         <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
         <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.sendReset}</SubmitButton>
       </form>

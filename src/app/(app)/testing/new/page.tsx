@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, Checkbox, Field, FlashMessage, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
+import { redirect } from "next/navigation";
 import { requireProfessional } from "@/lib/auth";
 import { TEST_CATEGORIES } from "@/lib/catalog";
 import { isUuid } from "@/lib/forms";
@@ -16,7 +17,8 @@ interface Row {
 
 export default async function RecordTestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
-  const { supabase, t } = await requireProfessional();
+  const { supabase, org, t } = await requireProfessional();
+  if (org?.org_role === "director") redirect("/testing"); // the director reads results, staff record them
   const tt = t.testing;
 
   const [{ data: athletes }, { data: defsData }, { data: batteries }] = await Promise.all([
@@ -93,7 +95,7 @@ export default async function RecordTestPage({ searchParams }: { searchParams: P
                         const items = defs.filter((d) => d.category === c);
                         return items.length ? (
                           <optgroup key={c} label={tt.categories[c]}>
-                            {items.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.unit}{d.higher_is_better ? " ↑" : " ↓"})</option>)}
+                            {items.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.unit})</option>)}
                           </optgroup>
                         ) : null;
                       })}

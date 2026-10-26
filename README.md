@@ -14,17 +14,42 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | Role onboarding (7 roles), enforced in the database | Working |
 | Athlete management: profiles, search/filter, archive, notes, flags | Working |
 | Personal coach codes, invitation links, confirmed connect, coach transfer | Working |
-| Exercise library: 45 system exercises, custom exercises, favorites, video links | Working |
+| Exercise library: 347 system exercises with video links (from the coach-provided list), custom exercises, favorites | Working (live) |
 | Training planner: programs → phases → weeks → sessions → exercises, copy/duplicate, templates, versions, assignment, athlete logging, planned vs completed | Working |
 | Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
 | Readiness check-ins with self-referenced review flags | Working |
-| Teams/groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
-| Messages between connected coach and athlete (read receipts, in-app notification) | Database tested; UI built, awaiting review |
-| Return-to-play plans: phases, criteria, exercises, recorded professional clearance | Database tested; UI built, awaiting review |
-| AI assistant, reports/PDF, calendar and Google Calendar, payments, nutrition and custom forms, video feed, research library, organizations, subscriptions | **Not built yet** (Phases 3–5) |
+| Team accounts (director, staff roles, invitations, consented roster; live on the Supabase project since 2026-10-22), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
+| Workout builder with AI assistant, training calendar, athlete "Today's workout" | Working (AI needs `ANTHROPIC_API_KEY`) |
+| Return to play: injury timeline, staff injury board, clearance by qualified roles | Working |
+| GPS and wearables: CSV import (StatSports, Catapult, Polar, generic), distance, speed zones, sprints, heat maps | Working (live vendor sync needs vendor API access) |
+| Role logins: director (read-only club view), head coach, head of performance, physiotherapist, athlete, personal trainer | Working |
+| Messages and file attachments in every category | Working |
+| Wearables: WHOOP connection and Fitbit / WHOOP file import, shared with staff only by the athlete's choice | Working (live WHOOP needs developer credentials; Fitbit live waits for Google approval) |
+| Security and compliance: CSP, https, rate limits, bot guard, two-factor, idle sign-out, account deletion, privacy policy, terms, parental consent for minors | Working (legal texts are a draft until reviewed) |
+| Reports/PDF, Google Calendar, payments, nutrition and custom forms, video feed, research library, subscriptions | **Not built yet** |
+
+Documentation: [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Roles and access](docs/ROLES.md) ·
+[Deployment](docs/DEPLOYMENT.md) · [Database](supabase/README.md) · [Decisions](docs/adr) · [Known issues](docs/KNOWN-ISSUES.md) · [Changelog](CHANGELOG.md).
+Run all fast checks with `npm run verify`.
 
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
+
+## Account types
+
+Sign-up offers three paths (`/` and `/onboarding`):
+
+| Account | Who | What they get |
+| --- | --- | --- |
+| **Team** | A club or staff group | The creator becomes the **director** and the team gets an athlete code (`TEAM-XXXXXX`). The director invites each staff member with a single-use, 14-day invitation (`STAFF-XXXXXX`) that fixes their role: head coach, head of performance, assistant coach, physiotherapist, sports scientist or other staff. Everyone has their own login. |
+| **Personal Trainer** | An independent practitioner | Own roster, personal coach code (`P360-XXXXXX`) and programs. Can choose a profession (personal trainer, S&C coach, performance coach, physiotherapist, sports scientist). |
+| **Athlete** | The person being coached | Connects to a coach (`P360-`) or joins a team roster (`TEAM-`) after seeing who they are connecting with. Can leave at any time. |
+
+Team permissions: staff (everyone except the director) work with the athletes on the team roster; head coach and
+head of performance can also edit and archive athlete profiles. The **director sees the roster list and aggregated
+totals only, never individual athlete records.** Roster membership needs the athlete's own consent; staff can add an
+athlete who has no account yet, and that assertion is recorded. A removed member or a departing athlete loses access
+immediately.
 
 ## Security model
 
@@ -39,6 +64,29 @@ Authorization lives in Postgres row level security, not in the UI:
   columns are not writable by users.
 - Codes are invitations, not credentials. Regenerating a code keeps existing connections.
 - Sensitive actions (connections, code changes, assignments, onboarding) are written to `audit_log`.
+
+## Security and compliance
+
+Each concern is its own small module with comments and tests, so it can be changed in isolation.
+
+| Concern | Where | What it does |
+| --- | --- | --- |
+| Encrypted transport | `src/lib/security/https.ts`, `headers.ts` | Production http requests are redirected to https; HSTS header; `upgrade-insecure-requests` |
+| XSS | `src/lib/security/headers.ts`, `url.ts`; eslint `react/no-danger` | Per-request nonce Content-Security-Policy (inline scripts blocked), frame/object/form-action lockdown, safe URL checks, no raw HTML injection allowed |
+| SQL / filter injection | `src/lib/security/query.ts` | The Supabase client binds every value as a parameter; search text is additionally stripped of filter syntax and LIKE wildcards |
+| Request flooding | `src/lib/security/rate-limit.ts`, `policy.ts` | Per-IP limits, strictest on sign-in/sign-up (429 + Retry-After). In-memory per instance: use a shared store when running several instances |
+| Bots | `src/lib/security/bot-guard.ts`, `components/security/BotGuardFields.tsx` | Honeypot, signed time trap, optional Cloudflare Turnstile on login, sign-up and password reset |
+| Two-factor sign-in | `settings/security/*`, `(auth)/login/mfa`, `supabase/middleware.ts` | Authenticator-app (TOTP) codes; a password-only session cannot reach the app once 2FA is on |
+| Auto sign-out | `components/security/IdleLogout.tsx`, `lib/security/idle.ts` | Warns, then signs out after inactivity (choose Never/15/30/60/120 min in Settings; default 60) |
+| Delete account | `supabase/migrations/*_delete_account.sql`, `settings/security/actions.ts` | Permanent deletion after typing the email and password; last-director guard; audited |
+| Autosave | `lib/autosave/*`, `components/autosave/*` | Debounced autosave with status, flush on tab hide, and local drafts for unsent notes |
+| Payments | `lib/payments/*`, `/billing` | External hosted checkout only; a test fails the build if card fields appear in the source |
+| Affiliate disclosure | `lib/legal/affiliate.ts`, `components/legal/ExternalLink.tsx`, `/disclosure` | Affiliate links get `rel="sponsored"` and a visible "Affiliate link" label automatically |
+| Font and icon licenses | `src/lib/legal/assets.json`, `scripts/check-licenses.mjs`, `/licenses` | `npm run check:licenses` fails on undeclared fonts/icons or disallowed dependency licenses |
+| Accessibility statement | `/accessibility` | Public statement; skip link, visible focus and reduced-motion support in the UI. Fill in the coordinator contact (see `.env.example`) before launch |
+
+Honest limits: the accessibility statement is based on an internal review, not an independent audit; an Israeli
+legal statement should be confirmed by a qualified accessibility consultant. Legal pages are product text, not legal advice.
 
 ## Getting started
 
@@ -61,8 +109,8 @@ match the project's migration history, so `supabase db push` only sends new ones
 | Command | What it checks |
 | --- | --- |
 | `npm run test` | Unit tests for metrics, form parsing and video embedding (Vitest) |
-| `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission and training-function suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
-| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, Hebrew RTL, mobile menu |
+| `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission, training-function and team-permission suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
+| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, the three account types, team roles and roster consent, Hebrew RTL, mobile menu |
 | `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
 ## Project layout

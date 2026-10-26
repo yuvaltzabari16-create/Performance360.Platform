@@ -6,6 +6,17 @@ import { getSession, requireProfile } from "@/lib/auth";
 import { bool, done, fail, isUuid, num, oneOf, safeNext, str } from "@/lib/forms";
 import { heightToCm, massToKg } from "@/lib/units";
 
+/** Guardian details; consent keeps its original date and source until it is withdrawn. */
+function guardianFields(fd: FormData, isAthlete: boolean, existing: { guardian_consent_at: string | null; guardian_consent_source: string | null } | null) {
+  const consented = bool(fd, "guardian_consent");
+  return {
+    guardian_name: str(fd, "guardian_name", 120),
+    guardian_contact: str(fd, "guardian_contact", 200),
+    guardian_consent_at: consented ? existing?.guardian_consent_at ?? new Date().toISOString() : null,
+    guardian_consent_source: consented ? existing?.guardian_consent_source ?? (isAthlete ? "athlete_declared" : "staff_recorded") : null,
+  };
+}
+
 function athleteFields(fd: FormData, units: "metric" | "imperial") {
   const height = num(fd, "height");
   const mass = num(fd, "body_mass");
@@ -47,7 +58,7 @@ export async function createAthlete(formData: FormData) {
   // The id is generated here and the row inserted without RETURNING: read access comes
   // from the relationship row an AFTER trigger creates in the same statement.
   const id = crypto.randomUUID();
-  const { error } = await supabase.from("athletes").insert({ ...fields, id, owner_coach_id: user.id });
+  const { error } = await supabase.from("athletes").insert({ ...fields, ...guardianFields(formData, false, null), id, owner_coach_id: user.id });
   if (error) fail("/athletes/new", error.message);
   revalidatePath("/athletes");
   redirect(`/athletes/${id}`);
@@ -59,7 +70,9 @@ export async function updateAthlete(formData: FormData) {
   if (!isUuid(id)) fail("/athletes", t.common.notFound);
   const fields = athleteFields(formData, profile.units);
   if (!fields.full_name) fail(`/athletes/${id}/edit`, t.common.required);
-  const { data, error } = await supabase.from("athletes").update(fields).eq("id", id).select("id");
+  const { data: existing } = await supabase.from("athletes").select("guardian_consent_at, guardian_consent_source").eq("id", id).maybeSingle();
+  const guardian = guardianFields(formData, profile.role === "athlete", existing);
+  const { data, error } = await supabase.from("athletes").update({ ...fields, ...guardian }).eq("id", id).select("id");
   if (error) fail(`/athletes/${id}/edit`, error.message);
   if (!data?.length) fail(`/athletes/${id}`, t.common.notAllowed);
   revalidatePath(`/athletes/${id}`);

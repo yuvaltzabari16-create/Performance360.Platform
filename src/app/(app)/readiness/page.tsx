@@ -1,3 +1,4 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { Badge, Card, Checkbox, EmptyState, Field, FlashMessage, Input, PageHeader, Table, Td, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -20,9 +21,9 @@ function ScaleInput({ name, label, hint, value }: { name: string; label: string;
       <p className="mb-1.5 text-xs text-muted">{hint}</p>
       <div className="flex gap-1.5">
         {[1, 2, 3, 4, 5].map((n) => (
-          <label key={n} className="flex-1">
-            <input type="radio" name={name} value={n} defaultChecked={value === n} className="peer sr-only" />
-            <span className="num flex h-10 cursor-pointer items-center justify-center rounded-lg border border-line text-sm peer-checked:border-brand-500 peer-checked:bg-brand-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300">{n}</span>
+          <label key={n} className="relative flex-1">
+            <input type="radio" name={name} value={n} defaultChecked={value === n} className="peer absolute inset-0 size-full cursor-pointer opacity-0" />
+            <span className="num flex h-10 cursor-pointer items-center justify-center rounded-xl bg-canvas/80 text-[15px] font-medium ring-1 ring-inset ring-line peer-checked:ring-brand-600 peer-checked:bg-brand-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300">{n}</span>
           </label>
         ))}
       </div>
@@ -87,7 +88,7 @@ async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefin
                 {entries.slice(0, 14).map((e) => (
                   <li key={e.id} className="flex justify-between py-2">
                     <span className="num">{e.entry_date}</span>
-                    <span className="num text-ink-soft">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}{e.sleep_hours != null && ` · ${e.sleep_hours}h`}{e.pain_reported && " · ⚠"}</span>
+                    <span className="num text-ink-soft">{wellnessIndex(e) == null ? "—" : round(wellnessIndex(e)!, 1)}{e.sleep_hours != null && ` · ${e.sleep_hours}h`}{e.pain_reported && <Icon name="warning" className="ms-1 size-3.5" />}</span>
                   </li>
                 ))}
               </ul>
@@ -125,7 +126,7 @@ async function CoachReadiness({ sp, t }: { sp: Record<string, string | undefined
       <PageHeader title={tr.title} subtitle={`${tr.teamOverview}: ${submitted}/${rows.length}`} />
       <form action="/readiness" className="mb-4 flex max-w-xs gap-2">
         <Input type="date" name="date" defaultValue={date} aria-label={t.common.date} />
-        <button className="rounded-lg border border-line bg-white px-3 text-sm hover:bg-canvas" type="submit">{t.common.view}</button>
+        <button className="rounded-lg border border-line bg-surface px-3 text-sm hover:bg-canvas" type="submit">{t.common.view}</button>
       </form>
       <p className="mb-4 text-xs text-muted">{tr.indexHelp} {tr.flagHelp}</p>
       {rows.length === 0 ? (
@@ -144,7 +145,7 @@ async function CoachReadiness({ sp, t }: { sp: Record<string, string | undefined
               <Td><span className="num">{entry?.soreness ?? "—"}</span></Td>
               <Td><span className="num">{entry?.stress ?? "—"}</span></Td>
               <Td>
-                {!entry ? <Badge>{tr.missing}</Badge> : flagged ? <Badge tone="amber">{tr.flagged}{entry.pain_reported ? " · ⚠" : ""}</Badge> : <Badge tone="green">✓</Badge>}
+                {!entry ? <Badge>{tr.missing}</Badge> : flagged ? <Badge tone="amber">{tr.flagged}{entry.pain_reported && <Icon name="warning" className="ms-1 size-3.5" />}</Badge> : <Badge tone="green"><Icon name="check" className="size-3.5" /></Badge>}
                 {entry?.pain_notes && <div className="mt-1 text-xs text-amber-900">{entry.pain_notes}</div>}
               </Td>
             </tr>

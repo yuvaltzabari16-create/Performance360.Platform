@@ -1,42 +1,62 @@
 name: CI
 
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
 
-permissions:
-  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  app:
-    name: Lint, typecheck, unit tests, build
-    runs-on: ubuntu-24.04
-    env:
-      # Placeholders so `next build` can compile; no real project is contacted.
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
-      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+  checks:
+    name: Lint, types, unit tests, licenses, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: npm run check:licenses
       - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+          NEXT_PUBLIC_SITE_URL: https://example.com
 
   database:
-    name: Database migrations and permission tests
-    runs-on: ubuntu-24.04
+    name: Migrations and row-level-security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Install PostgreSQL 16 server binaries
+      - name: Install PostgreSQL 16
         run: |
-          if [ ! -x /usr/lib/postgresql/16/bin/initdb ]; then
-            sudo apt-get update -y && sudo apt-get install -y postgresql-16
-          fi
-      - run: bash scripts/test-db.sh
+          sudo apt-get update
+          sudo apt-get install -y postgresql-16
+      - name: Apply migrations to a throwaway database and run the SQL tests
+        run: bash scripts/test-db.sh
+        env:
+          PGBIN: /usr/lib/postgresql/16/bin
+
+  audit:
+    name: Dependency audit (production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Known accepted advisory: the PostCSS copy bundled inside Next 15 (fixed only in Next 16); see docs/KNOWN-ISSUES.md.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high

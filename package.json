@@ -9,7 +9,10 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:db": "bash scripts/test-db.sh"
+    "test:db": "bash scripts/test-db.sh",
+    "check:licenses": "node scripts/check-licenses.mjs",
+    "docs:roles": "UPDATE_ROLES_DOC=1 vitest run src/lib/roles-doc.test.ts",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run check:licenses && npm run test:db"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -32,5 +35,11 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "overrides": {
+    "postcss": "8.5.31"
   }
 }

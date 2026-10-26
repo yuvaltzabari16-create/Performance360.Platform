@@ -25,6 +25,40 @@ export const ONBOARDING_ROLES: UserRole[] = [
   "org_admin",
 ];
 
+export type OrgRole =
+  | "director"
+  | "head_coach"
+  | "head_of_performance"
+  | "assistant_coach"
+  | "physiotherapist"
+  | "sports_scientist"
+  | "other_staff";
+
+export const ORG_ROLES: OrgRole[] = [
+  "director",
+  "head_coach",
+  "head_of_performance",
+  "assistant_coach",
+  "physiotherapist",
+  "sports_scientist",
+  "other_staff",
+];
+
+/** Independent practitioners (Personal Trainer account type) choose a profession. */
+export const INDEPENDENT_ROLES: UserRole[] = [
+  "personal_trainer",
+  "sc_coach",
+  "performance_coach",
+  "physiotherapist",
+  "sports_scientist",
+];
+
+export interface OrgMembership {
+  org_id: string;
+  org_name: string;
+  org_role: OrgRole;
+}
+
 export type Locale = "en" | "he";
 export type Units = "metric" | "imperial";
 
@@ -36,7 +70,10 @@ export interface Profile {
   avatar_url: string | null;
   locale: Locale;
   units: Units;
-  notification_prefs: { in_app: boolean; email: boolean };
+  notification_prefs: { in_app: boolean; email: boolean; muted?: string[] };
+  preferences?: Record<string, unknown> | null;
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
   is_platform_admin: boolean;
   onboarded_at: string | null;
   deactivated_at: string | null;
@@ -71,6 +108,10 @@ export interface Athlete {
   limitations: string | null;
   rehab_status: string | null;
   training_modifications: string | null;
+  guardian_name: string | null;
+  guardian_contact: string | null;
+  guardian_consent_at: string | null;
+  guardian_consent_source: "staff_recorded" | "athlete_declared" | null;
   status: "active" | "archived";
   created_at: string;
   updated_at: string;

@@ -1,4 +1,7 @@
+import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
+import { hour12Option, parsePreferences } from "@/lib/preferences";
+import { safeInternalPath } from "@/lib/security/url";
 import { revalidatePath } from "next/cache";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
@@ -45,12 +48,12 @@ export default async function NotificationsPage() {
                     <span className={n.read_at ? "text-ink-soft" : "font-medium text-ink"}>{t.notifications.kinds[n.kind] ?? n.title}</span>
                   </div>
                   {n.body && <div className="text-sm text-ink-soft">{n.body}</div>}
-                  <div className="num mt-0.5 text-xs text-muted">{new Date(n.created_at).toLocaleString(profile.locale)}</div>
+                  <div className="num mt-0.5 text-xs text-muted">{new Date(n.created_at).toLocaleString(profile.locale, { dateStyle: "short", timeStyle: "short", ...hour12Option(parsePreferences(profile.preferences).time_format) })}</div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {n.link && (
+                  {safeInternalPath(n.link) && (
                     n.read_at
-                      ? <Link href={n.link} className="text-xs text-brand-700 hover:underline">{t.common.open}</Link>
+                      ? <Link href={safeInternalPath(n.link)!} className="text-xs text-brand-700 hover:underline">{t.common.open}</Link>
                       : (
                         <form action={markRead}>
                           <input type="hidden" name="id" value={n.id} />
@@ -65,7 +68,7 @@ export default async function NotificationsPage() {
                       <button className="text-xs text-muted hover:text-ink">{t.notifications.markRead}</button>
                     </form>
                   )}
-                  {n.read_at && <Badge>✓</Badge>}
+                  {n.read_at && <Badge><Icon name="check" className="size-3.5" /></Badge>}
                 </div>
               </li>
             ))}

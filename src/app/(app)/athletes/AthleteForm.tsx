@@ -1,4 +1,4 @@
-import { Card, Field, Input, Select, Textarea } from "@/components/ui";
+import { Card, Checkbox, Field, Input, Select, Textarea } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import type { Dictionary } from "@/lib/i18n";
 import type { Athlete, Units } from "@/lib/types";
@@ -33,6 +33,19 @@ export function AthleteForm({ action, athlete, t, units, cancelHref }: {
             </Select>
           </Field>
           <Field label={ta.emergency} className="sm:col-span-2"><Input name="emergency_contact" defaultValue={a?.emergency_contact ?? ""} /></Field>
+        </div>
+      </Card>
+      <Card title={t.minors.title}>
+        <p className="mb-3 text-sm text-ink-soft">{t.minors.help}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t.minors.name}><Input name="guardian_name" maxLength={120} defaultValue={a?.guardian_name ?? ""} /></Field>
+          <Field label={t.minors.contact}><Input name="guardian_contact" maxLength={200} defaultValue={a?.guardian_contact ?? ""} /></Field>
+          <div className="sm:col-span-2">
+            <Checkbox name="guardian_consent" label={t.minors.consent} defaultChecked={Boolean(a?.guardian_consent_at)} />
+            {a?.guardian_consent_at && a.guardian_consent_source && (
+              <p className="mt-1.5 text-xs text-muted">{t.minors.recorded.replace("{date}", a.guardian_consent_at.slice(0, 10)).replace("{source}", t.minors.sources[a.guardian_consent_source])}</p>
+            )}
+          </div>
         </div>
       </Card>
       <Card title={ta.sections.sporting}>
