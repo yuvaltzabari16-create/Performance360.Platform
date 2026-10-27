@@ -12,7 +12,8 @@
     "test:db": "bash scripts/test-db.sh",
     "check:licenses": "node scripts/check-licenses.mjs",
     "docs:roles": "UPDATE_ROLES_DOC=1 vitest run src/lib/roles-doc.test.ts",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run check:licenses && npm run test:db"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run check:licenses && npm run test:db",
+    "build:lite": "node lite/build.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -30,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "0.28.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.28",
     "tailwindcss": "^4",

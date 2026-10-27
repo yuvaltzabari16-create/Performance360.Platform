@@ -104,6 +104,9 @@ The Supabase project `Performance360` (`https://ioimovfpzgohjzwkshev.supabase.co
 already has all migrations in `supabase/migrations` applied. Migration file names
 match the project's migration history, so `supabase db push` only sends new ones.
 
+## Lite (single file)
+`npm run build:lite` builds `dist-lite/performance360-lite.html`, a self-contained version for one person: double-click to open, no server or login, data kept in that browser only (export a JSON backup from Settings). Source is in `lite/`; it reuses the generator and assistant from `src/lib`. It is not multi-user and has no database-enforced privacy.
+
 ## Tests
 
 | Command | What it checks |
