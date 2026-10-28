@@ -1,0 +1,11 @@
+# Netlify build settings (kept in code so they cannot drift from the dashboard).
+# Vercel remains supported through vercel.json; the two daily cron jobs there do not run on Netlify.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
