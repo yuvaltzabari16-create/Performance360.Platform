@@ -46,4 +46,7 @@ const html = `<!doctype html>
 mkdirSync(join(root, "dist-lite"), { recursive: true });
 const out = join(root, "dist-lite/performance360-lite.html");
 writeFileSync(out, html);
+// A copy under a fixed name for static hosting (Netlify publishes the site-lite folder).
+mkdirSync(join(root, "site-lite"), { recursive: true });
+writeFileSync(join(root, "site-lite/index.html"), html);
 console.log(`built ${out} (${(html.length / 1024).toFixed(0)} KB)`);
