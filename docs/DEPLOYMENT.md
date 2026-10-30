@@ -41,7 +41,8 @@ Nothing here needs code changes.
 | `BILLING_REQUIRED` | when selling | `1` closes the app for a team whose trial and subscription have ended (billing, settings and data export stay open) |
 | `STRIPE_WEBHOOK_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | when selling | Lets Stripe tell the app who paid (section 2c). Without them the webhook answers 404 |
 | `BILLING_PORTAL_URL` | optional | Stripe customer portal link for "Manage subscription" |
-| `NEXT_PUBLIC_GOOGLE_LOGIN` | for Google sign-in | `1` shows "Continue with Google" (after step 2b below). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the email and password form |
+| `NEXT_PUBLIC_EMAIL_CODE_LOGIN` | for sign-in by email code | `1` shows "Email me a sign-in code" (after step 2b below). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the email and password form |
+| `NEXT_PUBLIC_GOOGLE_LOGIN` | optional | `1` shows "Continue with Google"; needs a Google Cloud OAuth client and the Google provider in Supabase |
 | `RATE_LIMIT_*` | optional | Defaults are sensible |
 
    Never set `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
@@ -61,28 +62,17 @@ The repository already carries `netlify.toml` (build command, Next.js runtime, N
 5. The scheduled function needs `CRON_SECRET` (any long random string) and `SUPABASE_SERVICE_ROLE_KEY`. Without them they do nothing.
 6. After the first deploy: `<address>/api/health` answers `ok`, then sign up and sign in once.
 
-### 2b. Sign in with Google (Gmail accounts)
+### 2b. Sign in with an email code (no password, works with any mailbox)
 
-1. Google Cloud console → *APIs & Services* → *OAuth consent screen* (type External; app name, support email, your domain, privacy and terms links: `<site>/privacy`, `<site>/terms`). Publish it to *In production*; "Testing" only allows the test users you list.
-2. *Credentials* → *Create credentials* → *OAuth client ID* → *Web application*. Authorised redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback` (shown in Supabase under Authentication → Providers → Google).
-3. Supabase → *Authentication* → *Providers* → *Google*: enable, paste the client ID and client secret.
-4. Supabase → *Authentication* → *URL Configuration*: Site URL is the production address and `<site>/auth/callback` is in the Redirect URLs.
-5. Set `NEXT_PUBLIC_GOOGLE_LOGIN=1` in the host's Production variables and redeploy (the flag is read at build time).
+The sign-in and sign-up pages can offer "Email me a sign-in code": the person types their email, receives a 6-digit one-time code and enters it. A new address creates an account when the code is entered; the person then accepts the terms and privacy policy and chooses their account type. The "Sign in as" role choice and two-step verification still apply.
 
-A first Google sign-in creates the account, asks the person to accept the terms and privacy policy, then continues to onboarding where they choose their account type. Two-step verification still applies on later sign-ins.
+1. Supabase → *Authentication* → *Emails* → *Templates*. Edit **Magic link** and **Confirm signup** so the message shows the code, for example: `Your Performance360 sign-in code is <strong>{{ .Token }}</strong>. It works once and expires in 10 minutes.` (Keep `{{ .ConfirmationURL }}` out of these two templates if you want code-only sign-in.)
+2. *Authentication* → *Sign In / Providers* → *Email*: *Email OTP length* 6, *Email OTP expiration* 600 seconds.
+3. *Authentication* → *SMTP settings*: a real mail service is required, because the built-in sender allows only a few emails per hour. Services such as Resend, Brevo or Postmark need the sending domain (or a verified sender) to be set up first; without it, mail only reaches your own address.
+4. Set `NEXT_PUBLIC_EMAIL_CODE_LOGIN=1` in the host's Production variables and deploy again (read at build time). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the password form.
+5. Check once on the live site: the code arrives, a wrong code is rejected, a new address goes to the terms page and then to onboarding.
 
-### 2c. Monthly subscriptions for teams (Stripe)
-
-Payment happens only on Stripe's hosted pages; the app never sees card data. Every new team gets a 14-day trial.
-
-1. Stripe → *Product catalogue*: create the product and a recurring monthly price. Create a *Payment Link* for it (turn on "Let customers adjust..." only if you want that; allow promotion codes if you like). Copy the link.
-2. Put the plans in `PAYMENT_PLANS`, for example `[{"id":"team","name":"Team","description":"Per team, per month","checkoutUrl":"https://buy.stripe.com/..."}]`, and `PAYMENT_ALLOWED_HOSTS=buy.stripe.com`. The billing page adds the team id (`client_reference_id`) and the director's email to the link, so Stripe reports which team paid.
-3. Stripe → *Developers* → *Webhooks* → add endpoint `<site>/api/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET` and add `SUPABASE_SERVICE_ROLE_KEY`.
-4. Stripe → *Settings* → *Billing* → *Customer portal*: turn it on and copy the login link into `BILLING_PORTAL_URL`.
-5. Apply the migration `20261030130000_subscriptions.sql` on the live Supabase project, then set `BILLING_REQUIRED=1` and redeploy.
-6. Test with Stripe's test mode first: pay with a test card, check the status on `/billing` changes to active, cancel in the portal, and check access closes when the period ends.
-
-Rules the database applies: an active or trialing subscription has access; a failed payment keeps access for 7 days; a canceled or unpaid subscription, or an ended trial with no subscription, closes the team's pages except billing, settings and data export. Athletes and independent trainers (accounts without a team) are not gated.
+Google sign-in is still in the code (`NEXT_PUBLIC_GOOGLE_LOGIN=1`, needs a Google Cloud OAuth client and the Google provider in Supabase) but is off by default.
 
 ## 3. After the first deploy
 

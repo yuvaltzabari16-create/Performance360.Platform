@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { Field, FlashMessage, Input } from "@/components/ui";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { SubmitButton } from "@/components/ui/client";
-import { googleLoginEnabled, passwordLoginEnabled } from "@/lib/google";
+import { CodeSignInForm } from "@/components/auth/CodeSignInForm";
+import { emailCodeEnabled, googleLoginEnabled, passwordLoginEnabled } from "@/lib/google";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
 import { signup } from "../actions";
@@ -36,6 +37,12 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         <div className="space-y-3">
           <GoogleButton href={`/auth/google?next=${encodeURIComponent(next)}`} label={t.auth.google} />
           <p className="text-xs text-muted">{t.auth.googleNote}</p>
+          {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
+        </div>
+      )}
+      {emailCodeEnabled() && (
+        <div className="space-y-3">
+          <CodeSignInForm t={t} next={next} />
           {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
         </div>
       )}

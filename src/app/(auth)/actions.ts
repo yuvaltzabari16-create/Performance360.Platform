@@ -7,6 +7,7 @@ import { fail, safeNext, str } from "@/lib/forms";
 import { TERMS_VERSION } from "@/lib/legal/operator";
 import { parsePreferences, startPath } from "@/lib/preferences";
 import { sectionsFor } from "@/lib/permissions";
+import { emailCodeEnabled, needsTermsAcceptance } from "@/lib/google";
 import { isLoginRole, matchesLoginRole } from "@/lib/login-roles";
 import { siteUrl } from "@/lib/site";
 import type { OrgRole, UserRole } from "@/lib/types";
@@ -30,27 +31,69 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) fail(`/login?next=${encodeURIComponent(next)}`, t.auth.invalidCredentials);
-  // A chosen login option must match the account; otherwise the session is closed again.
-  const chosen = str(formData, "as", 30);
-  if (isLoginRole(chosen)) {
-    const { data: userData } = await supabase.auth.getUser();
-    const uid = userData.user?.id;
-    const [{ data: prof }, { data: member }] = uid
-      ? await Promise.all([
-          supabase.from("profiles").select("role").eq("id", uid).maybeSingle(),
-          supabase.from("organization_members").select("org_role").eq("user_id", uid).eq("status", "active").maybeSingle(),
-        ])
-      : [{ data: null }, { data: null }];
-    if (!matchesLoginRole(chosen, (prof?.role as UserRole | null) ?? null, (member?.org_role as OrgRole | null) ?? null)) {
-      await supabase.auth.signOut();
-      const label = chosen === "athlete" || chosen === "personal_trainer" ? t.roles[chosen] : t.orgRoles[chosen];
-      fail(`/login?as=${chosen}&next=${encodeURIComponent(next)}`, t.auth.roleMismatch.replace("{role}", label));
-    }
+  await finishSignIn(supabase, str(formData, "as", 30) ?? "", next, t);
+}
+
+/**
+ * Steps after any successful sign-in (password or email code): a chosen login option must match the account (otherwise
+ * the session is closed again), two-factor accounts go to their second step, and a new account without a role goes to
+ * onboarding. Does not return.
+ */
+async function finishSignIn(supabase: Awaited<ReturnType<typeof createClient>>, chosen: string, next: string, t: Awaited<ReturnType<typeof getSession>>["t"]): Promise<never> {
+  const { data: userData } = await supabase.auth.getUser();
+  const uid = userData.user?.id;
+  const [{ data: prof }, { data: member }] = uid
+    ? await Promise.all([
+        supabase.from("profiles").select("role, terms_version").eq("id", uid).maybeSingle(),
+        supabase.from("organization_members").select("org_role").eq("user_id", uid).eq("status", "active").maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
+  if (isLoginRole(chosen) && prof?.role && !matchesLoginRole(chosen, (prof.role as UserRole | null) ?? null, (member?.org_role as OrgRole | null) ?? null)) {
+    await supabase.auth.signOut();
+    const label = chosen === "athlete" || chosen === "personal_trainer" ? t.roles[chosen] : t.orgRoles[chosen];
+    fail(`/login?as=${chosen}&next=${encodeURIComponent(next)}`, t.auth.roleMismatch.replace("{role}", label));
   }
   // Accounts with two-factor authentication must pass the second step before reaching the app.
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(next)}`);
-  redirect(await startPage(supabase, next));
+  const target = needsTermsAcceptance(userData.user, prof) ? `/auth/terms?next=${encodeURIComponent(prof?.role ? next : `/onboarding?next=${encodeURIComponent(next)}`)}` : !prof?.role && next === "/dashboard" ? "/onboarding" : next;
+  if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") redirect(`/login/mfa?next=${encodeURIComponent(target)}`);
+  redirect(await startPage(supabase, target));
+}
+
+/** Step 1 of "sign in with an email code": sends a one-time code. The answer is the same whether or not the address has an account. */
+export async function sendLoginCode(formData: FormData) {
+  const { t, locale } = await getSession();
+  const email = (str(formData, "email", 320) ?? "").toLowerCase();
+  const next = safeNext(str(formData, "next", 500));
+  const as = str(formData, "as", 30) ?? "";
+  const back = `/login?${isLoginRole(as) ? `as=${as}&` : ""}next=${encodeURIComponent(next)}`;
+  if (!emailCodeEnabled()) fail(back, t.auth.codeUnavailable);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail(back, t.auth.codeEmailInvalid);
+  await requireHuman(formData, back, t.auth.botBlocked);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, data: { locale, otp_signup: true }, emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(next)}` },
+  });
+  if (error && !/rate|seconds|too many/i.test(error.message)) fail(back, t.auth.codeSendFailed);
+  const params = new URLSearchParams({ email, next, ...(isLoginRole(as) ? { as } : {}) });
+  redirect(`/login/code?${params.toString()}`);
+}
+
+/** Step 2: checks the code, then continues like a password sign-in. */
+export async function verifyLoginCode(formData: FormData) {
+  const { t } = await getSession();
+  const email = (str(formData, "email", 320) ?? "").toLowerCase();
+  const token = (str(formData, "code", 12) ?? "").replace(/\s/g, "");
+  const next = safeNext(str(formData, "next", 500));
+  const as = str(formData, "as", 30) ?? "";
+  const back = `/login/code?${new URLSearchParams({ email, next, ...(isLoginRole(as) ? { as } : {}) }).toString()}`;
+  if (!email || !/^\d{6,8}$/.test(token)) fail(back, t.auth.codeInvalid);
+  await requireHuman(formData, back, t.auth.botBlocked);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) fail(back, t.auth.codeInvalid);
+  await finishSignIn(supabase, as, next, t);
 }
 
 /** After sign-in the default landing page ("/dashboard") becomes the page the person chose in Settings, if their role may open it. */
