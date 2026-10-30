@@ -1,7 +1,7 @@
-# Academy360
+# Performance360 Academy
 
 Academy management for a sports academy's staff and athletes, built on the Performance360 platform.
-The academy name you enter at sign-up is shown throughout the app; "Academy360" is the product name.
+The academy name you enter at sign-up is shown throughout the app; "Performance360 Academy" is the product name.
 
 Built with Next.js 15 (App Router, server actions), TypeScript, Tailwind CSS 4
 and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
@@ -10,17 +10,17 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 
 | Area | What it does |
 | --- | --- |
-| **Dashboard** | Per role: staff see athletes, active programs, sessions logged, tests this month, programs starting soon and recent tests; the director sees academy totals, staff and roster; athletes see today's workout, upcoming sessions, goals, results and coach feedback |
+| **Dashboard** | Coaches and physiotherapists see athletes, active programs, sessions logged, tests this month, programs starting soon and recent tests (owners also a payments summary); athletes see today's workout, upcoming sessions, today's meals, goals, results and coach notes |
 | **My Athletes** | Profiles, goals, notes shared or private, files, parental consent for minors, search and archive |
 | **AI Assistant** | Full-page chat (also a floating button on every page). Role-specific knowledge base in English and Hebrew, including academy topics: development pathways across age groups, season testing plans, youth training, and how to use the app. Runs inside the app, no outside AI service, nothing typed leaves it |
 | **Training Calendar** | Every planned session by date, from each program's start date; athletes open and log sessions from it |
 | **Messages** | One-to-one messages with file attachments between people who work together |
-| **Staff** | The director invites staff with single-use invitations that fix their role, shares the academy code with athletes, manages the roster and splits it into squads |
+| **Staff** | The owner invites coaches and physiotherapists with single-use invitations, makes other coaches owners, shares the academy code with athletes, manages the roster and splits it into squads |
 | **Workout Planner** | Programs → weeks → sessions → exercises, templates, copy, versions, assignment, automatic session builder, planned versus completed |
 | **Exercise Library** | 347 exercises with video, custom exercises, favorites, video feed |
 | **Testing** | 19 standard tests, custom tests, trials, batteries, trends and CSV export |
-| **Nutrition** | Athletes log meals with an optional photo and optional calories, protein, carbs, fat and water; day totals and a 7-day chart. Staff who work with the athlete read the log and comment on meals. The director does not see meals |
-| **Payments** (director) | Charges per athlete or for the whole roster at once (ILS, USD, EUR, GBP), mark paid with date and method or back to unpaid, outstanding / overdue / collected-this-month totals, and a "who owes" list. Only the director sees payments; staff and athletes do not. Tracking only: no money moves through the app |
+| **Nutrition** | Athletes log meals with an optional photo and optional calories, protein, carbs, fat and water; day totals and a 7-day chart. Coaches and physiotherapists who work with the athlete read the log and comment on meals |
+| **Payments** (owners) | Charges per athlete or for the whole roster at once (ILS, USD, EUR, GBP), mark paid with date and method or back to unpaid, outstanding / overdue / collected-this-month totals, and a "who owes" list. Only owners see payments; other coaches, physiotherapists and athletes do not. Tracking only: no money moves through the app |
 
 ### The athlete login
 
@@ -46,20 +46,21 @@ Run all fast checks with `npm run verify`.
 There are no fake metrics. Every dashboard number is counted from database rows,
 and no normative values are shown.
 
-## Account types
+## Roles
 
-Sign-up offers two paths (`/` and `/onboarding`):
+Performance360 Academy has three roles. Sign-up offers two paths (`/` and `/onboarding`):
 
-| Account | Who | What they get |
+| Role | Who | What they get |
 | --- | --- | --- |
-| **Academy** | The academy's director | Creates the academy and becomes its **director**. The academy gets an athlete code (`TEAM-XXXXXX`). The director invites each staff member with a single-use, 14-day invitation (`STAFF-XXXXXX`) that fixes their role: head coach, head of performance, assistant coach, physiotherapist, sports scientist or other staff. Everyone has their own login. |
-| **Athlete** | The person being coached | Joins the academy roster with the academy code after seeing which academy it is, and can leave at any time. |
+| **Coach** | Academy coaches | Whoever creates the academy joins as a coach and is its **owner**. The academy gets an athlete code (`TEAM-XXXXXX`). Owners invite coaches and physiotherapists with a single-use, 14-day invitation (`STAFF-XXXXXX`), make other coaches owners, manage the roster, code and squads, and track payments. Every coach builds workouts, records tests, writes notes and can edit athlete profiles. |
+| **Physiotherapist** | Medical staff | Joins with an invitation. Works with every roster athlete: tests, rehab and prevention workouts, notes, nutrition. Cannot edit or archive athlete profiles. |
+| **Athlete** | The people being coached | Joins the roster with the academy code after seeing which academy it is, and can leave at any time. |
 
-Staff (everyone except the director) work with the athletes on the academy roster; head coach and head of performance
-can also edit and archive athlete profiles. The **director runs the academy and reads athlete data read-only**; building
-programs and recording tests is the coaching staff's job (the database enforces this). Roster membership needs the
-athlete's own consent; staff can add an athlete who has no account yet, and that assertion is recorded. A removed
-member or a departing athlete loses access immediately.
+An academy always keeps at least one owner. Owners read every program assigned in the academy, but a program is edited
+only by the coach who built it. Once the academy uses squads, a coach who is not an owner sees only their squads'
+athletes. Roster membership needs the athlete's own consent; staff can add an athlete who has no account yet, and that
+assertion is recorded. A removed member or a departing athlete loses access immediately. All of this is enforced in the
+database (`supabase/migrations/20261030140000_three_roles.sql`).
 
 ## Security model
 
@@ -88,7 +89,7 @@ Each concern is its own small module with comments and tests, so it can be chang
 | Bots | `src/lib/security/bot-guard.ts`, `components/security/BotGuardFields.tsx` | Honeypot, signed time trap, optional Cloudflare Turnstile on login, sign-up and password reset |
 | Two-factor sign-in | `settings/security/*`, `(auth)/login/mfa`, `supabase/middleware.ts` | Authenticator-app (TOTP) codes; a password-only session cannot reach the app once 2FA is on |
 | Auto sign-out | `components/security/IdleLogout.tsx`, `lib/security/idle.ts` | Warns, then signs out after inactivity (choose Never/15/30/60/120 min in Settings; default 60) |
-| Delete account | `supabase/migrations/*_delete_account.sql`, `settings/security/actions.ts` | Permanent deletion after typing the email and password; last-director guard; audited |
+| Delete account | `supabase/migrations/*_delete_account.sql`, `settings/security/actions.ts` | Permanent deletion after typing the email and password; last-owner guard; audited |
 | Autosave | `lib/autosave/*`, `components/autosave/*` | Debounced autosave with status, flush on tab hide, and local drafts for unsent notes |
 | Payments | `lib/payments/*`, `/billing` | External hosted checkout only; a test fails the build if card fields appear in the source |
 | Affiliate disclosure | `lib/legal/affiliate.ts`, `components/legal/ExternalLink.tsx`, `/disclosure` | Affiliate links get `rel="sponsored"` and a visible "Affiliate link" label automatically |
@@ -110,7 +111,7 @@ npm run dev
 In Supabase Auth settings, set the Site URL to your deployed domain and add
 `<site>/auth/callback` to the redirect URLs.
 
-Academy360 needs **its own Supabase project** (do not point it at the Performance360 project: the two apps
+Performance360 Academy needs **its own Supabase project** (do not point it at the Performance360 project: the two apps
 would share users and data). Create one, apply every file in `supabase/migrations` in order, and set its URL and
 publishable key in `.env.local` and in the hosting provider. The database schema is the same as Performance360's,
 so fixes there can be brought over with `git pull performance360 main`.

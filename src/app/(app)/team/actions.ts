@@ -6,8 +6,8 @@ import { requireProfile } from "@/lib/auth";
 import { done, fail, oneOf, safeNext, str, uuid } from "@/lib/forms";
 import { ORG_ROLES } from "@/lib/types";
 
-const errorText = (message: string, fallback: string, lastDirector: string) =>
-  message.includes("at least one director") ? lastDirector : message.includes("not allowed") || message.includes("only the director") ? fallback : message;
+const errorText = (message: string, fallback: string, lastOwner: string) =>
+  message.includes("at least one owner") ? lastOwner : message.includes("not allowed") || message.includes("only the owner") || message.includes("invalid role") || message.includes("an owner is a coach") || message.includes("only a coach") ? fallback : message;
 
 export async function createInvite(formData: FormData) {
   const { supabase, t } = await requireProfile();
@@ -40,9 +40,20 @@ export async function changeMemberRole(formData: FormData) {
   const { supabase, t } = await requireProfile();
   const user = uuid(formData, "user_id");
   if (!user) fail("/team", t.common.notFound);
-  const { error } = await supabase.rpc("set_org_member_role", { p_user: user, p_org_role: oneOf(formData, "org_role", ORG_ROLES, "other_staff") });
+  const { error } = await supabase.rpc("set_org_member_role", { p_user: user, p_org_role: oneOf(formData, "org_role", ORG_ROLES, "head_coach") });
   if (error) fail("/team", errorText(error.message, t.common.notAllowed, t.team.lastDirector));
   revalidatePath("/team");
+  done("/team", t.team.roleChanged);
+}
+
+/** Makes a coach an owner, or steps an owner down (the database keeps at least one owner). */
+export async function setOwner(formData: FormData) {
+  const { supabase, t } = await requireProfile();
+  const user = uuid(formData, "user_id");
+  if (!user) fail("/team", t.common.notFound);
+  const { error } = await supabase.rpc("set_org_owner", { p_user: user, p_on: str(formData, "on", 1) === "1" });
+  if (error) fail("/team", errorText(error.message, t.common.notAllowed, t.team.lastDirector));
+  revalidatePath("/", "layout");
   done("/team", t.team.roleChanged);
 }
 
@@ -108,7 +119,7 @@ export async function joinTeamExisting(formData: FormData) {
   }
 }
 
-/** Squads: organised by the director and the head of performance; the database enforces who may. */
+/** Squads: organised by the academy owners; the database enforces who may. */
 export async function createSquad(formData: FormData) {
   const { supabase, t } = await requireProfile();
   const name = str(formData, "name", 60);

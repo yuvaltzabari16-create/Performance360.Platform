@@ -17,8 +17,9 @@ import { navFor } from "./nav";
 import { canAccess } from "@/lib/permissions";
 
 export function AppShell({ profile, org, t, unread, theme, children }: { profile: Profile & { role: UserRole }; org: OrgMembership | null; t: Dictionary; unread: number; theme: Theme; children: React.ReactNode }) {
-  const items = navFor(profile.role, t, org?.org_role ?? null);
-  const quick = quickActionsFor(profile.role, org?.org_role ?? null, t);
+  const owner = Boolean(org?.is_owner);
+  const items = navFor(profile.role, t, org?.org_role ?? null, owner);
+  const quick = quickActionsFor(profile.role, org?.org_role ?? null, t, owner);
   const aRole = assistantRole(profile.role, org?.org_role ?? null);
   const { starters, ...assistantLabels } = t.assistant;
   const themeLabels = { system: t.settings.themeNames.system, light: t.settings.themeNames.light, dark: t.settings.themeNames.dark };
@@ -28,7 +29,7 @@ export function AppShell({ profile, org, t, unread, theme, children }: { profile
         <Avatar name={profile.full_name || profile.email} />
         <div className="min-w-0">
           <div className="truncate text-[15px] font-semibold text-ink">{profile.full_name || profile.email}</div>
-          <div className="truncate text-xs text-muted">{org ? `${t.orgRoles[org.org_role]} · ${org.org_name}` : t.roles[profile.role]}</div>
+          <div className="truncate text-xs text-muted">{org ? `${t.orgRoles[org.org_role]}${owner ? ` (${t.team.owner})` : ""} · ${org.org_name}` : t.roles[profile.role]}</div>
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-ink-soft">

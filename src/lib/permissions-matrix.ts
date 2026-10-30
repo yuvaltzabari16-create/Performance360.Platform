@@ -2,14 +2,12 @@ import { SECTIONS, canWriteTraining, menuSectionsFor, sectionsFor, type Section 
 import type { OrgRole, UserRole } from "./types";
 
 /** The logins the matrix documents, with the account fields that define them. */
-export const MATRIX_ROLES: { label: string; role: UserRole; orgRole: OrgRole | null }[] = [
-  { label: "Director", role: "org_admin", orgRole: "director" },
-  { label: "Head coach", role: "performance_coach", orgRole: "head_coach" },
-  { label: "Head of performance", role: "performance_coach", orgRole: "head_of_performance" },
+export const MATRIX_ROLES: { label: string; role: UserRole; orgRole: OrgRole | null; owner?: boolean }[] = [
+  { label: "Coach (owner)", role: "performance_coach", orgRole: "head_coach", owner: true },
+  { label: "Coach", role: "performance_coach", orgRole: "head_coach" },
   { label: "Physiotherapist", role: "physiotherapist", orgRole: "physiotherapist" },
-  { label: "Other academy staff", role: "performance_coach", orgRole: "assistant_coach" },
   { label: "Athlete", role: "athlete", orgRole: null },
-];
+]
 
 const SECTION_LABEL: Record<Section, string> = {
   dashboard: "Dashboard", team: "Staff", athletes: "My Athletes", assistant: "AI Assistant", teams: "Groups", calendar: "Training Calendar", training: "Workout Planner (athletes: Workout Tracker)",
@@ -23,8 +21,8 @@ export function rolesMatrixMarkdown(): string {
   const head = `| Section | ${MATRIX_ROLES.map((r) => r.label).join(" | ")} |`;
   const rule = `| --- | ${MATRIX_ROLES.map(() => ":---:").join(" | ")} |`;
   // "✓" opens from the menu; "○" opens from other pages (for example an exercise from a workout) but is not in the menu.
-  const mark = (r: (typeof MATRIX_ROLES)[number], s: Section) => (!sectionsFor(r.role, r.orgRole).includes(s) ? "" : menuSectionsFor(r.role, r.orgRole).includes(s) ? "✓" : "○");
-  const rows = SECTIONS.filter((s) => MATRIX_ROLES.some((r) => sectionsFor(r.role, r.orgRole).includes(s))).map((s) => `| ${SECTION_LABEL[s]} | ${MATRIX_ROLES.map((r) => mark(r, s)).join(" | ")} |`);
+  const mark = (r: (typeof MATRIX_ROLES)[number], s: Section) => (!sectionsFor(r.role, r.orgRole, r.owner).includes(s) ? "" : menuSectionsFor(r.role, r.orgRole, r.owner).includes(s) ? "✓" : "○");
+  const rows = SECTIONS.filter((s) => MATRIX_ROLES.some((r) => sectionsFor(r.role, r.orgRole, r.owner).includes(s))).map((s) => `| ${SECTION_LABEL[s]} | ${MATRIX_ROLES.map((r) => mark(r, s)).join(" | ")} |`);
   const caps = [
     `| *Can build programs and exercises* | ${MATRIX_ROLES.map((r) => (r.role !== "athlete" && canWriteTraining(r.orgRole) ? "✓" : "")).join(" | ")} |`,
   ];

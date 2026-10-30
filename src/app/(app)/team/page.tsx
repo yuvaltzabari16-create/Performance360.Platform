@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Avatar, Badge, Button, Card, EmptyState, Field, FlashMessage, Input, PageHeader, Select, Stat, Table, Td } from "@/components/ui";
 import { ConfirmSubmit, CopyButton, ShareButton, SubmitButton } from "@/components/ui/client";
-import { isTeamDirector, requireProfile } from "@/lib/auth";
+import { isAcademyOwner, requireProfile } from "@/lib/auth";
 import { siteUrl } from "@/lib/site";
 import { ORG_ROLES, type OrgRole } from "@/lib/types";
 import { SquadsCard } from "@/components/team/SquadsCard";
-import { changeMemberRole, createInvite, leaveTeam, regenerateAthleteCode, removeFromRoster, removeMember, revokeCode, setAthleteSquad } from "./actions";
+import { changeMemberRole, createInvite, leaveTeam, regenerateAthleteCode, removeFromRoster, removeMember, revokeCode, setAthleteSquad, setOwner } from "./actions";
 
 export const metadata = { title: "My Team" };
 
@@ -39,11 +39,11 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     );
   }
 
-  const director = isTeamDirector(org);
+  const director = isAcademyOwner(org); // the owner manages staff, codes, roster and squads
   const base = await siteUrl();
   const [{ data: summaryRows }, { data: members }, { data: roster }, { data: codes }] = await Promise.all([
     supabase.rpc("org_summary"),
-    supabase.from("organization_members").select("user_id, org_role, joined_at").eq("org_id", org.org_id).eq("status", "active").order("joined_at"),
+    supabase.from("organization_members").select("user_id, org_role, is_owner, joined_at").eq("org_id", org.org_id).eq("status", "active").order("joined_at"),
     supabase.rpc("org_roster"),
     director
       ? supabase.from("organization_codes").select("id, kind, code, org_role, expires_at").eq("org_id", org.org_id).eq("status", "active").order("created_at", { ascending: false })
@@ -56,7 +56,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   const athleteCode = (codes ?? []).find((c) => c.kind === "athlete");
   const invites = (codes ?? []).filter((c) => c.kind === "staff" && (!c.expires_at || new Date(c.expires_at) > new Date()));
   const rosterRows = (roster ?? []) as { athlete_id: string; full_name: string; sport: string | null; position: string | null; has_account: boolean; consent_source: string; joined_at: string }[];
-  const canManageSquads = org.org_role === "director" || org.org_role === "head_of_performance";
+  const canManageSquads = director;
   const [{ data: squadRows }, { data: squadCoachRows }, { data: assignRows }, { data: mySquadRows }] = await Promise.all([
     supabase.from("squads").select("id, name").eq("org_id", org.org_id).eq("status", "active").order("name"),
     supabase.from("squad_coaches").select("squad_id, user_id").eq("status", "active"),
@@ -65,30 +65,30 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
   ]);
   const squads = (squadRows ?? []) as { id: string; name: string }[];
   const squadOf = new Map((assignRows ?? []).map((r) => [r.athlete_id as string, r.squad_id as string | null]));
-  const coachMembers = (members ?? []).filter((m) => m.org_role === "head_coach" || m.org_role === "assistant_coach")
+  const coachMembers = (members ?? []).filter((m) => m.org_role === "head_coach" && !m.is_owner)
     .map((m) => ({ id: m.user_id as string, name: nameOf(m.user_id)?.full_name || nameOf(m.user_id)?.email || "—" }));
   const mySquads = (mySquadRows ?? []) as { id: string; name: string }[];
-  const isSquadCoach = org.org_role === "head_coach" || org.org_role === "assistant_coach";
-  const canManageRoster = org.org_role === "head_coach" || org.org_role === "head_of_performance";
+  const isSquadCoach = org.org_role === "head_coach" && !director;
+  const canManageRoster = org.org_role === "head_coach";
+  const ownerCount = (members ?? []).filter((m) => m.is_owner).length;
 
   return (
     <>
       <PageHeader
         title={org.org_name}
-        subtitle={`${tt.yourRole}: ${t.orgRoles[org.org_role]}${director ? ` · ${tt.directorView}` : ""}`}
+        subtitle={`${tt.yourRole}: ${t.orgRoles[org.org_role]}${director ? ` · ${tt.owner}` : ""}`}
         actions={!director && (
           <form action={leaveTeam}><ConfirmSubmit variant="danger" message={tt.leaveConfirm}>{tt.leaveTeam}</ConfirmSubmit></form>
         )}
       />
       <FlashMessage error={sp.error} ok={sp.ok} />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat label={tt.staffCount} value={summary?.staff_count ?? 0} />
         <Stat label={tt.rosterCount} value={summary?.roster_count ?? 0} />
         <Stat label={tt.withAccount} value={summary?.roster_with_account ?? 0} />
         <Stat label={tt.tests30d} value={summary?.tests_30d ?? 0} />
         <Stat label={tt.sessions7d} value={summary?.sessions_7d ?? 0} />
-        <Stat label={tt.readinessToday} value={summary?.readiness_today ?? 0} />
       </div>
       <p className="mt-2 text-xs text-muted">{tt.aggregateNote}</p>
 
@@ -116,26 +116,36 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
                 </div>
               </Td>
               <Td>
-                {director ? (
+                {director && !m.is_owner ? (
                   <form action={changeMemberRole} className="flex items-center gap-2">
                     <input type="hidden" name="user_id" value={m.user_id} />
-                    <Select name="org_role" defaultValue={m.org_role} aria-label={tt.changeRole} className="max-w-48 py-1.5">
+                    <Select name="org_role" defaultValue={m.org_role} aria-label={tt.changeRole} className="min-w-40 max-w-52 py-1.5">
                       {ORG_ROLES.map((r) => <option key={r} value={r}>{t.orgRoles[r]}</option>)}
                     </Select>
                     <SubmitButton variant="secondary" className="px-2.5 py-1.5 text-xs">{t.common.save}</SubmitButton>
                   </form>
                 ) : (
-                  <Badge tone={m.org_role === "director" ? "green" : "blue"}>{t.orgRoles[m.org_role as OrgRole]}</Badge>
+                  <Badge tone="blue">{t.orgRoles[m.org_role as OrgRole]}</Badge>
                 )}
+                {m.is_owner && <span className="ms-2"><Badge tone="green">{tt.owner}</Badge></span>}
               </Td>
               <Td><span className="num">{m.joined_at.slice(0, 10)}</span></Td>
               <Td className="text-end">
-                {director && !self && (
-                  <form action={removeMember}>
-                    <input type="hidden" name="user_id" value={m.user_id} />
-                    <ConfirmSubmit variant="ghost" className="px-2 py-1 text-xs text-red-700" message={tt.removeConfirm}>{tt.removeMember}</ConfirmSubmit>
-                  </form>
-                )}
+                <div className="flex items-center justify-end gap-2">
+                  {director && m.org_role === "head_coach" && !(m.is_owner && ownerCount < 2) && (
+                    <form action={setOwner}>
+                      <input type="hidden" name="user_id" value={m.user_id} />
+                      <input type="hidden" name="on" value={m.is_owner ? "0" : "1"} />
+                      <ConfirmSubmit variant="secondary" className="whitespace-nowrap px-2.5 py-1 text-xs" message={m.is_owner ? tt.removeOwnerConfirm : tt.makeOwnerConfirm}>{m.is_owner ? tt.removeOwner : tt.makeOwner}</ConfirmSubmit>
+                    </form>
+                  )}
+                  {director && !self && !m.is_owner && (
+                    <form action={removeMember}>
+                      <input type="hidden" name="user_id" value={m.user_id} />
+                      <ConfirmSubmit variant="ghost" className="px-2 py-1 text-xs text-red-700" message={tt.removeConfirm}>{tt.removeMember}</ConfirmSubmit>
+                    </form>
+                  )}
+                </div>
               </Td>
             </tr>
           );
@@ -150,9 +160,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
           {rosterRows.map((r) => (
             <tr key={r.athlete_id}>
               <Td>
-                {director
-                  ? <span className="font-medium"><bdi>{r.full_name}</bdi></span>
-                  : <Link href={`/athletes/${r.athlete_id}`} className="font-medium hover:text-brand-700"><bdi>{r.full_name}</bdi></Link>}
+                <Link href={`/athletes/${r.athlete_id}`} className="font-medium hover:text-brand-700"><bdi>{r.full_name}</bdi></Link>
                 <div className="text-xs text-muted">{r.has_account ? t.athletes.linked : t.athletes.notLinked}</div>
               </Td>
               <Td>{r.sport ?? "—"}</Td>
@@ -189,7 +197,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
       <p className="mt-2 text-xs text-muted">{tt.rosterNote}</p>
 
       {(canManageSquads || squads.length > 0) && (
-        <SquadsCard t={t} squads={squads} coaches={coachMembers} assigned={(squadCoachRows ?? []) as { squad_id: string; user_id: string }[]} counts={squads.map((q) => [q.id, [...squadOf.values()].filter((v) => v === q.id).length] as const)} canManage={canManageSquads} />
+        <div id="squads" className="scroll-mt-6"><SquadsCard t={t} squads={squads} coaches={coachMembers} assigned={(squadCoachRows ?? []) as { squad_id: string; user_id: string }[]} counts={squads.map((q) => [q.id, [...squadOf.values()].filter((v) => v === q.id).length] as const)} canManage={canManageSquads} /></div>
       )}
 
       {director && (
@@ -261,6 +269,10 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
               <dd className="mt-0.5 text-xs leading-5 text-ink-soft">{t.orgRoleHelp[r]}</dd>
             </div>
           ))}
+          <div>
+            <dt className="text-sm font-medium text-ink">{tt.owner}</dt>
+            <dd className="mt-0.5 text-xs leading-5 text-ink-soft">{tt.ownerHelp}</dd>
+          </div>
         </dl>
       </Card>
     </>

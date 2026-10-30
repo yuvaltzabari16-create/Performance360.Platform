@@ -3,8 +3,9 @@
  * page guards, so what a person sees in the menu is exactly what they can reach.
  * The database enforces the same boundaries on data (row-level security); this is the front door.
  *
- * Academy360 opens: dashboard, my athletes, AI assistant, training calendar, messages, staff, workout planner,
- * exercise library, testing, nutrition and (for the director) payments; athletes get their own set below. The other modules inherited from
+ * Performance360 Academy has three roles: Coach, Physiotherapist and Athlete. Coaches and physiotherapists open the
+ * dashboard, my athletes, AI assistant, training calendar, messages, staff, workout planner, exercise library, testing
+ * and nutrition; the academy owner (a coach) also opens payments. Athletes get their own set below. The other modules inherited from
  * Performance360 (groups, readiness, injuries, GPS, wearables, personal code) stay in the code base
  * but are closed here, so their pages redirect and they never appear in the menu.
  */
@@ -18,16 +19,11 @@ export type Section = (typeof SECTIONS)[number];
 
 const ACCOUNT: Section[] = ["notifications", "settings"];
 
-/** Staff who coach: everything the academy offers except payments, plus their athletes' meal logs. */
+/** Coaches and physiotherapists: everything the academy offers except payments, plus their athletes' meal logs. */
 const STAFF: Section[] = ["dashboard", "assistant", "messages", ...ACCOUNT, "team", "athletes", "calendar", "training", "exercises", "testing", "nutrition"];
 
-/** Sections per academy role. Roles missing here get the full staff set. */
-const BY_ORG_ROLE: Partial<Record<OrgRole, Section[]>> = {
-  // The academy director runs the academy: staff, the athlete roster, the training schedule, messages and payments,
-  // all read-only on athlete data. Building and measuring training is the coaching staff's job (and the
-  // database only lets staff write programs and test results). Meal logs are personal and stay with the staff.
-  director: ["dashboard", "assistant", "messages", ...ACCOUNT, "team", "athletes", "calendar", "payments"],
-};
+/** The academy owner is a coach who also tracks payments. */
+const OWNER: Section[] = [...STAFF, "payments"];
 
 /** An account without an academy (left or not yet joined) keeps its own athletes and tools. */
 const UNATTACHED: Section[] = STAFF.filter((s) => s !== "team");
@@ -41,23 +37,23 @@ const ATHLETE: Section[] = ["dashboard", "calendar", "messages", "training", "no
 /** Sections a login can open but that are reached from other pages rather than the menu. */
 const OFF_MENU: Partial<Record<"athlete", Section[]>> = { athlete: ["exercises", "testing"] };
 
-/** Sections the given login can open. */
-export function sectionsFor(role: UserRole | null | undefined, orgRole: OrgRole | null | undefined): Section[] {
+/** Sections the given login can open. Coach and Physiotherapist share a set; the owner adds payments. */
+export function sectionsFor(role: UserRole | null | undefined, orgRole: OrgRole | null | undefined, owner = false): Section[] {
   if (role === "athlete") return ATHLETE;
-  if (orgRole) return BY_ORG_ROLE[orgRole] ?? STAFF;
+  if (orgRole) return owner ? OWNER : STAFF;
   return UNATTACHED;
 }
 
 /** Sections shown in the menu: what the login can open, minus pages reached from elsewhere. */
-export function menuSectionsFor(role: UserRole | null | undefined, orgRole: OrgRole | null | undefined): Section[] {
+export function menuSectionsFor(role: UserRole | null | undefined, orgRole: OrgRole | null | undefined, owner = false): Section[] {
   const hidden = role === "athlete" ? OFF_MENU.athlete ?? [] : [];
-  return sectionsFor(role, orgRole).filter((s) => !hidden.includes(s));
+  return sectionsFor(role, orgRole, owner).filter((s) => !hidden.includes(s));
 }
 
-export const canAccess = (section: Section, role: UserRole | null | undefined, orgRole: OrgRole | null | undefined) =>
-  sectionsFor(role, orgRole).includes(section);
+export const canAccess = (section: Section, role: UserRole | null | undefined, orgRole: OrgRole | null | undefined, owner = false) =>
+  sectionsFor(role, orgRole, owner).includes(section);
 
-/** Whether this login may create training programs and their own exercises (everyone but the director). */
+/** Whether this login may create training programs and their own exercises (every coach and physiotherapist). */
 export const canWriteTraining = (orgRole: OrgRole | null | undefined) => orgRole !== "director";
 
 /** Whether this login may import GPS files (everyone who works with athletes except the director). */

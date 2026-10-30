@@ -21,8 +21,8 @@ set role authenticated;
 -- ----- creating a team ---------------------------------------------------------
 set request.jwt.claim.sub = :dir;
 select public.create_organization('FC Test', 'football', 'Dana Director') as org \gset
-select tests.check((select role from public.profiles where id = auth.uid()) = 'org_admin', 'director gets the org_admin profile role');
-select tests.check((select org_role from public.organization_members where user_id = auth.uid()) = 'director', 'creator is the director');
+select tests.check((select role from public.profiles where id = auth.uid()) = 'performance_coach', 'the creator is a coach');
+select tests.check((select org_role = 'head_coach' and is_owner from public.organization_members where user_id = auth.uid()), 'the creator is a coach and the owner');
 select tests.check((select count(*) from public.organization_codes where kind = 'athlete' and code ~ '^TEAM-[A-Z0-9]{6}$' and status = 'active') = 1, 'team gets an athlete code');
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 select tests.throws($$select public.create_organization('Second', null, 'Dana')$$) as twice \gset
@@ -31,7 +31,7 @@ select tests.check(:'twice'::boolean, 'an onboarded account cannot create anothe
 -- ----- staff invites -----------------------------------------------------------
 select public.create_staff_invite('head_coach') as inv_head \gset
 select public.create_staff_invite('physiotherapist') as inv_physio \gset
-select public.create_staff_invite('head_of_performance') as inv_hop \gset
+select public.create_staff_invite('head_coach') as inv_hop \gset
 select tests.check(:'inv_head' ~ '^STAFF-[A-Z0-9]{6}$', 'staff invite code format');
 select tests.throws($$select public.create_staff_invite('goalkeeper')$$) as badrole \gset
 select tests.check(:'badrole'::boolean, 'unknown roles are rejected');
@@ -114,19 +114,19 @@ set request.jwt.claim.sub = :hop;
 select tests.check((select count(*) from public.test_results) = 2, 'head of performance sees all roster test results');
 select tests.check(public.is_primary_coach(:'ath_rec'), 'head of performance counts as a lead');
 
--- ----- the director sees aggregates only -------------------------------------------
+-- ----- the owner is a full coach ------------------------------------------------------
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.athletes) = 1, 'director reads roster athletes (read-only)');
-select tests.check(tests.affected(format('update public.athletes set sport = %L where id = %L', 'x', :'ath_rec')) = 0, 'director cannot edit athletes');
-select tests.check((select count(*) from public.test_results) = 2, 'director reads test results (read-only)');
-select tests.check((select count(*) from public.athlete_notes) = 2, 'director reads notes (read-only)');
-select tests.check((select count(*) from public.profiles where id = :ath) = 0, 'director cannot read the athlete account profile');
-select tests.check((select count(*) from public.org_roster()) = 1, 'director sees the roster list');
+select tests.check((select count(*) from public.athletes) = 1, 'the owner sees roster athletes');
+select tests.check(public.is_primary_coach(:'ath_rec'), 'the owner counts as a lead coach');
+select tests.check((select count(*) from public.test_results) = 2, 'the owner reads test results');
+select tests.check((select count(*) from public.athlete_notes) = 2, 'the owner reads team notes');
+select tests.check((select count(*) from public.profiles where id = :ath) = 1, 'the owner reads the athlete profile like any coach');
+select tests.check((select count(*) from public.org_roster()) = 1, 'the owner sees the roster list');
 select tests.check((select full_name from public.org_roster()) = 'Alex Athlete', 'roster shows the athlete name');
 select tests.check((select roster_count from public.org_summary()) = 1, 'summary counts roster athletes');
 select tests.check((select staff_count from public.org_summary()) = 4, 'summary counts staff');
 select tests.check((select tests_30d from public.org_summary()) = 2, 'summary counts tests');
-select tests.check((select count(*) from public.organization_codes where status = 'active') >= 1, 'director can see team codes');
+select tests.check((select count(*) from public.organization_codes where status = 'active') >= 1, 'the owner can see academy codes');
 
 -- ----- outsiders and other teams ---------------------------------------------------
 set request.jwt.claim.sub = :pt;
@@ -202,16 +202,32 @@ set request.jwt.claim.sub = :pt;
 select tests.check(public.join_organization(:'inv_exp', 'Paul') = 'invalid_code', 'expired invites are rejected');
 
 set request.jwt.claim.sub = :dir;
-select tests.throws(format($$select public.set_org_member_role(%L, 'head_coach')$$, :dir)) as lastdir \gset
-select tests.check(:'lastdir'::boolean, 'the last director cannot be demoted');
+select tests.throws(format($$select public.set_org_owner(%L, false)$$, :dir)) as lastdir \gset
+select tests.check(:'lastdir'::boolean, 'the last owner keeps ownership');
 select tests.throws(format($$select public.remove_org_member(%L)$$, :dir)) as lastdir2 \gset
-select tests.check(:'lastdir2'::boolean, 'the last director cannot be removed');
-select public.set_org_member_role(:physio, 'sports_scientist');
-select tests.check((select org_role from public.organization_members where user_id = :physio) = 'sports_scientist', 'director can change a member role');
-select tests.check((select role from public.profiles where id = :physio) = 'sports_scientist', 'profile role follows the team role');
+select tests.check(:'lastdir2'::boolean, 'the last owner cannot be removed');
+select tests.throws(format($$select public.set_org_member_role(%L, 'physiotherapist')$$, :dir)) as owner_physio \gset
+select tests.check(:'owner_physio'::boolean, 'an owner stays a coach');
+select tests.throws(format($$select public.set_org_member_role(%L, 'sports_scientist')$$, :physio)) as old_role \gset
+select tests.check(:'old_role'::boolean, 'only Coach and Physiotherapist exist');
+select tests.throws(format($$select public.set_org_owner(%L, true)$$, :physio)) as physio_owner \gset
+select tests.check(:'physio_owner'::boolean, 'a physiotherapist cannot be an owner');
+select public.set_org_member_role(:physio, 'head_coach');
+select tests.check((select org_role from public.organization_members where user_id = :physio) = 'head_coach', 'the owner can change a member role');
+select tests.check((select role from public.profiles where id = :physio) = 'performance_coach', 'profile role follows the academy role');
+select public.set_org_member_role(:physio, 'physiotherapist');
+select public.set_org_owner(:head, true);
+select tests.check((select is_owner from public.organization_members where user_id = :head), 'the owner makes another coach an owner');
+set request.jwt.claim.sub = :head;
+select tests.check((select count(*) from public.organization_codes where status = 'active') >= 1, 'a new owner gets owner rights');
+select public.set_org_owner(:head, false);
+set request.jwt.claim.sub = :dir;
+select tests.check(not (select is_owner from public.organization_members where user_id = :head), 'an owner can step down while another owner remains');
 select tests.throws(format($$select public.set_org_member_role(%L, 'director')$$, :head2)) as crossteam \gset
 select tests.check(:'crossteam'::boolean, 'a director cannot manage another team''s members');
 set request.jwt.claim.sub = :head;
+select tests.throws(format($$select public.set_org_owner(%L, true)$$, :head)) as selfowner \gset
+select tests.check(:'selfowner'::boolean, 'coaches cannot make themselves owners');
 select tests.throws(format($$select public.set_org_member_role(%L, 'director')$$, :head)) as selfpromote \gset
 select tests.check(:'selfpromote'::boolean, 'members cannot promote themselves');
 

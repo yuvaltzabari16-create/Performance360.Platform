@@ -14,7 +14,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set role authenticated;
 set request.jwt.claim.sub = :dir;
 select public.create_organization('GPS FC', null, 'Dir Gps');
-select public.create_staff_invite('head_of_performance') as i1 \gset
+select public.create_staff_invite('head_coach') as i1 \gset
 select public.create_staff_invite('physiotherapist') as i2 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :hop;
@@ -67,13 +67,10 @@ select tests.check((select count(*) from public.gps_session_metrics) = 0, 'anoth
 select tests.check((select count(*) from public.gps_sessions) = 0, 'another athlete sees no session');
 
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.gps_session_metrics) = 1, 'director reads GPS data of roster athletes');
-select tests.check((select count(*) from public.gps_sessions) = 1, 'director sees the session');
+select tests.check((select count(*) from public.gps_session_metrics) = 1, 'the owner coach reads GPS data of roster athletes');
+select tests.check((select count(*) from public.gps_sessions) = 1, 'the owner coach sees the session');
 select tests.throws($$update public.gps_session_metrics set total_distance_m = 1$$) as dir_upd \gset
-select tests.check(:'dir_upd'::boolean, 'director cannot edit metrics');
-select tests.throws(format($$select public.import_gps_session('Dir', 'training', current_date, 105, 68, 'other', false, '[{"athlete_id":"%s"}]'::jsonb)$$, :'rec')) as dir_imp \gset
-select tests.check(:'dir_imp'::boolean, 'director cannot import');
-select tests.check((select count(*) from public.exercises) = 0, 'director still has no exercise library');
+select tests.check(:'dir_upd'::boolean, 'metrics are not edited directly');
 
 set request.jwt.claim.sub = :pt;
 select tests.check((select count(*) from public.gps_sessions) = 0, 'an independent trainer sees nothing of the team');

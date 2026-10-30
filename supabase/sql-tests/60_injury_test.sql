@@ -15,7 +15,7 @@ set role authenticated;
 set request.jwt.claim.sub = :dir;
 select public.create_organization('Injury FC', 'football', 'Dir Inj');
 select public.create_staff_invite('head_coach') as i1 \gset
-select public.create_staff_invite('assistant_coach') as i2 \gset
+select public.create_staff_invite('head_coach') as i2 \gset
 select public.create_staff_invite('physiotherapist') as i3 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :head;
@@ -52,11 +52,9 @@ select tests.check((select count(*) from public.injuries) = 0, 'a stranger sees 
 
 -- ----- staff -----------------------------------------------------------------------
 set request.jwt.claim.sub = :asst;
-select tests.check((select count(*) from public.injuries) = 1, 'assistant coach sees the injury');
+select tests.check((select count(*) from public.injuries) = 1, 'a second coach sees the injury');
 select public.set_injury_stage(:'inj', 'rehab', 'Started physio');
-select tests.check((select stage from public.injuries where id = :'inj') = 'rehab', 'assistant coach can advance the stage');
-select tests.throws(format($$select public.set_injury_stage(%L, 'cleared', 'Looks fine to me')$$, :'inj')) as asst_clear \gset
-select tests.check(:'asst_clear'::boolean, 'assistant coach cannot record clearance');
+select tests.check((select stage from public.injuries where id = :'inj') = 'rehab', 'a second coach can advance the stage');
 select public.update_injury_details(:'inj', 'Grade 1 hamstring strain', current_date + 14, 'minor');
 select tests.check((select diagnosis from public.injuries where id = :'inj') = 'Grade 1 hamstring strain', 'staff can record the diagnosis');
 
@@ -78,12 +76,10 @@ set request.jwt.claim.sub = :physio;
 select public.set_injury_stage(:'inj', 'cleared', 'Physio assessment complete');
 select tests.check((select status from public.injuries where id = :'inj') = 'resolved', 'physiotherapist can record clearance');
 
--- ----- director sees nothing -------------------------------------------------------
+-- ----- the academy owner is a coach ------------------------------------------------
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.injuries) = 1, 'director reads injuries (read-only)');
-select tests.check((select count(*) from public.injury_events) >= 1, 'director reads the timeline');
-select tests.throws(format($$select public.add_injury_note(%L, 'x')$$, :'inj')) as dir_note \gset
-select tests.check(:'dir_note'::boolean, 'director cannot add notes');
+select tests.check((select count(*) from public.injuries) = 1, 'the owner reads injuries');
+select tests.check((select count(*) from public.injury_events) >= 1, 'the owner reads the timeline');
 
 -- ----- notifications and audit -----------------------------------------------------
 reset role;

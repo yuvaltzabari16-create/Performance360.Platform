@@ -5,6 +5,11 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Performance360 Academy: three roles
+- **Renamed** to Performance360 Academy.
+- **Only Coach, Physiotherapist and Athlete.** The director, head of performance, assistant coach, sports scientist and other-staff roles are gone from sign-up, sign-in, invitations and the Staff page. Whoever creates the academy joins as a coach and is its **owner**: invites staff, manages the roster, code and squads, sees payments, and reads every program assigned in the academy. Owners can make other coaches owners; an academy always keeps at least one. Coaches and physiotherapists share the same menu; only owners see Payments.
+- Database: `organization_members.is_owner`, owner-aware invitation, role, removal, squad and account-deletion rules, and existing directors converted to owner coaches. Database tests updated to the new roles.
+
 ### Academy360: payments, athlete login and nutrition
 - **Payments** (director only): record a charge for an athlete or charge the whole roster at once, mark paid (date and method) or unpaid, delete, filter by status and athlete; totals for outstanding, overdue and collected this month, a "who owes" list and a payments card on the director dashboard. Database-enforced: staff, athletes and other academies see nothing.
 - **Athlete login**: the athlete menu is now Dashboard, Training Calendar, Messages, Workout Tracker, Coach Notes, My Progress and Nutrition. New **Coach Notes** page (all shared notes with the coach's name) and **My Progress** page (workouts per week, training load, completion rate, average effort, a trend per test, goals). Exercises and tests still open from workouts and My Progress; the assistant is staff-only.

@@ -13,8 +13,8 @@ export interface Mail { to: string; subject: string; html: string; text: string;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 const COPY = {
-  en: { hello: "Hello", open: "Open in Academy360", footer: "You get this email because email notifications are on. Change it in Settings." },
-  he: { hello: "שלום", open: "פתיחה ב-Academy360", footer: "קיבלתם את המייל כי התראות במייל פעילות. אפשר לשנות בהגדרות." },
+  en: { hello: "Hello", open: "Open in Performance360 Academy", footer: "You get this email because email notifications are on. Change it in Settings." },
+  he: { hello: "שלום", open: "פתיחה ב-Performance360 Academy", footer: "קיבלתם את המייל כי התראות במייל פעילות. אפשר לשנות בהגדרות." },
 } as const;
 
 /** Only same-site paths are linked, never an arbitrary address. */

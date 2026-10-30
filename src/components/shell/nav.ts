@@ -41,8 +41,8 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
 }
 
 /** Navigation for a login: the sections its role may open, in a fixed order. */
-export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null): NavItem[] {
-  const allowed = menuSectionsFor(role, orgRole);
+export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null, owner = false): NavItem[] {
+  const allowed = menuSectionsFor(role, orgRole, owner);
   const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "notes", "progress", "nutrition", "exercises", "testing", "payments", "teams", "readiness", "injuries", "gps", "wearables", "code", "connect", "notifications", "settings"];
   return order.filter((s) => allowed.includes(s)).map((s) => entry(s, role, t));
 }

@@ -17,7 +17,7 @@ set request.jwt.claim.sub = :dir;
 select public.create_organization('Squad FC', null, 'Dir Squad');
 select public.create_staff_invite('head_coach') as i1 \gset
 select public.create_staff_invite('head_coach') as i2 \gset
-select public.create_staff_invite('head_of_performance') as i3 \gset
+select public.create_staff_invite('physiotherapist') as i3 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :c1; select public.join_organization(:'i1', 'Coach One');
 set request.jwt.claim.sub = :c2; select public.join_organization(:'i2', 'Coach Two');
@@ -33,7 +33,7 @@ select public.connect_with_org_code(:'team_code');
 set request.jwt.claim.sub = :c1;
 select tests.check((select count(*) from public.athletes) = 3, 'without squads a head coach sees the whole roster');
 
--- Only director / head of performance organise squads.
+-- Only owners organise squads.
 select tests.throws($$select public.create_squad('Rogue')$$) as rogue \gset
 select tests.check(:'rogue'::boolean, 'a head coach cannot create squads');
 
@@ -48,8 +48,12 @@ select tests.throws(format($$select public.set_squad_coach(%L, %L, true)$$, :'s1
 select tests.check(:'notcoach'::boolean, 'only coaches can be assigned to squads');
 
 set request.jwt.claim.sub = :hop;
+select tests.throws(format($$select public.set_athlete_squad(%L, %L)$$, (select id from public.athletes where full_name = 'Ann One'), :'s1')) as physio_squad \gset
+select tests.check(:'physio_squad'::boolean, 'the physiotherapist does not organise squads');
+set request.jwt.claim.sub = :dir;
 select public.set_athlete_squad(a.id, :'s1') from public.athletes a where a.full_name = 'Ann One';
 select public.set_athlete_squad(a.id, :'s2') from public.athletes a where a.full_name = 'Ben Two';
+select tests.check((select count(*) from public.athletes) = 3, 'the owner coach sees every athlete, whatever the squads');
 
 set request.jwt.claim.sub = :c1;
 select tests.check((select count(*) from public.athletes) = 1 and (select full_name from public.athletes) = 'Ann One', 'coach one sees only the U19 athlete');
@@ -58,7 +62,7 @@ select tests.check((select count(*) from public.athletes) = 1 and (select full_n
 select tests.check((select count(*) from public.org_roster()) = 1, 'the roster list follows the squad scope');
 select tests.check((select count(*) from public.my_squads()) = 1, 'my_squads lists the coach''s own squads');
 set request.jwt.claim.sub = :hop;
-select tests.check((select count(*) from public.athletes) = 3, 'head of performance still sees everyone');
+select tests.check((select count(*) from public.athletes) = 3, 'the physiotherapist still sees everyone');
 
 -- An athlete with no squad is invisible to squad coaches while squads exist.
 set request.jwt.claim.sub = :c1;
@@ -67,7 +71,7 @@ select tests.check((select count(*) from public.athletes where full_name = 'Cy T
 -- Moving an athlete moves the access; switching a coach off removes it.
 set request.jwt.claim.sub = :dir;
 select public.set_athlete_squad(a.id, :'s2') from public.athletes a where a.full_name = 'Ann One';
-select tests.check((select count(*) from public.organization_athletes where squad_id = :'s2') = 2, 'director can move athletes between squads');
+select tests.check((select count(*) from public.organization_athletes where squad_id = :'s2') = 2, 'the owner can move athletes between squads');
 set request.jwt.claim.sub = :c1;
 select tests.check((select count(*) from public.athletes) = 0, 'coach one loses the athlete moved to another squad');
 set request.jwt.claim.sub = :dir;

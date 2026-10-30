@@ -34,15 +34,11 @@ export type OrgRole =
   | "sports_scientist"
   | "other_staff";
 
-export const ORG_ROLES: OrgRole[] = [
-  "director",
-  "head_coach",
-  "head_of_performance",
-  "assistant_coach",
-  "physiotherapist",
-  "sports_scientist",
-  "other_staff",
-];
+/**
+ * Performance360 Academy has two staff roles (plus athletes): Coach (stored as head_coach) and Physiotherapist.
+ * The other team roles exist in the database type for older rows only and are never offered.
+ */
+export const ORG_ROLES = ["head_coach", "physiotherapist"] as const satisfies readonly OrgRole[];
 
 /** Independent practitioners (Personal Trainer account type) choose a profession. */
 export const INDEPENDENT_ROLES: UserRole[] = [
@@ -57,6 +53,8 @@ export interface OrgMembership {
   org_id: string;
   org_name: string;
   org_role: OrgRole;
+  /** The academy's owner: a coach who also invites staff, manages the roster and squads, and tracks payments. */
+  is_owner: boolean;
 }
 
 export type Locale = "en" | "he";

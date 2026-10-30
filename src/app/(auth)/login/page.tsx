@@ -5,18 +5,16 @@ import { Field, FlashMessage, Input } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
-import { sectionsFor } from "@/lib/permissions";
+import { menuSectionsFor } from "@/lib/permissions";
 import { LOGIN_ROLES, isLoginRole } from "@/lib/login-roles";
 import { login } from "../actions";
 
 export const metadata = { title: "Sign in" };
 
 /** Profile role and team role of each login choice, to list what that login opens. */
-const LOGIN_ACCOUNT: Record<(typeof LOGIN_ROLES)[number], Parameters<typeof sectionsFor>> = {
-  director: ["org_admin", "director"],
+const LOGIN_ACCOUNT: Record<(typeof LOGIN_ROLES)[number], Parameters<typeof menuSectionsFor>> = {
   head_coach: ["performance_coach", "head_coach"],
   physiotherapist: ["physiotherapist", "physiotherapist"],
-  head_of_performance: ["performance_coach", "head_of_performance"],
   athlete: ["athlete", null],
 };
 
@@ -54,8 +52,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <p className="mt-1 text-ink-soft">{t.loginRole[chosen].blurb}</p>
           <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted">{t.loginRole.sees}</p>
           <ul className="mt-1 flex flex-wrap gap-1.5">
-            {sectionsFor(...LOGIN_ACCOUNT[chosen]).filter((x) => x !== "notifications" && x !== "settings").map((x) => (
-              <li key={x} className="rounded-full bg-surface px-2 py-0.5 text-xs text-ink-soft ring-1 ring-inset ring-line">{x === "athletes" && chosen === "athlete" ? t.nav.myTraining : t.nav[x]}</li>
+            {menuSectionsFor(...LOGIN_ACCOUNT[chosen]).filter((x) => x !== "notifications" && x !== "settings").map((x) => (
+              <li key={x} className="rounded-full bg-surface px-2 py-0.5 text-xs text-ink-soft ring-1 ring-inset ring-line">{x === "training" && chosen === "athlete" ? t.nav.myTraining : t.nav[x]}</li>
             ))}
           </ul>
           <p className="mt-3"><Link className="font-medium text-brand-700 hover:underline" href={t.loginRole[chosen].href}>{t.loginRole[chosen].newHere}</Link></p>

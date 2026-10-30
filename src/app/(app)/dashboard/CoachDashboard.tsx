@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { ButtonLink, Card, EmptyState, PageHeader, Stat } from "@/components/ui";
+import { Badge, ButtonLink, Card, EmptyState, PageHeader, Stat } from "@/components/ui";
+import { formatMoneyTotals, summarize, type PaymentRow } from "@/lib/payments/ledger";
 import { requireProfile } from "@/lib/auth";
 import type { Dictionary } from "@/lib/i18n";
 import { bestTrial } from "@/lib/metrics";
 import { isoDaysAgo } from "./dates";
 
 // All figures below are counted from the database; nothing is estimated or seeded.
-export async function CoachDashboard({ t }: { t: Dictionary }) {
+export async function CoachDashboard({ t, owner }: { t: Dictionary; owner: boolean }) {
   const { supabase, user, profile, org } = await requireProfile();
   const orgRole = org?.org_role ?? null;
   const td = t.dashboard;
@@ -20,12 +21,15 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
     supabase.from("program_assignments").select("id, start_date, athletes(full_name), training_programs(title)").eq("status", "active").gte("start_date", today).order("start_date").limit(6),
   ]);
 
+  // The owner's payments overview (the database returns no rows to anyone else).
+  const { data: payments } = owner ? await supabase.from("athlete_payments").select("athlete_id, amount, currency, due_date, paid_on").limit(2000) : { data: null };
+  const money = payments ? summarize(payments as PaymentRow[], today) : null;
   const athleteCount = athletes.count ?? 0;
   return (
     <>
       <PageHeader
         title={`${td.greeting}, ${profile.full_name.split(" ")[0] || profile.email}`}
-        subtitle={t.roles[profile.role]}
+        subtitle={org ? `${t.orgRoles[org.org_role]}${owner ? ` (${t.team.owner})` : ""} · ${org.org_name}` : t.roles[profile.role]}
         actions={
           <>
             <ButtonLink variant="secondary" href="/testing/new">{td.recordTest}</ButtonLink>
@@ -40,6 +44,21 @@ export async function CoachDashboard({ t }: { t: Dictionary }) {
         <Stat label={td.sessionsLogged} value={sessions7.count ?? 0} />
         <Stat label={td.testsThisMonth} value={tests30.count ?? 0} />
       </div>
+
+      {money && (
+        <div className="mt-6">
+          <Card title={t.dashboard.paymentsCard} action={<Link className="text-xs text-brand-700 hover:underline" href="/payments">{t.common.open}</Link>}>
+            <dl className="grid gap-3 text-sm sm:grid-cols-3">
+              <div><dt className="text-xs text-muted">{t.payments.outstanding}</dt><dd className="num font-semibold">{formatMoneyTotals(money.outstanding, profile.locale)}</dd></div>
+              <div>
+                <dt className="text-xs text-muted">{t.payments.overdue}</dt>
+                <dd className="num font-semibold">{money.overdueCount ? <Badge tone="red">{t.payments.overdueCount.replace("{n}", String(money.overdueCount))} · {formatMoneyTotals(money.overdue, profile.locale)}</Badge> : t.dashboard.overdueNone}</dd>
+              </div>
+              <div><dt className="text-xs text-muted">{t.payments.collected}</dt><dd className="num font-semibold">{formatMoneyTotals(money.collectedThisMonth, profile.locale)}</dd></div>
+            </dl>
+          </Card>
+        </div>
+      )}
 
       {athleteCount === 0 ? (
         <div className="mt-6">

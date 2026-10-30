@@ -20,12 +20,12 @@ export const getSession = cache(async () => {
   if (user) {
     const { data } = await supabase
       .from("organization_members")
-      .select("org_id, org_role, organizations(name)")
+      .select("org_id, org_role, is_owner, organizations(name)")
       .eq("user_id", user.id)
       .eq("status", "active")
       .maybeSingle();
     if (data) {
-      org = { org_id: data.org_id, org_role: data.org_role as OrgRole, org_name: (data.organizations as unknown as { name: string } | null)?.name ?? "" };
+      org = { org_id: data.org_id, org_role: data.org_role as OrgRole, is_owner: Boolean(data.is_owner), org_name: (data.organizations as unknown as { name: string } | null)?.name ?? "" };
     }
   }
   const locale = profile?.locale ?? (await getCookieLocale());
@@ -40,9 +40,9 @@ export async function requireProfile() {
   return { ...session, user: session.user, profile: session.profile as Profile & { role: UserRole } };
 }
 
-/** The director manages the team but does not see individual athlete records. */
-export function isTeamDirector(org: OrgMembership | null) {
-  return org?.org_role === "director";
+/** The academy owner: invites staff, manages the roster, codes and squads, and tracks payments. */
+export function isAcademyOwner(org: OrgMembership | null): boolean {
+  return Boolean(org?.is_owner);
 }
 
 export function isProfessional(role: UserRole | null | undefined) {
@@ -76,6 +76,6 @@ export async function getMyAthleteId(): Promise<string | null> {
 /** Page guard for a section: logins without access are sent to their dashboard. */
 export async function requireSection(section: Section) {
   const session = await requireProfile();
-  if (!canAccess(section, session.profile.role, session.org?.org_role ?? null)) redirect("/dashboard");
+  if (!canAccess(section, session.profile.role, session.org?.org_role ?? null, isAcademyOwner(session.org))) redirect("/dashboard");
   return session;
 }

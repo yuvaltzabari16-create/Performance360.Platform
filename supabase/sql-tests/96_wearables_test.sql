@@ -12,7 +12,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set role authenticated;
 set request.jwt.claim.sub = :dir;
 select public.create_organization('Wear FC', null, 'Dir Wear');
-select public.create_staff_invite('head_of_performance') as i1 \gset
+select public.create_staff_invite('head_coach') as i1 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :hop;
 select public.join_organization(:'i1', 'Hop Wear');

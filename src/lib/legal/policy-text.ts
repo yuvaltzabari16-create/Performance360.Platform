@@ -19,7 +19,7 @@ export interface PolicyDoc {
 
 const privacyEn: PolicyDoc = {
   title: "Privacy policy",
-  intro: "Academy360 is used by athletes, coaches and medical and performance staff. Some of the information you enter is sensitive, including health and training data. This page explains what we collect, who can see it and what you can do about it.",
+  intro: "Performance360 Academy is used by athletes, coaches and medical and performance staff. Some of the information you enter is sensitive, including health and training data. This page explains what we collect, who can see it and what you can do about it.",
   sections: [
     { title: "Who is responsible for your data", body: ["The operator named at the bottom of this page decides why and how personal data is used (the \"controller\"). Where a club or a coach adds athletes and their data, that club or coach is also responsible for having the right to do so, including the consent of athletes and, for minors, their parents or guardians."] },
     {
@@ -67,7 +67,7 @@ const privacyEn: PolicyDoc = {
     },
     {
       title: "Children and minors",
-      body: ["Athletes under 18 may use Academy360 only with the consent of a parent or guardian. The athlete's profile has a place to record the guardian's name and contact and the date of consent. Until it is recorded, the profile is marked as missing parental consent. A parent or guardian may ask us or the club to see, correct or delete a minor's data."],
+      body: ["Athletes under 18 may use Performance360 Academy only with the consent of a parent or guardian. The athlete's profile has a place to record the guardian's name and contact and the date of consent. Until it is recorded, the profile is marked as missing parental consent. A parent or guardian may ask us or the club to see, correct or delete a minor's data."],
     },
     {
       title: "Security",
@@ -83,16 +83,16 @@ const privacyEn: PolicyDoc = {
 
 const termsEn: PolicyDoc = {
   title: "Terms of use",
-  intro: "These terms govern your use of Academy360. By creating an account you agree to them and to the privacy policy.",
+  intro: "These terms govern your use of Performance360 Academy. By creating an account you agree to them and to the privacy policy.",
   sections: [
-    { title: "The service", body: ["Academy360 is software for planning and recording athletic training, testing, wellness, injuries, wearable data and communication between athletes and the staff who work with them. Features may change as the service develops."] },
+    { title: "The service", body: ["Performance360 Academy is software for planning and recording athletic training, testing, wellness, injuries, wearable data and communication between athletes and the staff who work with them. Features may change as the service develops."] },
     { title: "Accounts and roles", body: ["Keep your sign-in details secret and tell us if you think someone else has used your account. Your role (athlete, head coach, head of performance, physiotherapist, club director, personal trainer) decides what you can see and do. You may not try to access data your role does not allow."] },
-    { title: "Professional judgment and no medical advice", body: ["Academy360 records and organizes information; it does not diagnose, treat or clear anyone. Injury stages, clearance to return to play and training decisions are made by qualified people, and the app records their decision. Figures from wearables and calculations are aids, not medical measurements. In an emergency contact emergency services; messages in the app are not monitored for emergencies."] },
+    { title: "Professional judgment and no medical advice", body: ["Performance360 Academy records and organizes information; it does not diagnose, treat or clear anyone. Injury stages, clearance to return to play and training decisions are made by qualified people, and the app records their decision. Figures from wearables and calculations are aids, not medical measurements. In an emergency contact emergency services; messages in the app are not monitored for emergencies."] },
     { title: "Your content and responsibilities", body: ["You are responsible for the information you enter and for having the right to enter it. Coaches and clubs who add athletes must have the athlete's consent and, for minors, the consent of a parent or guardian. Do not upload unlawful, harmful or infringing content."] },
     { title: "Files and imports", body: ["You may attach documents and images of the allowed types, up to 5 MB each, and import wearable export files. Files are made available only to the people allowed to see the record they belong to. We may remove files that break these terms."] },
     { title: "Acceptable use", body: ["Do not disrupt or overload the service, probe or bypass its security, scrape data, send spam through it, or use it to harass others. We may limit or suspend accounts that do."] },
     { title: "Session builder and assistant", body: ["The automatic session builder drafts workouts from your instructions using your own exercise library and fixed rules, and the chat assistant answers questions about the app and training from a written knowledge base. Both run inside the service. Drafts and answers can be wrong or incomplete; a qualified person must review them before use, and the assistant does not diagnose or clear anyone."] },
-    { title: "Payments and third-party links", body: ["Payments, if any, are handled by an external payment provider; Academy360 does not collect card details. Some links to products or services may be affiliate links, as stated on the disclosures page."] },
+    { title: "Payments and third-party links", body: ["Payments, if any, are handled by an external payment provider; Performance360 Academy does not collect card details. Some links to products or services may be affiliate links, as stated on the disclosures page."] },
     { title: "Availability", body: ["We work to keep the service available but do not promise it will always be uninterrupted or error-free. Keep your own copies of information you cannot afford to lose."] },
     { title: "Liability", body: ["To the extent the law allows, the operator is not liable for indirect or consequential loss, or for decisions taken on the basis of information in the app. Nothing here limits liability that cannot be limited by law."] },
     { title: "Ending your use", body: ["You can delete your account at any time from Settings. We may suspend or close accounts that seriously or repeatedly break these terms."] },
@@ -102,7 +102,7 @@ const termsEn: PolicyDoc = {
 
 const privacyHe: PolicyDoc = {
   title: "מדיניות פרטיות",
-  intro: "Academy360 משמשת ספורטאים, מאמנים וצוותים רפואיים ומקצועיים. חלק מהמידע שמוזן הוא רגיש, כולל נתוני בריאות ואימון. בעמוד הזה מוסבר איזה מידע נאסף, מי רואה אותו ומה אפשר לעשות לגביו.",
+  intro: "Performance360 Academy משמשת ספורטאים, מאמנים וצוותים רפואיים ומקצועיים. חלק מהמידע שמוזן הוא רגיש, כולל נתוני בריאות ואימון. בעמוד הזה מוסבר איזה מידע נאסף, מי רואה אותו ומה אפשר לעשות לגביו.",
   sections: [
     { title: "מי אחראי למידע שלך", body: ["המפעיל המופיע בתחתית העמוד קובע למה ואיך משתמשים במידע אישי (\"בעל מאגר המידע\"). כאשר מועדון או מאמן מוסיפים ספורטאים ונתונים עליהם, המועדון או המאמן אחראים גם לכך שיש להם זכות לעשות זאת, כולל הסכמת הספורטאים, ובקטינים הסכמת הוריהם או אפוטרופוסיהם."] },
     {
@@ -150,7 +150,7 @@ const privacyHe: PolicyDoc = {
     },
     {
       title: "ילדים וקטינים",
-      body: ["ספורטאים מתחת לגיל 18 רשאים להשתמש ב-Academy360 רק בהסכמת הורה או אפוטרופוס. בפרופיל הספורטאי יש מקום לרשום את שם ופרטי הקשר של האפוטרופוס ואת תאריך ההסכמה. עד שזה נרשם, הפרופיל מסומן כחסר הסכמת הורים. הורה או אפוטרופוס רשאי לבקש מאיתנו או מהמועדון לעיין במידע של קטין, לתקן או למחוק אותו."],
+      body: ["ספורטאים מתחת לגיל 18 רשאים להשתמש ב-Performance360 Academy רק בהסכמת הורה או אפוטרופוס. בפרופיל הספורטאי יש מקום לרשום את שם ופרטי הקשר של האפוטרופוס ואת תאריך ההסכמה. עד שזה נרשם, הפרופיל מסומן כחסר הסכמת הורים. הורה או אפוטרופוס רשאי לבקש מאיתנו או מהמועדון לעיין במידע של קטין, לתקן או למחוק אותו."],
     },
     {
       title: "אבטחה",
@@ -166,16 +166,16 @@ const privacyHe: PolicyDoc = {
 
 const termsHe: PolicyDoc = {
   title: "תנאי שימוש",
-  intro: "התנאים האלה חלים על השימוש ב-Academy360. בעת יצירת חשבון אתה מסכים להם ולמדיניות הפרטיות.",
+  intro: "התנאים האלה חלים על השימוש ב-Performance360 Academy. בעת יצירת חשבון אתה מסכים להם ולמדיניות הפרטיות.",
   sections: [
-    { title: "השירות", body: ["Academy360 היא תוכנה לתכנון ולתיעוד אימוני כושר, בדיקות, תחושת ספורטאים, פציעות, נתוני חיישנים ותקשורת בין ספורטאים לצוותים שעובדים איתם. יכולות עשויות להשתנות עם התפתחות השירות."] },
+    { title: "השירות", body: ["Performance360 Academy היא תוכנה לתכנון ולתיעוד אימוני כושר, בדיקות, תחושת ספורטאים, פציעות, נתוני חיישנים ותקשורת בין ספורטאים לצוותים שעובדים איתם. יכולות עשויות להשתנות עם התפתחות השירות."] },
     { title: "חשבונות ותפקידים", body: ["שמרו את פרטי ההתחברות בסוד ודווחו לנו אם אתם חושבים שמישהו אחר השתמש בחשבון. התפקיד שלכם (ספורטאי, מאמן ראשי, ראש מחלקת ביצועים, פיזיותרפיסט, מנהל מועדון, מאמן אישי) קובע מה תוכלו לראות ולעשות. אסור לנסות לגשת למידע שהתפקיד אינו מתיר."] },
-    { title: "שיקול דעת מקצועי ואין ייעוץ רפואי", body: ["Academy360 מתעדת ומארגנת מידע; היא אינה מאבחנת, מטפלת או מאשרת חזרה לפעילות. שלבי פציעה, אישור חזרה למשחק והחלטות אימון מתקבלים על ידי אנשים מוסמכים, והאפליקציה מתעדת את החלטתם. נתוני חיישנים וחישובים הם כלי עזר ולא מדידות רפואיות. במצב חירום פנו לשירותי החירום; הודעות באפליקציה אינן מנוטרות למצבי חירום."] },
+    { title: "שיקול דעת מקצועי ואין ייעוץ רפואי", body: ["Performance360 Academy מתעדת ומארגנת מידע; היא אינה מאבחנת, מטפלת או מאשרת חזרה לפעילות. שלבי פציעה, אישור חזרה למשחק והחלטות אימון מתקבלים על ידי אנשים מוסמכים, והאפליקציה מתעדת את החלטתם. נתוני חיישנים וחישובים הם כלי עזר ולא מדידות רפואיות. במצב חירום פנו לשירותי החירום; הודעות באפליקציה אינן מנוטרות למצבי חירום."] },
     { title: "התוכן שלכם ואחריותכם", body: ["אתם אחראים למידע שאתם מזינים ולכך שיש לכם זכות להזין אותו. מאמנים ומועדונים שמוסיפים ספורטאים חייבים לקבל את הסכמתם, ובקטינים את הסכמת הורה או אפוטרופוס. אסור להעלות תוכן בלתי חוקי, מזיק או מפר זכויות."] },
     { title: "קבצים וייבוא", body: ["אפשר לצרף מסמכים ותמונות מהסוגים המותרים, עד 5 מ״ב כל אחד, ולייבא קובצי חיישנים. קבצים זמינים רק למי שמורשה לראות את הרשומה שאליה הם שייכים. אנחנו רשאים להסיר קבצים שמפרים את התנאים."] },
     { title: "שימוש מותר", body: ["אסור להפריע לשירות או להעמיס עליו, לבדוק או לעקוף את האבטחה שלו, לגרד ממנו מידע, לשלוח דרכו ספאם או להשתמש בו להטרדה. אנחנו רשאים להגביל או להשעות חשבונות שעושים זאת."] },
     { title: "בונה האימונים והעוזר", body: ["בונה האימונים האוטומטי כותב טיוטות אימון לפי ההוראות שלכם, מתוך ספריית התרגילים שלכם ולפי כללים קבועים, ועוזר הצ'אט עונה על שאלות על האפליקציה ועל אימון מתוך מאגר ידע כתוב. שניהם פועלים בתוך השירות. טיוטות ותשובות עלולות להיות שגויות או חלקיות; איש מקצוע מוסמך חייב לעבור עליהן לפני שימוש, והעוזר אינו מאבחן או מאשר חזרה לפעילות."] },
-    { title: "תשלומים וקישורים חיצוניים", body: ["תשלומים, אם יהיו, מטופלים על ידי ספק סליקה חיצוני; Academy360 אינה אוספת פרטי כרטיס. חלק מהקישורים למוצרים או שירותים עשויים להיות קישורי שותפים, כמפורט בעמוד הגילויים."] },
+    { title: "תשלומים וקישורים חיצוניים", body: ["תשלומים, אם יהיו, מטופלים על ידי ספק סליקה חיצוני; Performance360 Academy אינה אוספת פרטי כרטיס. חלק מהקישורים למוצרים או שירותים עשויים להיות קישורי שותפים, כמפורט בעמוד הגילויים."] },
     { title: "זמינות", body: ["אנחנו פועלים לשמור על זמינות השירות אך אין הבטחה שיפעל ברציפות וללא תקלות. שמרו עותקים של מידע שאי אפשר לוותר עליו."] },
     { title: "אחריות", body: ["במידה שהדין מתיר, המפעיל אינו אחראי לנזק עקיף או תוצאתי, או להחלטות שהתקבלו על סמך מידע באפליקציה. אין בכך הגבלה של אחריות שאי אפשר להגביל על פי דין."] },
     { title: "סיום השימוש", body: ["אפשר למחוק את החשבון בכל עת דרך ההגדרות. אנחנו רשאים להשעות או לסגור חשבונות שמפרים את התנאים הפרה חמורה או חוזרת."] },

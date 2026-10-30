@@ -1,4 +1,4 @@
--- Director read access and in-app messages.
+-- The academy owner's access and in-app messages.
 
 \set dir    '''99990000-0000-0000-0000-000000000001'''
 \set hop    '''99990000-0000-0000-0000-000000000002'''
@@ -12,7 +12,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set role authenticated;
 set request.jwt.claim.sub = :dir;
 select public.create_organization('DM FC', null, 'Dir Dm');
-select public.create_staff_invite('head_of_performance') as i1 \gset
+select public.create_staff_invite('head_coach') as i1 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :hop;
 select public.join_organization(:'i1', 'Hop Dm');
@@ -36,25 +36,25 @@ insert into public.athlete_notes (athlete_id, body) values (:'rec', 'Private coa
 insert into public.session_exercises (session_id, exercise_id, exercise_name, position)
   select :'sess', id, name, 1 from public.exercises limit 1;
 
--- ----- director reads ---------------------------------------------------------------
+-- ----- the owner coach reads and works with the roster -----------------------------------
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.athletes) = 1, 'director reads roster athletes');
-select tests.check((select count(*) from public.athletes where full_name = 'Outside Athlete') = 0, 'director does not read athletes outside the team');
-select tests.check((select count(*) from public.injuries) = 1, 'director reads injuries');
-select tests.check((select count(*) from public.injury_events) = 1, 'director reads the injury timeline');
-select tests.check((select count(*) from public.program_assignments) = 1, 'director sees the schedule');
-select tests.check((select count(*) from public.training_programs) = 1, 'director sees the program title');
-select tests.check((select count(*) from public.training_sessions) = 1, 'director sees session titles');
-select tests.check((select count(*) from public.session_exercises) = 0, 'director does not see session contents');
-select tests.check((select count(*) from public.athlete_notes) = 1, 'director reads coach notes (read-only)');
+select tests.check((select count(*) from public.athletes) = 1, 'the owner reads roster athletes');
+select tests.check((select count(*) from public.athletes where full_name = 'Outside Athlete') = 0, 'the owner does not read athletes outside the academy');
+select tests.check((select count(*) from public.injuries) = 1, 'the owner reads injuries');
+select tests.check((select count(*) from public.program_assignments) = 1, 'the owner sees the schedule');
+select tests.check((select count(*) from public.training_programs) = 1, 'the owner sees a colleague''s program assigned in the academy');
+select tests.check((select count(*) from public.session_exercises) = 1, 'the owner sees its session contents');
+select tests.check((select count(*) from public.athlete_notes) = 1, 'the owner reads coach notes');
 select tests.check((select count(*) from public.test_results) = 0, 'no test results recorded yet');
-select tests.check((select count(*) from public.exercises) = 0, 'director does not see the exercise library');
-select tests.throws(format($$select public.set_injury_stage(%L, 'rehab', null)$$, :'inj')) as dir_stage \gset
-select tests.check(:'dir_stage'::boolean, 'director cannot change an injury stage');
-select tests.check(tests.affected(format($$update public.athletes set sport = 'x' where id = %L$$, :'rec')) = 0, 'director cannot edit athletes');
+select tests.check((select count(*) from public.exercises) > 300, 'the owner uses the exercise library');
+select tests.check(tests.affected(format($$update public.training_programs set title = 'x' where id = %L$$, :'prog')) = 0, 'the owner cannot edit a colleague''s program');
+set request.jwt.claim.sub = :hop;
+select tests.check((select count(*) from public.training_programs) = 1, 'a coach who is not an owner sees only their own programs');
+set request.jwt.claim.sub = :dir;
+select tests.check(tests.affected(format($$update public.athletes set sport = 'x' where id = %L$$, :'rec')) = 1, 'the owner edits roster athletes as a lead coach');
 
 -- ----- messages -----------------------------------------------------------------------
-select tests.check((select count(*) from public.message_contacts()) = 2, 'director can message staff and roster athletes');
+select tests.check((select count(*) from public.message_contacts()) = 2, 'the owner can message staff and roster athletes');
 select public.send_message(:ath, 'Welcome to the club') as m1 \gset
 select tests.throws(format($$select public.send_message(%L, 'hi')$$, :'out')) as to_outsider \gset
 select tests.check(:'to_outsider'::boolean, 'cannot message someone outside the team');

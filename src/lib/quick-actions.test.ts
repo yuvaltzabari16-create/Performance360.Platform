@@ -10,21 +10,22 @@ describe("quick actions", () => {
   it("gives the athlete today's workout, logging a meal, the calendar and messages", () => {
     expect(ids("athlete", null)).toEqual(["today", "meal", "schedule", "message"]);
   });
-  it("gives staff who build training the building actions", () => {
-    const hop = ids("performance_coach", "head_of_performance");
-    for (const a of ["athlete", "test", "program", "message", "squad", "assistant"]) expect(hop).toContain(a);
-    for (const a of ["injury", "gps", "code"]) expect(hop).not.toContain(a);
+  it("gives coaches and physiotherapists the building actions", () => {
+    for (const [role, org] of [["performance_coach", "head_coach"], ["physiotherapist", "physiotherapist"]] as const) {
+      const got = ids(role, org);
+      for (const a of ["athlete", "test", "program", "message", "assistant"]) expect(got).toContain(a);
+      for (const a of ["payments", "invite", "squad", "injury", "gps", "code"]) expect(got).not.toContain(a);
+    }
   });
-  it("gives the director payments, inviting, messaging, the schedule and the assistant", () => {
-    const dir = ids("org_admin", "director");
-    expect(dir).toEqual(["payments", "invite", "message", "schedule", "assistant"]);
-    for (const a of ["program", "test", "athlete"]) expect(dir).not.toContain(a);
+  it("adds payments, inviting staff and squads for the owner", () => {
+    const owner = quickActionsFor("performance_coach", "head_coach", t, true).map((a) => a.id);
+    for (const a of ["payments", "invite", "squad", "program", "test"]) expect(owner).toContain(a);
   });
   it("only links to pages the login can open", () => {
-    const section = (href: string) => href.split("/")[1].split("?")[0];
+    const section = (href: string) => href.split("/")[1].split(/[?#]/)[0];
     const map: Record<string, Parameters<typeof canAccess>[0]> = { athletes: "athletes", testing: "testing", training: "training", messages: "messages", calendar: "calendar", team: "team", assistant: "assistant", nutrition: "nutrition", payments: "payments" };
-    for (const [role, org] of [["athlete", null], ["org_admin", "director"], ["physiotherapist", "physiotherapist"], ["performance_coach", "head_coach"]] as const) {
-      for (const a of quickActionsFor(role, org, t)) expect(canAccess(map[section(a.href)], role, org)).toBe(true);
+    for (const [role, org, owner] of [["athlete", null, false], ["performance_coach", "head_coach", true], ["physiotherapist", "physiotherapist", false], ["performance_coach", "head_coach", false]] as const) {
+      for (const a of quickActionsFor(role, org, t, owner)) expect(canAccess(map[section(a.href)], role, org, owner)).toBe(true);
     }
   });
 });

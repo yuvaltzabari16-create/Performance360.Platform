@@ -12,7 +12,7 @@ interface Props {
   canManage: boolean;
 }
 
-/** Squads of the team: who coaches which squad. Managed by the director and the head of performance. */
+/** Squads of the academy: who coaches which squad. Managed by the owners. */
 export function SquadsCard({ t, squads, coaches, assigned, counts, canManage }: Props) {
   const ts = t.team.squads;
   const countOf = (id: string) => counts.find(([k]) => k === id)?.[1] ?? 0;

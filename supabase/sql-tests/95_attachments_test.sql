@@ -12,7 +12,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set role authenticated;
 set request.jwt.claim.sub = :dir;
 select public.create_organization('Att FC', null, 'Dir Att');
-select public.create_staff_invite('head_of_performance') as i1 \gset
+select public.create_staff_invite('head_coach') as i1 \gset
 select public.create_staff_invite('physiotherapist') as i2 \gset
 select code as team_code from public.organization_codes where kind = 'athlete' and status = 'active' \gset
 set request.jwt.claim.sub = :hop;
@@ -49,9 +49,10 @@ select public.add_attachment('injury', :'inj', null, 'plan.docx', '\x504b0304'::
 select tests.check((select count(*) from public.attachments) = 2, 'the physiotherapist attaches files');
 
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.attachments) = 2, 'the director reads injury files');
-select tests.throws(format($$select public.add_attachment('injury', %L, null, 'x.pdf', '\x00'::bytea)$$, :'inj')) as dir_add \gset
-select tests.check(:'dir_add'::boolean, 'the director cannot attach');
+select tests.check((select count(*) from public.attachments) = 2, 'the owner coach reads injury files');
+select public.add_attachment('injury', :'inj', null, 'owner.pdf', '\x255044462d'::bytea) as a3 \gset
+select tests.check((select count(*) from public.attachments) = 3, 'the owner coach attaches files');
+select public.remove_attachment(:'a3');
 select tests.throws(format($$select public.remove_attachment(%L)$$, :'a1')) as dir_rm \gset
 select tests.check(:'dir_rm'::boolean, 'only the uploader removes a file');
 

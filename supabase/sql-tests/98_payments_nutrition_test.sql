@@ -1,4 +1,4 @@
--- Academy payments (director only) and athlete meal logs (athlete writes, their staff read and comment).
+-- Academy payments (owners only) and athlete meal logs (athlete writes, their staff read and comment).
 
 \set dir    '''bbbb0000-0000-0000-0000-000000000001'''
 \set coach  '''bbbb0000-0000-0000-0000-000000000002'''
@@ -41,9 +41,9 @@ select tests.check((select paid_on is null and method is null from public.athlet
 select public.record_payment(:'rec2', 'Kit', 120, 'ILS', '2026-10-05', '2026-10-05', 'cash', 'Paid at training') as p2 \gset
 select tests.check((select method = 'cash' from public.athlete_payments where id = :'p2'), 'a payment can be recorded as already paid');
 select tests.check(public.charge_roster('November fee', 350, 'ILS', '2026-11-01') = 2, 'charging the roster creates one payment per roster athlete');
-select tests.check((select count(*) from public.athlete_payments) = 4, 'the director reads the academy payments');
+select tests.check((select count(*) from public.athlete_payments) = 4, 'the owner reads the academy payments');
 select public.set_payment_paid(:'p1', '2026-10-03', 'bank_transfer');
-select tests.check((select paid_on = '2026-10-03' and method = 'bank_transfer' from public.athlete_payments where id = :'p1'), 'the director marks a payment paid');
+select tests.check((select paid_on = '2026-10-03' and method = 'bank_transfer' from public.athlete_payments where id = :'p1'), 'the owner marks a payment paid');
 select public.set_payment_paid(:'p1', null);
 select tests.check((select paid_on is null and method is null from public.athlete_payments where id = :'p1'), 'and back to unpaid');
 select tests.throws(format($$select public.record_payment(%L, 'x', 10, 'ILS', current_date)$$, :'outrec')) as off_roster \gset
@@ -57,7 +57,7 @@ select tests.throws($$insert into public.athlete_payments (org_id, athlete_id, d
 select tests.check(:'direct_insert'::boolean, 'payments are only written through the functions');
 
 set request.jwt.claim.sub = :coach;
-select tests.check((select count(*) from public.athlete_payments) = 0, 'staff do not see payments');
+select tests.check((select count(*) from public.athlete_payments) = 0, 'coaches who are not owners do not see payments');
 select tests.throws(format($$select public.record_payment(%L, 'x', 10, 'ILS', current_date)$$, :'rec')) as coach_rec \gset
 select tests.check(:'coach_rec'::boolean, 'staff cannot record payments');
 select tests.throws(format($$select public.set_payment_paid(%L, current_date)$$, :'p1')) as coach_paid \gset
@@ -67,13 +67,13 @@ set request.jwt.claim.sub = :ath;
 select tests.check((select count(*) from public.athlete_payments) = 0, 'athletes do not see the payments table');
 
 set request.jwt.claim.sub = :odir;
-select tests.check((select count(*) from public.athlete_payments) = 0, 'another academy''s director sees nothing');
+select tests.check((select count(*) from public.athlete_payments) = 0, 'another academy''s owner sees nothing');
 select tests.throws(format($$select public.delete_payment(%L)$$, :'p1')) as other_del \gset
-select tests.check(:'other_del'::boolean, 'another academy''s director cannot delete');
+select tests.check(:'other_del'::boolean, 'another academy''s owner cannot delete');
 
 set request.jwt.claim.sub = :dir;
 select public.delete_payment(:'p2');
-select tests.check((select count(*) from public.athlete_payments where id = :'p2') = 0, 'the director deletes a payment');
+select tests.check((select count(*) from public.athlete_payments where id = :'p2') = 0, 'the owner deletes a payment');
 
 -- ----- meals ----------------------------------------------------------------------------------
 set request.jwt.claim.sub = :ath;
@@ -103,10 +103,8 @@ select tests.throws(format($$select public.add_attachment('meal', %L, null, 'x.j
 select tests.check(:'coach_photo'::boolean, 'staff cannot add meal photos');
 
 set request.jwt.claim.sub = :dir;
-select tests.check((select count(*) from public.meal_logs) = 0, 'the director does not see meals');
-select tests.check((select count(*) from public.attachments where kind = 'meal') = 0, 'or meal photos');
-select tests.throws(format($$select public.comment_on_meal(%L, 'x')$$, :'meal')) as dir_comment \gset
-select tests.check(:'dir_comment'::boolean, 'the director cannot comment on meals');
+select tests.check((select count(*) from public.meal_logs) = 1, 'the owner coach reads the meal log like any coach');
+select tests.check((select count(*) from public.attachments where kind = 'meal') = 1, 'and the photo');
 
 set request.jwt.claim.sub = :ath2;
 select tests.check((select count(*) from public.meal_logs) = 0, 'other athletes do not see the meal');

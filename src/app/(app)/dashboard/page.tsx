@@ -2,7 +2,6 @@ import { FlashMessage } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
 import { AthleteDashboard } from "./AthleteDashboard";
 import { CoachDashboard } from "./CoachDashboard";
-import { DirectorDashboard } from "./DirectorDashboard";
 
 export const metadata = { title: "Dashboard" };
 
@@ -13,7 +12,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <FlashMessage ok={sp.ok} />
-      {profile.role === "athlete" ? <AthleteDashboard t={t} /> : org?.org_role === "director" ? <DirectorDashboard t={t} /> : <CoachDashboard t={t} />}
+      {profile.role === "athlete" ? <AthleteDashboard t={t} /> : <CoachDashboard t={t} owner={Boolean(org?.is_owner)} />}
     </>
   );
 }
