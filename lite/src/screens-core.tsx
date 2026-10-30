@@ -5,6 +5,8 @@ import { daysOut, returnOutlook } from "@/lib/injury";
 import { isImprovement, percentChange, readinessFlag, wellnessIndex } from "@/lib/metrics";
 import { round } from "@/lib/units";
 import { useApp } from "./ctx";
+import { ARTIFACT, ask } from "./platform";
+import { LinkAccount } from "./link";
 import {
   BODY_AREAS, INJURY_STAGES, newId, parseLoadCsv, removeAthlete, removeById, replaceById, saveCheckIn, setInjuryStage,
   type Athlete, type CheckIn, type Injury, type TestEntry,
@@ -135,9 +137,10 @@ export function AthleteDetail({ id }: { id: string }) {
         <label className="f" style={{ marginTop: ".6rem" }}>{L.common.notes} <span className="muted small">({t.noteHelp})</span>
           <textarea rows={2} value={a.notes} maxLength={4000} onChange={(e) => patch({ notes: e.target.value })} /></label>
         <div className="row" style={{ marginTop: ".6rem" }}>
-          <button className="btn danger" onClick={() => { if (window.confirm(t.deleteWarn)) { update((st) => removeAthlete(st, a.id)); go({ name: "athletes" }); } }}>{L.common.delete}</button>
+          <button className="btn danger" onClick={async () => { if (await ask(t.deleteWarn)) { update((st) => removeAthlete(st, a.id)); go({ name: "athletes" }); } }}>{L.common.delete}</button>
         </div>
       </div>
+      {ARTIFACT && !a.id.startsWith("demo-") && <LinkAccount athlete={a} />}
       <div className="tabs" role="tablist">
         {(Object.keys(t.tabs) as Tab[]).map((k) => <button key={k} role="tab" aria-current={tab === k} onClick={() => setTab(k)}>{t.tabs[k]}</button>)}
       </div>
@@ -152,7 +155,7 @@ export function AthleteDetail({ id }: { id: string }) {
 const SCALES = ["sleepQuality", "fatigue", "soreness", "stress", "mood", "motivation"] as const;
 const num = (v: FormDataEntryValue | null) => { const n = Number(v); return v === null || v === "" || !Number.isFinite(n) ? null : n; };
 
-function CheckIns({ athlete }: { athlete: Athlete }) {
+export function CheckIns({ athlete }: { athlete: Athlete }) {
   const { s, update, L, d, today } = useApp();
   const t = L.checkIn;
   const mine = s.checkIns.filter((c) => c.athleteId === athlete.id).sort((x, y) => y.date.localeCompare(x.date));
@@ -313,7 +316,7 @@ function Injuries({ athlete }: { athlete: Athlete }) {
             <select name="stage" aria-label={t.move} defaultValue={i.stage} style={{ width: "auto" }}>{INJURY_STAGES.map((g) => <option key={g} value={g}>{d.injury.stages[g]}</option>)}</select>
             <input name="note" placeholder={t.stageNote} maxLength={2000} style={{ flex: 1, minWidth: "10rem" }} />
             <button className="btn" type="submit">{t.move}</button>
-            <button type="button" className="btn danger" onClick={() => { if (window.confirm(L.common.confirm)) update((st) => ({ ...st, injuries: removeById(st.injuries, i.id) })); }}>{L.common.delete}</button>
+            <button type="button" className="btn danger" onClick={async () => { if (await ask(L.common.confirm)) update((st) => ({ ...st, injuries: removeById(st.injuries, i.id) })); }}>{L.common.delete}</button>
           </form>
           {err && <p role="alert" className="pill bad">{err}</p>}
           <h3 style={{ marginTop: ".6rem" }}>{t.timeline}</h3>

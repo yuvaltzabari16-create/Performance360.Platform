@@ -10,7 +10,7 @@ export const SCHEMA_VERSION = 1;
 export type Lang = "en" | "he";
 export type Theme = "auto" | "light" | "dark";
 
-export interface Athlete { id: string; name: string; sport: string; position: string; notes: string; createdAt: string }
+export interface Athlete { id: string; name: string; sport: string; position: string; notes: string; createdAt: string; userId?: string | null }
 export interface CheckIn {
   id: string; athleteId: string; date: string;
   sleepHours: number | null; sleepQuality: number | null; fatigue: number | null; soreness: number | null;
@@ -76,6 +76,7 @@ export function sanitizeState(input: unknown): LiteState {
   const raw = rec(input);
   const athletes: Athlete[] = arr(raw.athletes).map(rec).filter((a) => str(a.name, 120)).slice(0, 2000).map((a) => ({
     id: idOf(a.id), name: str(a.name, 120), sport: str(a.sport, 80), position: str(a.position, 80), notes: str(a.notes, 4000), createdAt: stamp(a.createdAt),
+    ...(str(a.userId, 80) ? { userId: str(a.userId, 80) } : {}),
   }));
   const known = new Set(athletes.map((a) => a.id));
   const checkIns: CheckIn[] = arr(raw.checkIns).map(rec).filter((c) => known.has(String(c.athleteId)) && isDate(c.date)).slice(0, 50000).map((c) => ({

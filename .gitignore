@@ -45,3 +45,4 @@ next-env.d.ts
 
 # standalone Lite build output
 /dist-lite
+/dist-artifact

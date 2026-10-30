@@ -74,3 +74,7 @@ table { width: 100%; border-collapse: collapse; } th, td { text-align: start; pa
   .side, .no-print, .banner { display: none !important; }
   .shell { display: block; } body { background: #fff; color: #000; } .card { border: 0; padding: 0; }
 }
+
+/* Inline yes/no dialog (the shared artifact cannot use the browser's own confirm) */
+.ask-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: grid; place-items: center; padding: 1rem; z-index: 50; }
+.ask { max-width: 420px; width: 100%; margin: 0; }

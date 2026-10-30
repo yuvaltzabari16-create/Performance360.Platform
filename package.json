@@ -13,7 +13,8 @@
     "check:licenses": "node scripts/check-licenses.mjs",
     "docs:roles": "UPDATE_ROLES_DOC=1 vitest run src/lib/roles-doc.test.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run check:licenses && npm run test:db",
-    "build:lite": "node lite/build.mjs"
+    "build:lite": "node lite/build.mjs",
+    "build:artifact": "node lite/build-artifact.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

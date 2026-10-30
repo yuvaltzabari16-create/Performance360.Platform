@@ -7,6 +7,7 @@ import { generateWorkout } from "@/lib/generator/generate";
 import { buildPreview, type WorkoutPreview } from "@/lib/generator/preview";
 import { personalDataFrom } from "./bridge";
 import { useApp } from "./ctx";
+import { ARTIFACT, ask } from "./platform";
 import { CATEGORIES, EQUIPMENT, LIBRARY, type LibraryItem } from "./library";
 import {
   csvCell, emptyState, exportJson, newId, parseImport, removeById, replaceById, todayIso,
@@ -145,7 +146,7 @@ function SessionCard({ program, session }: { program: Program; session: Training
           <button className="btn" onClick={() => setPicker((v) => !v)}>{t.addFromLibrary}</button>
           <button className="btn" onClick={copy}>{copied ? t.copied : t.copy}</button>
           <button className="btn" onClick={() => window.print()}>{t.print}</button>
-          <button className="btn danger" onClick={() => { if (window.confirm(L.common.confirm)) update((st) => ({ ...st, programs: st.programs.map((p) => (p.id === program.id ? { ...p, sessions: removeById(p.sessions, session.id) } : p)) })); }}>{L.common.delete}</button>
+          <button className="btn danger" onClick={async () => { if (await ask(L.common.confirm)) update((st) => ({ ...st, programs: st.programs.map((p) => (p.id === program.id ? { ...p, sessions: removeById(p.sessions, session.id) } : p)) })); }}>{L.common.delete}</button>
         </span>
       </div>
       {auto && <AutoBuild onClose={() => setAuto(false)} onApply={(p) => {
@@ -218,7 +219,7 @@ export function Training({ programId }: { programId?: string }) {
         <input aria-label={t.programTitle} value={program.title} maxLength={160} onChange={(e) => savep({ ...program, title: e.target.value })} style={{ fontSize: "1.3rem", fontWeight: 700, maxWidth: "26rem" }} />
         <span className="row no-print">
           <button className="btn primary" onClick={() => savep({ ...program, sessions: [...program.sessions, { id: newId(), title: `${t.newSession} ${program.sessions.length + 1}`, items: [] }] })}>{t.newSession}</button>
-          <button className="btn danger" onClick={() => { if (window.confirm(t.deleteProgram)) { update((st) => ({ ...st, programs: removeById(st.programs, program.id) })); go({ name: "training" }); } }}>{L.common.delete}</button>
+          <button className="btn danger" onClick={async () => { if (await ask(t.deleteProgram)) { update((st) => ({ ...st, programs: removeById(st.programs, program.id) })); go({ name: "training" }); } }}>{L.common.delete}</button>
         </span>
       </div>
       {program.sessions.map((sess) => <SessionCard key={sess.id} program={program} session={sess} />)}
@@ -278,7 +279,7 @@ export function Settings() {
     if (!file) return;
     const r = parseImport(await file.text());
     if (!r.ok) { setMsg(t.importErr[r.error]); return; }
-    if (!window.confirm(t.importWarn)) return;
+    if (!(await ask(t.importWarn))) return;
     update(() => ({ ...r.state, lang: s.lang, theme: s.theme }));
     setMsg(fill(t.importOk, { a: r.counts.athletes, p: r.counts.programs }));
   }
@@ -296,7 +297,7 @@ export function Settings() {
       <h1>{t.title}</h1>
       <div className="card form">
         <label className="f">{t.language}<select aria-label={t.language} value={s.lang} onChange={(e) => update((st) => ({ ...st, lang: e.target.value === "he" ? "he" : "en" }))}><option value="en">English</option><option value="he">עברית</option></select></label>
-        <label className="f">{t.theme}<select aria-label={t.theme} value={s.theme} onChange={(e) => update((st) => ({ ...st, theme: e.target.value as Theme }))}>{(["auto", "light", "dark"] as const).map((k) => <option key={k} value={k}>{t.themes[k]}</option>)}</select></label>
+        {!ARTIFACT && <label className="f">{t.theme}<select aria-label={t.theme} value={s.theme} onChange={(e) => update((st) => ({ ...st, theme: e.target.value as Theme }))}>{(["auto", "light", "dark"] as const).map((k) => <option key={k} value={k}>{t.themes[k]}</option>)}</select></label>}
       </div>
       <div className="card">
         <h2>{t.backup}</h2>
@@ -315,7 +316,7 @@ export function Settings() {
         <h2>{t.about}</h2>
         <p>{t.aboutBody}</p>
         <p className="muted small">{d.injury.disclaimer}</p>
-        <button className="btn danger" onClick={() => { if (window.confirm(t.dangerWarn)) update(() => emptyState(s.lang)); }}>{t.danger}</button>
+        <button className="btn danger" onClick={async () => { if (await ask(t.dangerWarn)) update(() => emptyState(s.lang)); }}>{t.danger}</button>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 import en from "@/lib/i18n/en";
 import he from "@/lib/i18n/he";
 import type { Lang } from "./model";
+import { ARTIFACT } from "./platform";
 
 /** Strings that only exist in Lite. Everything else (sections, fields, injury stages, assistant) reuses the app's own dictionaries. */
 const liteEn = {
@@ -22,6 +23,28 @@ const liteEn = {
       "The assistant gives general information, not medical advice. It never diagnoses or clears anyone.",
     ],
     start: "Start",
+  },
+  cloud: {
+    tagline: "Shared with your team. Your Claude account is the sign-in.",
+    demoBanner: "Example data. You are not signed in, or sharing is off, so nothing here is saved. Open this page while signed in to Claude to work with your team's data.",
+    viewOnly: "View only: your access level lets you look but not change anything.",
+    connecting: "Connecting to the shared store…", saving: "Saving…", saved: "Saved for the whole team.",
+    saveError: "Couldn't save. Your last change may not be stored. Check your connection, then make the change again.",
+    revoked: "Your access to this page changed. Reload to see what you can still do.",
+    athleteTitle: "My check-in", athleteHello: "Hello {name}", athletePrivacy: "Only you and your coaches can see your check-ins.",
+    waitTitle: "Waiting for your coach",
+    wait: "Your account isn't linked to an athlete yet. Ask your coach to link you: Athletes, your name, Linked account. Nothing is shown here until they do.",
+    noIdentity: "This page can't tell who you are, so it can't show your check-in. Open it signed in to Claude.",
+    link: {
+      title: "Linked account", none: "Not linked: this athlete can't fill in their own check-in.", search: "Search people by name", pick: "Link", unlink: "Unlink",
+      linked: "Linked to {name}", noResults: "No one found. Only people in your organization appear here, and they need access to this page first.", someone: "Someone",
+      help: "Linking lets this athlete open the page with their own account and fill in their check-in. They see only their own check-ins.",
+    },
+    aboutBody: "This page keeps one shared set of data for your team. Coaches (people who can edit the page) see and change everything. Athletes you link to an account can only fill in and see their own check-ins. Sign-in is each person's Claude account, and the page can't see their password. There is no separate sign-up, two-factor setting or parental-consent step here: for a public app with those, use the full Performance360 app.",
+    dangerWarn: "Delete everything stored for the whole team? Export a backup first. This can't be undone and affects everyone.",
+    importWarn: "Importing replaces everything stored for the whole team. Continue?",
+    storageIn: "Saved in this page's shared store. Everyone with access sees the same data.",
+    yes: "Yes", no: "No",
   },
   storage: {
     memory: "This browser can't store data for this file, so what you enter will be lost when you close the page. Export a backup in Settings before you leave.",
@@ -93,6 +116,28 @@ const liteHe: Dict = {
     ],
     start: "מתחילים",
   },
+  cloud: {
+    tagline: "משותף עם הצוות. חשבון Claude שלכם הוא ההתחברות.",
+    demoBanner: "נתוני דוגמה. אתם לא מחוברים, או שהשיתוף כבוי, ולכן שום דבר כאן לא נשמר. פתחו את הדף כשאתם מחוברים ל-Claude כדי לעבוד עם נתוני הצוות.",
+    viewOnly: "צפייה בלבד: רמת ההרשאה שלכם מאפשרת לראות אבל לא לשנות.",
+    connecting: "מתחבר למאגר המשותף…", saving: "שומר…", saved: "נשמר לכל הצוות.",
+    saveError: "אי אפשר היה לשמור. ייתכן שהשינוי האחרון לא נשמר. בדקו את החיבור ובצעו את השינוי שוב.",
+    revoked: "ההרשאה שלכם לדף הזה השתנתה. טענו מחדש כדי לראות מה עדיין אפשר.",
+    athleteTitle: "השאלון שלי", athleteHello: "שלום {name}", athletePrivacy: "רק אתם והמאמנים שלכם רואים את השאלונים שלכם.",
+    waitTitle: "מחכים למאמן",
+    wait: "החשבון שלכם עוד לא מקושר לספורטאי. בקשו מהמאמן לקשר אתכם: ספורטאים, השם שלכם, חשבון מקושר. עד אז לא יוצג כאן כלום.",
+    noIdentity: "הדף הזה לא יכול לזהות אתכם ולכן אינו יכול להציג את השאלון. פתחו אותו כשאתם מחוברים ל-Claude.",
+    link: {
+      title: "חשבון מקושר", none: "לא מקושר: הספורטאי הזה לא יכול למלא שאלון בעצמו.", search: "חיפוש אנשים לפי שם", pick: "קישור", unlink: "ביטול קישור",
+      linked: "מקושר ל{name}", noResults: "לא נמצא אף אחד. מופיעים כאן רק אנשים מהארגון שלכם, והם צריכים קודם גישה לדף הזה.", someone: "מישהו",
+      help: "הקישור מאפשר לספורטאי לפתוח את הדף עם החשבון שלו ולמלא שאלון. הוא רואה רק את השאלונים של עצמו.",
+    },
+    aboutBody: "הדף הזה שומר סט נתונים משותף אחד לצוות. מאמנים (מי שיכול לערוך את הדף) רואים ומשנים הכול. ספורטאים שקישרתם לחשבון יכולים רק למלא ולראות את השאלונים של עצמם. ההתחברות היא חשבון ה-Claude של כל אחד, והדף לא רואה את הסיסמה. אין כאן הרשמה נפרדת, אימות דו-שלבי או אישור הורים: לאפליקציה ציבורית עם כל אלה השתמשו באפליקציית Performance360 המלאה.",
+    dangerWarn: "למחוק את כל מה ששמור לכל הצוות? ייצאו קודם גיבוי. אי אפשר לבטל וזה משפיע על כולם.",
+    importWarn: "הייבוא מחליף את כל מה ששמור לכל הצוות. להמשיך?",
+    storageIn: "נשמר במאגר המשותף של הדף. כל מי שיש לו גישה רואה את אותם נתונים.",
+    yes: "כן", no: "לא",
+  },
   storage: {
     memory: "הדפדפן הזה לא מאפשר לשמור נתונים עבור הקובץ הזה, ולכן מה שתזינו יאבד כשתסגרו את הדף. ייצאו גיבוי בהגדרות לפני שתעזבו.",
     backupDue: "גיבוי אחרון: {when}. ייצאו גיבוי חדש בהגדרות.",
@@ -143,5 +188,16 @@ const liteHe: Dict = {
 };
 
 export const LITE: Record<Lang, Dict> = { en: liteEn, he: liteHe };
+
+/** The dictionary for the running build: the shared artifact words a few Lite texts differently (no "this browser"). */
+export function litefor(lang: Lang): Dict {
+  const base = LITE[lang];
+  if (!ARTIFACT) return base;
+  const c = base.cloud;
+  return {
+    ...base, title: "Performance360", tagline: c.tagline,
+    settings: { ...base.settings, aboutBody: c.aboutBody, dangerWarn: c.dangerWarn, importWarn: c.importWarn, storageIn: { indexeddb: c.storageIn, localstorage: c.storageIn, memory: c.storageIn } },
+  };
+}
 export const MAIN = { en, he } as const;
 export const fill = (t: string, vars: Record<string, string | number>) => t.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ""));

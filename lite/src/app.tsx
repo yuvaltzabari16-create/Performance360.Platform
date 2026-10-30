@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppCtx, type Screen } from "./ctx";
+import { Shell } from "./shell";
 import { todayIso, type LiteState } from "./model";
-import { Athletes, AthleteDetail, Overview } from "./screens-core";
-import { Assistant, LibraryScreen, Settings, Training } from "./screens-more";
 import { loadState, requestPersistence, saveState, storageKind } from "./storage";
-import { fill, LITE, MAIN } from "./strings";
+import { fill, litefor, LITE, MAIN } from "./strings";
 import { daysSince } from "./util";
 
-const NAV: Screen["name"][] = ["overview", "athletes", "training", "library", "assistant", "settings"];
 const WELCOME_KEY = "performance360-lite-welcome";
 
 export function App() {
@@ -63,7 +61,7 @@ export function App() {
     document.title = LITE[lang].title;
   }, [lang, state?.theme]);
 
-  const ctx = useMemo(() => (state ? { s: state, update, lang, L: LITE[lang], d: MAIN[lang], today: todayIso(), go: setScreen } : null), [state, update, lang]);
+  const ctx = useMemo(() => (state ? { s: state, update, lang, L: litefor(lang), d: MAIN[lang], today: todayIso(), go: setScreen } : null), [state, update, lang]);
   if (!state || !ctx) return <p style={{ padding: "1rem" }}>…</p>;
   const { L } = ctx;
   const hasData = state.athletes.length + state.programs.length > 0;
@@ -89,28 +87,11 @@ export function App() {
     );
   }
 
-  return (
-    <AppCtx.Provider value={ctx}>
-      <div className="shell">
-        <aside className="side no-print">
-          <div className="brand"><i aria-hidden="true" />{L.title}</div>
-          <nav className="nav" aria-label="Main">
-            {NAV.map((n) => <button key={n} aria-current={screen.name === n ? "page" : undefined} onClick={() => setScreen({ name: n })}>{L.nav[n]}</button>)}
-          </nav>
-          <p className="muted small">{L.tagline}</p>
-        </aside>
-        <main className="main">
-          {(storageKind() === "memory" || !saved) && <div className="banner" role="alert">{L.storage.memory}</div>}
-          {hasData && (backupAge === null ? <div className="banner">{L.storage.neverBacked}</div> : backupAge >= 7 && <div className="banner">{fill(L.storage.backupDue, { when: state.lastExportAt?.slice(0, 10) ?? "" })}</div>)}
-          {screen.name === "overview" && <Overview />}
-          {screen.name === "athletes" && (screen.athleteId ? <AthleteDetail id={screen.athleteId} /> : <Athletes />)}
-          {screen.name === "training" && <Training programId={screen.programId} />}
-          {screen.name === "library" && <LibraryScreen />}
-          {screen.name === "assistant" && <Assistant />}
-          {screen.name === "settings" && <Settings />}
-        </main>
-      </div>
-    </AppCtx.Provider>
+  const banners = (
+    <>
+      {(storageKind() === "memory" || !saved) && <div className="banner" role="alert">{L.storage.memory}</div>}
+      {hasData && (backupAge === null ? <div className="banner">{L.storage.neverBacked}</div> : backupAge >= 7 && <div className="banner">{fill(L.storage.backupDue, { when: state.lastExportAt?.slice(0, 10) ?? "" })}</div>)}
+    </>
   );
+  return <Shell ctx={ctx} screen={screen} setScreen={setScreen} banners={banners} />;
 }
-

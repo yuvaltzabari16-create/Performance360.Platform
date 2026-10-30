@@ -2,18 +2,7 @@ import { fieldDisplay, parseField, FIELD_KEYS, type ExercisePatch } from "@/lib/
 import type { Dictionary } from "@/lib/i18n/en";
 import type { SessionItem, TrainingSession } from "./model";
 
-/** Saves text as a file download (works from a file:// page). */
-export function download(name: string, text: string, mime = "text/plain") {
-  const blob = new Blob([text], { type: `${mime};charset=utf-8` });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+export { saveFile as download } from "./platform";
 
 /** The prescription of one item as chip texts, e.g. ["3x8", "RPE 7"]. */
 export function itemChips(item: SessionItem, d: Dictionary): string[] {
