@@ -33,7 +33,7 @@ Nothing here needs code changes.
 | `OPERATOR_NAME`, `OPERATOR_ADDRESS`, `OPERATOR_EMAIL`, `PRIVACY_EMAIL` | before launch | Shown on /privacy and /terms |
 | `LEGAL_REVIEWED` | after legal review | `1` removes the draft notice |
 | `ACCESSIBILITY_COORDINATOR`, `ACCESSIBILITY_EMAIL`, `ACCESSIBILITY_PHONE` | before launch | Israeli accessibility statement contact |
-| `CRON_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | optional | Switch on the scheduled WHOOP sync (`vercel.json` runs it daily; Vercel's free plan allows one run a day). Without them the route answers 404 and athletes use "Sync now" |
+| `CRON_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | optional | Switch on the daily notification-email job (`vercel.json` on Vercel, `netlify/functions` on Netlify). Without them the route answers 404 |
 | `RESEND_API_KEY` + `MAIL_FROM` | optional | Daily email copies of notifications for people who turned them on (also needs `CRON_SECRET` and the service-role key) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | recommended | Cloudflare Turnstile on public forms |
 | `BOT_GUARD_SECRET` | recommended | Random string; signs the form time-trap token |
@@ -41,12 +41,10 @@ Nothing here needs code changes.
 | `BILLING_REQUIRED` | when selling | `1` closes the app for a team whose trial and subscription have ended (billing, settings and data export stay open) |
 | `STRIPE_WEBHOOK_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | when selling | Lets Stripe tell the app who paid (section 2c). Without them the webhook answers 404 |
 | `BILLING_PORTAL_URL` | optional | Stripe customer portal link for "Manage subscription" |
-| `WEARABLE_TOKEN_KEY` | for wearables | 32 random bytes in base64 (`openssl rand -base64 32`); encrypts stored device tokens. Do not rotate without asking athletes to reconnect |
-| `WHOOP_LIVE`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET` | for live WHOOP, after WHOOP approves the app | Leave unset until then: athletes see "coming soon" and can still import a WHOOP export file, and the scheduled sync does nothing. Set `WHOOP_LIVE=1` once approved. Keys from the WHOOP developer dashboard; redirect URI `<site>/api/wearables/whoop/callback`; scopes `offline read:recovery read:sleep read:cycles` |
 | `NEXT_PUBLIC_GOOGLE_LOGIN` | for Google sign-in | `1` shows "Continue with Google" (after step 2b below). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the email and password form |
 | `RATE_LIMIT_*` | optional | Defaults are sensible |
 
-   Never set `WEARABLES_MOCK`, `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
+   Never set `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
 4. Domain: add the domain in *Settings → Domains*; HTTPS is automatic and the app redirects http to https
    and sends HSTS.
 5. Note: the rate limiter keeps counters in memory per server instance. For several instances or heavy
@@ -54,13 +52,13 @@ Nothing here needs code changes.
 
 ### 2a. Netlify (instead of Vercel)
 
-The repository already carries `netlify.toml` (build command, Next.js runtime, Node 22) and two scheduled functions in `netlify/functions` that replace the Vercel cron jobs.
+The repository already carries `netlify.toml` (build command, Next.js runtime, Node 22) and a scheduled function in `netlify/functions` that replaces the Vercel cron job.
 
 1. *Add new project → Import an existing project → GitHub*, pick the repository and branch `main`. Leave the build settings as they are: they come from `netlify.toml`.
 2. *Project configuration → Environment variables*: add the variables from the table in section 2 (at least the three required ones). `NEXT_PUBLIC_SITE_URL` is the Netlify address or your own domain. The `NEXT_PUBLIC_*` values are read at build time, so deploy again after changing them.
 3. Supabase → *Authentication → URL configuration*: the same address as Site URL, and `<address>/auth/callback` in Redirect URLs.
 4. Domain: *Domain management → Add a domain*; follow the DNS records Netlify shows.
-5. The scheduled functions need `CRON_SECRET` (any long random string) and `SUPABASE_SERVICE_ROLE_KEY`. Without them they do nothing.
+5. The scheduled function needs `CRON_SECRET` (any long random string) and `SUPABASE_SERVICE_ROLE_KEY`. Without them they do nothing.
 6. After the first deploy: `<address>/api/health` answers `ok`, then sign up and sign in once.
 
 ### 2b. Sign in with Google (Gmail accounts)

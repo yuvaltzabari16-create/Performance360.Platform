@@ -1,6 +1,6 @@
 # ADR 0005: External payments; wearable data by file import first
 
-Status: accepted
+Status: accepted for payments; the wearable part was superseded by ADR 0007
 
 Card data never touches the app: billing links to hosted checkout and a test asserts there are no card fields.
 GPS and wearable data enter by CSV export import (summary or position data), which needs no vendor contract and

@@ -49,7 +49,7 @@ export const TOPICS: Topic[] = [
     id: "recovery-numbers", roles: ALL,
     en: {
       title: "What recovery and sleep numbers mean",
-      keys: ["recovery and sleep numbers", "recovery numbers", "sleep numbers", "recovery score", "recovery percent", "whoop", "fitbit", "wearable numbers", "what do my numbers", "numbers really tell"],
+      keys: ["recovery and sleep numbers", "recovery numbers", "sleep numbers", "recovery score", "recovery percent", "what do my numbers", "numbers really tell"],
       body: [
         "Recovery and sleep scores are estimates built from resting heart rate, heart-rate variability (HRV), sleep duration and sleep stages.",
         "- They are **relative to your own baseline,** so compare yourself to your last few weeks, not to other people.",
@@ -61,7 +61,7 @@ export const TOPICS: Topic[] = [
     },
     he: {
       title: "מה אומרים מספרי ההתאוששות והשינה",
-      keys: ["מספרי ההתאוששות", "מספרי השינה", "ציון התאוששות", "אחוז התאוששות", "וופ", "פיטביט", "מכשיר לביש", "מה המספרים", "באמת אומרים"],
+      keys: ["מספרי ההתאוששות", "מספרי השינה", "ציון התאוששות", "אחוז התאוששות", "מה המספרים", "באמת אומרים"],
       body: [
         "ציוני התאוששות ושינה הם הערכות שמבוססות על דופק מנוחה, שונות דופק (HRV), משך שינה ושלבי שינה.",
         "- הם **יחסיים לבסיס האישי שלכם:** משווים לשבועות האחרונים שלכם, לא לאנשים אחרים.",
@@ -84,7 +84,6 @@ export const TOPICS: Topic[] = [
         "- Keep measurement conditions the same (time, position, device) and watch for missing data before reading a drop as meaningful.",
         "- Combine with wellness answers, training load and context (travel, exams, illness). Agreement between sources is a strong signal; disagreement is a reason to talk to the athlete.",
         "- Use it to **start a conversation or adjust a session,** not to withdraw an athlete on a number alone.",
-        "Athletes decide whether staff can see wearable data; respect that.",
       ],
     },
     he: {
@@ -97,7 +96,6 @@ export const TOPICS: Topic[] = [
         "- שומרים על תנאי מדידה זהים (שעה, תנוחה, מכשיר) ובודקים אם חסרים נתונים לפני שמפרשים ירידה כמשמעותית.",
         "- משלבים עם שאלון הרווחה, עומס אימונים והקשר (נסיעות, מבחנים, מחלה). הסכמה בין מקורות היא סימן חזק; פער הוא סיבה לשוחח עם הספורטאי.",
         "- משתמשים בזה כדי **לפתוח שיחה או להתאים אימון,** לא כדי להוציא ספורטאי על סמך מספר בלבד.",
-        "הספורטאים קובעים אם הצוות רואה את נתוני המכשיר הלביש; יש לכבד זאת.",
       ],
     },
   },
@@ -843,31 +841,12 @@ export const TOPICS: Topic[] = [
     },
   },
   {
-    id: "howto-wearables", roles: ALL,
-    en: {
-      title: "Connecting a wearable",
-      keys: ["connect whoop", "connect a wearable", "connect my", "import fitbit", "sync", "wearable", "wearables", "share my data", "sharing"],
-      body: [
-        "Open **Wearables.** Connect WHOOP (when the club has switched it on) or import a Fitbit or WHOOP export file. Recovery, HRV, sleep and strain appear on your page.",
-        "**You decide whether your coaching staff can see this data,** and you can turn sharing off or erase the data at any time. Staff never see it without your permission.",
-      ],
-    },
-    he: {
-      title: "חיבור מכשיר לביש",
-      keys: ["לחבר וופ", "לחבר מכשיר", "ייבוא פיטביט", "סנכרון", "מכשיר לביש", "מכשירים לבישים", "לשתף את הנתונים", "שיתוף"],
-      body: [
-        "פותחים **מכשירים לבישים.** מחברים WHOOP (כשהמועדון הפעיל אותו) או מייבאים קובץ ייצוא של Fitbit או WHOOP. התאוששות, HRV, שינה ומאמץ מופיעים בעמוד שלכם.",
-        "**אתם מחליטים אם צוות האימון רואה את הנתונים,** ואפשר לכבות שיתוף או למחוק את הנתונים בכל עת. הצוות לא רואה אותם בלי אישורכם.",
-      ],
-    },
-  },
-  {
     id: "howto-export", roles: ALL,
     en: {
       title: "Exporting data",
       keys: ["export", "download my data", "download data", "csv", "spreadsheet", "excel", "backup my data"],
       body: [
-        "Staff can export CSV files for athletes, tests, injuries, GPS, readiness and wearables; each export contains only what your role may already see. Open the file in Excel or Google Sheets.",
+        "Staff can export CSV files for athletes, tests, injuries, GPS and readiness; each export contains only what your role may already see. Open the file in Excel or Google Sheets.",
         "Anyone can download a full copy of their own data from **Settings,** under privacy and data.",
       ],
     },
@@ -875,7 +854,7 @@ export const TOPICS: Topic[] = [
       title: "ייצוא נתונים",
       keys: ["ייצוא", "לייצא", "להוריד את הנתונים", "להוריד נתונים", "csv", "אקסל", "גיבוי נתונים"],
       body: [
-        "הצוות יכול לייצא קובצי CSV של ספורטאים, מבדקים, פציעות, GPS, מוכנות ומכשירים לבישים; כל ייצוא כולל רק מה שהתפקיד שלכם כבר רשאי לראות. פותחים את הקובץ באקסל או ב-Google Sheets.",
+        "הצוות יכול לייצא קובצי CSV של ספורטאים, מבדקים, פציעות, GPS ומוכנות; כל ייצוא כולל רק מה שהתפקיד שלכם כבר רשאי לראות. פותחים את הקובץ באקסל או ב-Google Sheets.",
         "כל אחד יכול להוריד עותק מלא של הנתונים שלו מ**הגדרות,** תחת פרטיות ונתונים.",
       ],
     },

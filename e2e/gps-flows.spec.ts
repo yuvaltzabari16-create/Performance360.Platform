@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
-// GPS & wearables: import an export, look at the session table and heat map, and check who sees what.
+// GPS: import an export, look at the session table and heat map, and check who sees what.
 const run = Date.now().toString(36);
 const password = "correct-horse-42";
 const people = {

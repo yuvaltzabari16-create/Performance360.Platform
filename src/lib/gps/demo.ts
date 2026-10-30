@@ -24,7 +24,7 @@ const MODES: { speed: number; weight: number }[] = [
 
 /**
  * Synthetic readings for one athlete (2 readings per second). Used only for the clearly labelled
- * sample session, so the GPS pages can be explored before a wearable is connected.
+ * sample session, so the GPS pages can be explored before a GPS export is imported.
  */
 export function generateSamples(index: number, pitch: PitchSize, minutes = 45): Sample[] {
   const rand = rng(1000 + index * 7919);

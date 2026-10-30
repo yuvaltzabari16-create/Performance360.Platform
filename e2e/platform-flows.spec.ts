@@ -33,15 +33,7 @@ test.describe.serial("Platform", () => {
     await expect(page.getByTestId("login-role-panel")).toContainText("read-only");
     await expect(page.getByTestId("login-role-panel")).not.toContainText("Training Planner");
     await page.goto("/login?as=athlete");
-    await expect(page.getByTestId("login-role-panel")).toContainText("You decide what staff can see");
-  });
-
-  test("the scheduled sync endpoint needs its secret", async ({ request }) => {
-    expect((await request.get("/api/cron/wearables-sync")).status()).toBe(401);
-    expect((await request.get("/api/cron/wearables-sync", { headers: { authorization: "Bearer wrong-secret-value-0000000" } })).status()).toBe(401);
-    const ok = await request.get("/api/cron/wearables-sync", { headers: { authorization: "Bearer e2e-cron-secret-0123456789" } });
-    expect(ok.status()).toBe(200);
-    expect(await ok.json()).toEqual({ due: expect.any(Number), synced: expect.any(Number), failed: expect.any(Number) });
+    await expect(page.getByTestId("login-role-panel")).toContainText("GPS numbers");
   });
 
   test("the email job needs its secret and reports what it sent", async ({ request }) => {

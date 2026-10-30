@@ -5,6 +5,9 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Removed
+- **Wearables**: the Wearables page and menu entry, WHOOP connection and mock, Fitbit / WHOOP file import, the daily WHOOP sync, the wearables card on the athlete page, the wearables CSV export, the assistant's recovery questions and the privacy-policy text about them are gone (ADR 0007). GPS import is unchanged. The database tables stay in place, unused, so no stored data is deleted.
+
 ### Changed
 - **Live WHOOP is paused** until WHOOP responds to the developer application: the connect button is replaced by a "coming soon" note and the scheduled sync does nothing, even if keys are present, until `WHOOP_LIVE=1` is set. Importing a WHOOP or Fitbit export file is unaffected.
 - **No outside AI service.** The workout generator and the chat assistant now run entirely inside the app. "Auto-build session" picks exercises from your own library by focus, region, level, equipment and injury area (English and Hebrew requests, "Another version" for variety) and prescribes sets, reps, rest and RPE from fixed templates. The assistant answers from a hand-written, role-specific knowledge base in English and Hebrew, declines to diagnose or clear anyone, and says plainly when it has no answer. `ANTHROPIC_API_KEY`, `AI_*` settings and the mock provider are gone; nothing you type leaves the app.

@@ -22,7 +22,6 @@ const EXPORTS: { dataset: string; section: Section }[] = [
   { dataset: "injuries", section: "injuries" },
   { dataset: "gps", section: "gps" },
   { dataset: "readiness", section: "readiness" },
-  { dataset: "wearables", section: "wearables" },
 ];
 const JUMPS = ["profile", "preferences", "appearance", "notifications", "security", "data", "account"] as const;
 
@@ -174,13 +173,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 <Link className="font-medium text-brand-700 hover:underline" href="/privacy">{ts.readPrivacy}</Link>
                 <Link className="font-medium text-brand-700 hover:underline" href="/terms">{ts.readTerms}</Link>
               </div>
-              {canAccess("wearables", profile.role, orgRole) && profile.role === "athlete" && (
-                <div className="mt-5 border-t border-line/50 pt-4">
-                  <p className="text-sm font-semibold text-ink">{ts.wearableSharing}</p>
-                  <p className="mt-1 text-xs text-muted">{ts.wearableSharingHelp}</p>
-                  <ButtonLink variant="secondary" href="/wearables" className="mt-3">{ts.openWearables}</ButtonLink>
-                </div>
-              )}
             </Card>
             <Card title={ts.exports}>
               <p className="mb-3 text-xs text-muted">{ts.exportsHelp}</p>

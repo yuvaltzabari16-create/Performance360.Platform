@@ -3,7 +3,7 @@ import type { Dictionary } from "@/lib/i18n";
 
 const PROVIDERS = ["statsports", "catapult", "polar"] as const;
 
-/** Which wearable systems can be used today (file import) and which need vendor API access (live sync). */
+/** Which GPS systems can be used today (file import) and which need vendor API access (live sync). */
 export function ConnectionsCard({ t, canImport }: { t: Dictionary; canImport: boolean }) {
   const tg = t.gps;
   return (
