@@ -180,10 +180,13 @@ export function Avatar({ name, size = "md", className }: { name: string; size?: 
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-        <path d="M16 3a13 13 0 0 1 12.6 9.8" fill="none" stroke="#23985e" strokeWidth="3" strokeLinecap="round" />
-        <path d="M10 19l4-5 3 3 5-6" fill="none" stroke="#23985e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <svg viewBox="235 255 715 715" className="size-8" aria-hidden>
+        <path d="M309 715A303 303 0 1 1 886 690" fill="none" stroke="var(--color-brand-700)" strokeWidth="53" strokeLinecap="round" />
+        <path d="M848 775A303 303 0 0 1 415 855" fill="none" stroke="#40ae4f" strokeWidth="53" />
+        <path d="M355 811L454 803L378 908Z" fill="#40ae4f" />
+        <rect x="472" y="625" width="69" height="91" rx="16" fill="var(--color-brand-700)" />
+        <rect x="559" y="561" width="69" height="155" rx="16" fill="var(--color-brand-700)" />
+        <rect x="647" y="496" width="69" height="220" rx="16" fill="#40ae4f" />
       </svg>
       <span>Performance<span className="text-brand-500">360</span></span>
     </span>
