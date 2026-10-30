@@ -1,6 +1,6 @@
 # Deploying Performance360
 
-Hosting: Vercel for the Next.js app, Supabase for the database and sign-in. Follow the steps in order.
+Hosting: Netlify or Vercel for the Next.js app (section 2 for Vercel, section 2a for Netlify), Supabase for the database and sign-in. Follow the steps in order.
 Nothing here needs code changes.
 
 ## 1. Supabase (already created: project `ioimovfpzgohjzwkshev`)
@@ -37,9 +37,13 @@ Nothing here needs code changes.
 | `RESEND_API_KEY` + `MAIL_FROM` | optional | Daily email copies of notifications for people who turned them on (also needs `CRON_SECRET` and the service-role key) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | recommended | Cloudflare Turnstile on public forms |
 | `BOT_GUARD_SECRET` | recommended | Random string; signs the form time-trap token |
-| `PAYMENT_PLANS`, `PAYMENT_ALLOWED_HOSTS` | when selling | Hosted checkout only; see `.env.example` |
+| `PAYMENT_PLANS`, `PAYMENT_ALLOWED_HOSTS` | when selling | Hosted checkout only; see `.env.example` and section 2c |
+| `BILLING_REQUIRED` | when selling | `1` closes the app for a team whose trial and subscription have ended (billing, settings and data export stay open) |
+| `STRIPE_WEBHOOK_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` | when selling | Lets Stripe tell the app who paid (section 2c). Without them the webhook answers 404 |
+| `BILLING_PORTAL_URL` | optional | Stripe customer portal link for "Manage subscription" |
 | `WEARABLE_TOKEN_KEY` | for wearables | 32 random bytes in base64 (`openssl rand -base64 32`); encrypts stored device tokens. Do not rotate without asking athletes to reconnect |
 | `WHOOP_LIVE`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET` | for live WHOOP, after WHOOP approves the app | Leave unset until then: athletes see "coming soon" and can still import a WHOOP export file, and the scheduled sync does nothing. Set `WHOOP_LIVE=1` once approved. Keys from the WHOOP developer dashboard; redirect URI `<site>/api/wearables/whoop/callback`; scopes `offline read:recovery read:sleep read:cycles` |
+| `NEXT_PUBLIC_GOOGLE_LOGIN` | for Google sign-in | `1` shows "Continue with Google" (after step 2b below). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the email and password form |
 | `RATE_LIMIT_*` | optional | Defaults are sensible |
 
    Never set `WEARABLES_MOCK`, `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
@@ -47,6 +51,40 @@ Nothing here needs code changes.
    and sends HSTS.
 5. Note: the rate limiter keeps counters in memory per server instance. For several instances or heavy
    traffic, put the platform's firewall / rate limiting in front, or move the counters to a shared store.
+
+### 2a. Netlify (instead of Vercel)
+
+The repository already carries `netlify.toml` (build command, Next.js runtime, Node 22) and two scheduled functions in `netlify/functions` that replace the Vercel cron jobs.
+
+1. *Add new project → Import an existing project → GitHub*, pick the repository and branch `main`. Leave the build settings as they are: they come from `netlify.toml`.
+2. *Project configuration → Environment variables*: add the variables from the table in section 2 (at least the three required ones). `NEXT_PUBLIC_SITE_URL` is the Netlify address or your own domain. The `NEXT_PUBLIC_*` values are read at build time, so deploy again after changing them.
+3. Supabase → *Authentication → URL configuration*: the same address as Site URL, and `<address>/auth/callback` in Redirect URLs.
+4. Domain: *Domain management → Add a domain*; follow the DNS records Netlify shows.
+5. The scheduled functions need `CRON_SECRET` (any long random string) and `SUPABASE_SERVICE_ROLE_KEY`. Without them they do nothing.
+6. After the first deploy: `<address>/api/health` answers `ok`, then sign up and sign in once.
+
+### 2b. Sign in with Google (Gmail accounts)
+
+1. Google Cloud console → *APIs & Services* → *OAuth consent screen* (type External; app name, support email, your domain, privacy and terms links: `<site>/privacy`, `<site>/terms`). Publish it to *In production*; "Testing" only allows the test users you list.
+2. *Credentials* → *Create credentials* → *OAuth client ID* → *Web application*. Authorised redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback` (shown in Supabase under Authentication → Providers → Google).
+3. Supabase → *Authentication* → *Providers* → *Google*: enable, paste the client ID and client secret.
+4. Supabase → *Authentication* → *URL Configuration*: Site URL is the production address and `<site>/auth/callback` is in the Redirect URLs.
+5. Set `NEXT_PUBLIC_GOOGLE_LOGIN=1` in the host's Production variables and redeploy (the flag is read at build time).
+
+A first Google sign-in creates the account, asks the person to accept the terms and privacy policy, then continues to onboarding where they choose their account type. Two-step verification still applies on later sign-ins.
+
+### 2c. Monthly subscriptions for teams (Stripe)
+
+Payment happens only on Stripe's hosted pages; the app never sees card data. Every new team gets a 14-day trial.
+
+1. Stripe → *Product catalogue*: create the product and a recurring monthly price. Create a *Payment Link* for it (turn on "Let customers adjust..." only if you want that; allow promotion codes if you like). Copy the link.
+2. Put the plans in `PAYMENT_PLANS`, for example `[{"id":"team","name":"Team","description":"Per team, per month","checkoutUrl":"https://buy.stripe.com/..."}]`, and `PAYMENT_ALLOWED_HOSTS=buy.stripe.com`. The billing page adds the team id (`client_reference_id`) and the director's email to the link, so Stripe reports which team paid.
+3. Stripe → *Developers* → *Webhooks* → add endpoint `<site>/api/billing/webhook` with the events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` and `customer.subscription.deleted`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET` and add `SUPABASE_SERVICE_ROLE_KEY`.
+4. Stripe → *Settings* → *Billing* → *Customer portal*: turn it on and copy the login link into `BILLING_PORTAL_URL`.
+5. Apply the migration `20261030130000_subscriptions.sql` on the live Supabase project, then set `BILLING_REQUIRED=1` and redeploy.
+6. Test with Stripe's test mode first: pay with a test card, check the status on `/billing` changes to active, cancel in the portal, and check access closes when the period ends.
+
+Rules the database applies: an active or trialing subscription has access; a failed payment keeps access for 7 days; a canceled or unpaid subscription, or an ended trial with no subscription, closes the team's pages except billing, settings and data export. Athletes and independent trainers (accounts without a team) are not gated.
 
 ## 3. After the first deploy
 

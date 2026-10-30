@@ -6,6 +6,7 @@ import { SubmitButton } from "@/components/ui/client";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
+import { needsTermsAcceptance } from "@/lib/google";
 import { INDEPENDENT_ROLES, type OrgRole } from "@/lib/types";
 import { completeOnboarding, createTeam, joinTeam } from "./actions";
 
@@ -18,6 +19,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const { supabase, user, profile, t, locale } = await getSession();
   if (!user) redirect("/login?next=/onboarding");
   const next = safeNext(sp.next);
+  if (needsTermsAcceptance(user, profile)) redirect(`/auth/terms?next=${encodeURIComponent(`/onboarding?next=${encodeURIComponent(next)}`)}`);
   if (profile?.role) redirect(next === "/onboarding" ? "/dashboard" : next);
 
   // Invitation links carry their intent, so the matching account type is pre-selected.

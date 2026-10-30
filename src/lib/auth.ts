@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./supabase/server";
 import { getCookieLocale, getDictionary } from "./i18n";
+import { needsTermsAcceptance } from "./google";
 import { canAccess, type Section } from "./permissions";
 import type { OrgMembership, OrgRole, Profile, UserRole } from "./types";
 
@@ -36,6 +37,7 @@ export const getSession = cache(async () => {
 export async function requireProfile() {
   const session = await getSession();
   if (!session.user) redirect("/login");
+  if (needsTermsAcceptance(session.user, session.profile)) redirect("/auth/terms");
   if (!session.profile?.role) redirect("/onboarding");
   return { ...session, user: session.user, profile: session.profile as Profile & { role: UserRole } };
 }

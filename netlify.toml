@@ -1,5 +1,5 @@
 # Netlify build settings (kept in code so they cannot drift from the dashboard).
-# Vercel remains supported through vercel.json; the two daily cron jobs there do not run on Netlify.
+# Vercel stays supported through vercel.json. On Netlify the two daily jobs run as scheduled functions in netlify/functions.
 [build]
   command = "npm run build"
   publish = ".next"
@@ -9,3 +9,6 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[functions]
+  directory = "netlify/functions"
