@@ -87,7 +87,7 @@ test.describe.serial("Assistant for every role", () => {
     await ask(await login(browser, people.director), "director", "How do I invite a new coach?", "Inviting staff");
     await ask(await login(browser, people.hop), "head_of_performance", "How would you plan a four-week block with a taper?", "A training block with a taper");
     await ask(await login(browser, people.physio), "physiotherapist", "Stages of return to play?", "Return-to-play decisions and criteria");
-    await ask(await login(browser, people.athlete), "athlete", "How do I connect my WHOOP?", "Connecting a wearable");
+    await ask(await login(browser, people.athlete), "athlete", "How do I export my data?", "Exporting data");
     await ask(await login(browser, people.trainer), "personal_trainer", "When should I refer a client to a physiotherapist or doctor?", "When to refer to a physiotherapist or doctor");
   });
 

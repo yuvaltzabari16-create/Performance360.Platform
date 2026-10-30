@@ -13,9 +13,6 @@ import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, welln
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
 import { missingGuardianConsent } from "@/lib/minors";
-import { WearableCharts } from "@/components/wearables/WearableCharts";
-import { WearableSummary } from "@/components/wearables/WearableSummary";
-import type { DailyRow } from "@/lib/wearables/types";
 import { InjurySection } from "@/components/injury/InjurySection";
 import { loadInjuries } from "@/lib/injury-data";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
@@ -59,8 +56,6 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
   const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
   const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
-  const { data: wearableData } = await supabase.from("wearable_daily").select("*").eq("athlete_id", id).gte("day", new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10)).order("day", { ascending: false }).limit(120);
-  const wearableRows = (wearableData ?? []) as DailyRow[];
   const athleteFiles = await loadAttachments(supabase, "athlete", [id]);
   const isDirector = org?.org_role === "director"; // read-only view of roster athletes
   const isPro = profile.role !== "athlete" && !isDirector;
@@ -186,17 +181,6 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               </ul>
             )}
           </Card>
-
-          {!isSelf && (
-            <Card title={t.wearables.cardTitle}>
-              {wearableRows.length === 0 ? <p className="text-sm text-muted">{t.wearables.notShared}</p> : (
-                <div className="space-y-5">
-                  <WearableSummary latest={wearableRows[0]} t={t} />
-                  <WearableCharts rows={wearableRows} t={t} />
-                </div>
-              )}
-            </Card>
-          )}
 
           <Card title={ta.readinessTrend}>
             {readinessChart.length === 0 ? (

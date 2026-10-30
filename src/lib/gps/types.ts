@@ -1,6 +1,6 @@
-/** Shared shapes for GPS / wearable data. Distances in metres, speeds in km/h unless a name says otherwise. */
+/** Shared shapes for GPS data. Distances in metres, speeds in km/h unless a name says otherwise. */
 
-/** One reading from a wearable: seconds from session start, pitch position in metres, speed in m/s. */
+/** One reading from a GPS unit: seconds from session start, pitch position in metres, speed in m/s. */
 export interface Sample {
   t: number;
   x: number;

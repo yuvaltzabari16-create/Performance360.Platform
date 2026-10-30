@@ -14,7 +14,7 @@ export const MATRIX_ROLES: { label: string; role: UserRole; orgRole: OrgRole | n
 
 const SECTION_LABEL: Record<Section, string> = {
   dashboard: "Dashboard", team: "My Team (staff)", athletes: "Athletes", teams: "Groups", calendar: "Calendar", training: "Training Planner",
-  exercises: "Exercise Library", testing: "Testing", readiness: "Readiness", injuries: "Injuries", messages: "Messages", gps: "GPS", wearables: "Wearables",
+  exercises: "Exercise Library", testing: "Testing", readiness: "Readiness", injuries: "Injuries", messages: "Messages", gps: "GPS",
   code: "Personal Code", connect: "Connect to a coach", notifications: "Notifications", settings: "Settings",
 };
 

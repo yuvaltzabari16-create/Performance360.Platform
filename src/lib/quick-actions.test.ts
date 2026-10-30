@@ -6,8 +6,8 @@ const t = getDictionary("en");
 const ids = (role: Parameters<typeof quickActionsFor>[0], org: Parameters<typeof quickActionsFor>[1]) => quickActionsFor(role, org, t).map((a) => a.id);
 
 describe("quick actions", () => {
-  it("gives the athlete check-in, today's workout, pain report, messages and wearables", () => {
-    expect(ids("athlete", null)).toEqual(["checkin", "today", "injury", "message", "wearable"]);
+  it("gives the athlete check-in, today's workout, pain report and messages", () => {
+    expect(ids("athlete", null)).toEqual(["checkin", "today", "injury", "message"]);
   });
   it("gives staff who build training the building actions", () => {
     const hop = ids("performance_coach", "head_of_performance");

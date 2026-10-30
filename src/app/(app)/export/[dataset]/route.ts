@@ -11,7 +11,6 @@ const DATASETS = {
   injuries: "injuries",
   gps: "gps",
   readiness: "readiness",
-  wearables: "wearables",
 } as const satisfies Record<string, Section>;
 type Dataset = keyof typeof DATASETS;
 
@@ -71,13 +70,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ dataset
     const name = await nameFor(list.map((r) => r.athlete_id as string));
     headers = ["athlete", "date", "sleep_hours", "sleep_quality", "fatigue", "soreness", "stress", "mood", "motivation", "pain_reported"];
     rows = list.map((r) => [name(r.athlete_id as string), r.entry_date, r.sleep_hours, r.sleep_quality, r.fatigue, r.soreness, r.stress, r.mood, r.motivation, r.pain_reported]);
-  } else {
-    // Own data, or data athletes chose to share (the database filters).
-    const { data } = await supabase.from("wearable_daily").select("athlete_id, provider, day, recovery_score, hrv_ms, resting_hr, sleep_hours, sleep_performance, strain").order("day", { ascending: false }).limit(20000);
-    const list = (data ?? []) as Row[];
-    const name = await nameFor(list.map((r) => r.athlete_id as string));
-    headers = ["athlete", "provider", "day", "recovery", "hrv_ms", "resting_hr", "sleep_hours", "sleep_performance", "strain"];
-    rows = list.map((r) => [name(r.athlete_id as string), r.provider, r.day, r.recovery_score, r.hrv_ms, r.resting_hr, r.sleep_hours, r.sleep_performance, r.strain]);
   }
 
   return new NextResponse(toCsv(headers, rows), {
