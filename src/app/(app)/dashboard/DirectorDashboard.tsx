@@ -1,22 +1,25 @@
 import Link from "next/link";
 import { Badge, ButtonLink, Card, PageHeader, Stat } from "@/components/ui";
 import { requireProfile } from "@/lib/auth";
+import { formatMoneyTotals, summarize, type PaymentRow } from "@/lib/payments/ledger";
 import type { Dictionary } from "@/lib/i18n";
 
 // The director sees the academy's roster and aggregated totals, never individual athlete records.
 export async function DirectorDashboard({ t }: { t: Dictionary }) {
   const { supabase, profile, org } = await requireProfile();
   const tt = t.team;
-  const [{ data: summaryRows }, { data: roster }, { data: members }] = await Promise.all([
+  const [{ data: summaryRows }, { data: roster }, { data: members }, { data: payments }] = await Promise.all([
     supabase.rpc("org_summary"),
     supabase.rpc("org_roster"),
     supabase.from("organization_members").select("user_id, org_role").eq("org_id", org!.org_id).eq("status", "active"),
+    supabase.from("athlete_payments").select("athlete_id, amount, currency, due_date, paid_on").limit(2000),
   ]);
   const summary = (summaryRows as { staff_count: number; roster_count: number; roster_with_account: number; tests_30d: number; sessions_7d: number; readiness_today: number }[] | null)?.[0];
   const ids = (members ?? []).map((m) => m.user_id);
   const { data: people } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] };
   const rosterRows = (roster ?? []) as { athlete_id: string; full_name: string; sport: string | null; position: string | null; has_account: boolean }[];
   const rosterCount = summary?.roster_count ?? 0;
+  const money = summarize((payments ?? []) as PaymentRow[], new Date().toISOString().slice(0, 10));
 
   return (
     <>
@@ -32,6 +35,18 @@ export async function DirectorDashboard({ t }: { t: Dictionary }) {
         <Stat label={tt.sessions7d} value={summary?.sessions_7d ?? 0} />
       </div>
       <p className="mt-2 text-xs text-muted">{tt.aggregateNote}</p>
+      <div className="mt-6">
+        <Card title={t.dashboard.paymentsCard} action={<Link className="text-xs text-brand-700 hover:underline" href="/payments">{t.common.open}</Link>}>
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <div><dt className="text-xs text-muted">{t.payments.outstanding}</dt><dd className="num font-semibold">{formatMoneyTotals(money.outstanding, profile.locale)}</dd></div>
+            <div>
+              <dt className="text-xs text-muted">{t.payments.overdue}</dt>
+              <dd className="num font-semibold">{money.overdueCount ? <Badge tone="red">{t.payments.overdueCount.replace("{n}", String(money.overdueCount))} · {formatMoneyTotals(money.overdue, profile.locale)}</Badge> : t.dashboard.overdueNone}</dd>
+            </div>
+            <div><dt className="text-xs text-muted">{t.payments.collected}</dt><dd className="num font-semibold">{formatMoneyTotals(money.collectedThisMonth, profile.locale)}</dd></div>
+          </dl>
+        </Card>
+      </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card title={tt.staff} action={<Link className="text-xs text-brand-700 hover:underline" href="/team">{tt.inviteStaff}</Link>}>
           <ul className="divide-y divide-line text-sm">

@@ -19,6 +19,20 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | **Workout Planner** | Programs → weeks → sessions → exercises, templates, copy, versions, assignment, automatic session builder, planned versus completed |
 | **Exercise Library** | 347 exercises with video, custom exercises, favorites, video feed |
 | **Testing** | 19 standard tests, custom tests, trials, batteries, trends and CSV export |
+| **Nutrition** | Athletes log meals with an optional photo and optional calories, protein, carbs, fat and water; day totals and a 7-day chart. Staff who work with the athlete read the log and comment on meals. The director does not see meals |
+| **Payments** (director) | Charges per athlete or for the whole roster at once (ILS, USD, EUR, GBP), mark paid with date and method or back to unpaid, outstanding / overdue / collected-this-month totals, and a "who owes" list. Only the director sees payments; staff and athletes do not. Tracking only: no money moves through the app |
+
+### The athlete login
+
+Athletes see **Dashboard** (today's workout, upcoming sessions, today's meals, goals, recent results, latest coach notes),
+**Training Calendar**, **Messages**, **Workout Tracker** (their programs; log a session as done, partly done or skipped,
+with effort and minutes), **Coach Notes** (every note a coach shared with them), **My Progress** (workouts per week,
+training load, completion rate, and a trend per test) and **Nutrition**. Exercise and test detail pages open from a
+workout or from My Progress. Athletes do not see the AI assistant, other athletes, staff pages or payments.
+
+Payments and meal logs have their own tables and row-level security (`supabase/migrations/20261030120000_payments_and_nutrition.sql`,
+tested in `supabase/sql-tests/98_payments_nutrition_test.sql`). Meal photos are stored like other attachments (5 MB, PNG, JPEG or
+WebP only) and are the only files shown in the page instead of downloaded, from a sandboxed response.
 
 The other Performance360 modules (groups, readiness check-ins, injuries and return to play, GPS, wearables, the
 personal coach code and the independent personal-trainer account) are still in the code base but closed in

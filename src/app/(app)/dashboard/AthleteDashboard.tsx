@@ -4,6 +4,7 @@ import { ButtonLink, Card, EmptyState, PageHeader } from "@/components/ui";
 import { getMyAthleteId, requireProfile } from "@/lib/auth";
 import type { Dictionary } from "@/lib/i18n";
 import { bestTrial } from "@/lib/metrics";
+import { dayTotals } from "@/lib/nutrition";
 import { missingGuardianConsent } from "@/lib/minors";
 import type { TrainingSession } from "@/lib/types";
 import { isoDaysAgo } from "./dates";
@@ -23,13 +24,14 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
     );
   }
 
-  const [{ data: me }, { data: assignments }, { data: completions }, { data: notes }, { data: tests }, { data: rels }] = await Promise.all([
+  const [{ data: me }, { data: assignments }, { data: completions }, { data: notes }, { data: tests }, { data: rels }, { data: meals }] = await Promise.all([
     supabase.from("athletes").select("short_term_goals, long_term_goals, date_of_birth, guardian_consent_at").eq("id", athleteId).single(),
     supabase.from("program_assignments").select("program_id, start_date, training_programs(title)").eq("athlete_id", athleteId).eq("status", "active"),
     supabase.from("workout_completions").select("session_id, status").eq("athlete_id", athleteId),
     supabase.from("athlete_notes").select("id, body, created_at").eq("athlete_id", athleteId).eq("shared_with_athlete", true).order("created_at", { ascending: false }).limit(3),
     supabase.from("test_results").select("id, tested_on, side, trials, test_definitions(name, unit, higher_is_better)").eq("athlete_id", athleteId).order("tested_on", { ascending: false }).limit(5),
     supabase.from("coach_athlete_relationships").select("id").eq("athlete_id", athleteId).eq("status", "active"),
+    supabase.from("meal_logs").select("calories, protein_g, carbs_g, fat_g, water_ml").eq("athlete_id", athleteId).eq("eaten_on", today),
   ]);
   const programIds = (assignments ?? []).map((a) => a.program_id);
   const { data: sessions } = programIds.length
@@ -96,6 +98,17 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
             </ul>
           )}
         </Card>
+        <Card title={td.todayMeals} action={<Link className="text-xs text-brand-700 hover:underline" href="/nutrition">{t.nav.nutrition}</Link>}>
+          {(() => {
+            const totals = dayTotals(meals ?? []);
+            return (
+              <>
+                <p className="text-sm text-ink-soft">{td.mealsLogged.replace("{n}", String(totals.meals))}{totals.calories ? ` · ${totals.calories} ${t.nutrition.kcal}` : ""}</p>
+                <ButtonLink className="mt-3" href="/nutrition">{t.nutrition.logMeal}</ButtonLink>
+              </>
+            );
+          })()}
+        </Card>
         <Card title={td.myGoals}>
           {!me?.short_term_goals && !me?.long_term_goals ? <p className="text-sm text-muted">{td.noGoals}</p> : (
             <div className="space-y-3 text-sm">
@@ -104,7 +117,7 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
             </div>
           )}
         </Card>
-        <Card title={t.testing.recent} action={<Link className="text-xs text-brand-700 hover:underline" href="/testing">{t.nav.myResults}</Link>}>
+        <Card title={t.testing.recent} action={<Link className="text-xs text-brand-700 hover:underline" href="/progress">{t.nav.progress}</Link>}>
           {(tests ?? []).length === 0 ? <p className="text-sm text-muted">{t.testing.empty}</p> : (
             <ul className="space-y-2 text-sm">
               {(tests ?? []).map((r) => {
@@ -119,7 +132,7 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
             </ul>
           )}
         </Card>
-        <Card title={td.coachFeedback}>
+        <Card title={td.coachFeedback} action={<Link className="text-xs text-brand-700 hover:underline" href="/notes">{t.nav.notes}</Link>}>
           {(notes ?? []).length === 0 ? <p className="text-sm text-muted">{td.noFeedback}</p> : (
             <ul className="space-y-3 text-sm">
               {(notes ?? []).map((n) => (

@@ -2,7 +2,7 @@ import type { Dictionary } from "@/lib/i18n";
 import { canAccess, canImportGps, canWriteTraining } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
-export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable" | "assistant";
+export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable" | "assistant" | "meal" | "payment";
 
 export interface QuickAction {
   id: string;
@@ -23,6 +23,7 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
     if (can("readiness")) out.push({ id: "checkin", href: "/readiness", label: q.checkin, icon: "checkin" });
     if (can("training")) out.push({ id: "today", href: "/training", label: q.todayWorkout, icon: "program" });
     if (can("injuries")) out.push({ id: "injury", href: "/injuries", label: q.reportPain, icon: "injury" });
+    if (can("nutrition")) out.push({ id: "meal", href: "/nutrition", label: q.logMeal, icon: "meal" });
     if (can("calendar")) out.push({ id: "schedule", href: "/calendar", label: q.schedule, icon: "calendar" });
     if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
     if (can("wearables")) out.push({ id: "wearable", href: "/wearables", label: q.wearables, icon: "wearable" });
@@ -31,6 +32,7 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
   }
   const writer = canWriteTraining(orgRole);
   if (orgRole === "director") {
+    if (can("payments")) out.push({ id: "payments", href: "/payments", label: q.payments, icon: "payment" });
     if (can("team")) out.push({ id: "invite", href: "/team", label: q.inviteStaff, icon: "invite" });
     if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
     if (can("injuries")) out.push({ id: "injuries", href: "/injuries", label: q.openInjuries, icon: "injury" });

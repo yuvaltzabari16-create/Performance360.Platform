@@ -5,6 +5,11 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Academy360: payments, athlete login and nutrition
+- **Payments** (director only): record a charge for an athlete or charge the whole roster at once, mark paid (date and method) or unpaid, delete, filter by status and athlete; totals for outstanding, overdue and collected this month, a "who owes" list and a payments card on the director dashboard. Database-enforced: staff, athletes and other academies see nothing.
+- **Athlete login**: the athlete menu is now Dashboard, Training Calendar, Messages, Workout Tracker, Coach Notes, My Progress and Nutrition. New **Coach Notes** page (all shared notes with the coach's name) and **My Progress** page (workouts per week, training load, completion rate, average effort, a trend per test, goals). Exercises and tests still open from workouts and My Progress; the assistant is staff-only.
+- **Nutrition**: athletes log meals with an optional photo and optional calories, protein, carbs, fat and water, browse by day, and see day totals and a 7-day chart; staff pick an athlete (or open it from the athlete's profile), read the log and comment on meals. The director does not see meals. Meal photos are deleted with their meal.
+
 ### Academy360 (split from Performance360)
 - **Separate academy app**: new name and logo (Academy360), academy wording in English and Hebrew, and two sign-up paths: Academy (director) and Athlete. The independent personal-trainer account is removed from sign-up and sign-in.
 - **Nine areas**: Dashboard, My Athletes, AI Assistant, Training Calendar, Messages, Staff, Workout Planner, Exercise Library and Testing. Groups, readiness, injuries, GPS, wearables and the personal code are closed in the permission table, left off dashboards, athlete profiles and quick actions, and their pages redirect.

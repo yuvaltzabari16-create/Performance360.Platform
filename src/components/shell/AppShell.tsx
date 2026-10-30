@@ -14,6 +14,7 @@ import { ThemeSwitch } from "./ThemeSwitch";
 import { quickActionsFor } from "@/lib/quick-actions";
 import type { Theme } from "@/lib/theme/theme";
 import { navFor } from "./nav";
+import { canAccess } from "@/lib/permissions";
 
 export function AppShell({ profile, org, t, unread, theme, children }: { profile: Profile & { role: UserRole }; org: OrgMembership | null; t: Dictionary; unread: number; theme: Theme; children: React.ReactNode }) {
   const items = navFor(profile.role, t, org?.org_role ?? null);
@@ -70,7 +71,7 @@ export function AppShell({ profile, org, t, unread, theme, children }: { profile
         <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-7xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8">{children}</main>
         <footer className="no-print space-y-2 px-4 pb-24 pt-6 text-center text-xs text-muted sm:px-8 lg:pb-6"><p>{t.footer.disclaimer}</p><LegalFooter t={t} /></footer>
       </div>
-      <AssistantWidget labels={assistantLabels} starters={starters[aRole]} roleKey={aRole} />
+      {canAccess("assistant", profile.role, org?.org_role ?? null) && <AssistantWidget labels={assistantLabels} starters={starters[aRole]} roleKey={aRole} />}
     </div>
   );
 }

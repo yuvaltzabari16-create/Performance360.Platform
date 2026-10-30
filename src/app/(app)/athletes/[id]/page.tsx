@@ -115,6 +115,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
         actions={
           <>
             {isPro && <ButtonLink variant="secondary" href={`/testing/new?athlete=${a.id}`}>{t.testing.record}</ButtonLink>}
+            {isPro && opens("nutrition") && <ButtonLink variant="secondary" href={`/nutrition?athlete=${a.id}`}>{t.nav.nutrition}</ButtonLink>}
             {(isPrimary || isSelf) && <ButtonLink variant="secondary" href={`/athletes/${a.id}/edit`}>{ta.editProfile}</ButtonLink>}
             {isPrimary && (
               <form action={setAthleteStatus}>

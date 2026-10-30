@@ -1,9 +1,9 @@
 import type { Dictionary } from "@/lib/i18n";
-import { sectionsFor, type Section } from "@/lib/permissions";
+import { menuSectionsFor, type Section } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
 export type NavIcon =
-  | "home" | "team" | "users" | "group" | "calendar" | "library" | "sparkle" | "chart" | "pulse" | "pin" | "chat" | "key" | "link" | "bell" | "settings";
+  | "home" | "team" | "users" | "group" | "calendar" | "library" | "sparkle" | "note" | "trend" | "meal" | "card" | "chart" | "pulse" | "pin" | "chat" | "key" | "link" | "bell" | "settings";
 
 export interface NavItem {
   href: string;
@@ -19,6 +19,10 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
     case "team": return { href: "/team", label: t.nav.team, icon: "team" };
     case "athletes": return { href: "/athletes", label: t.nav.athletes, icon: "users" };
     case "assistant": return { href: "/assistant", label: t.nav.assistant, icon: "sparkle" };
+    case "notes": return { href: "/notes", label: t.nav.notes, icon: "note" };
+    case "progress": return { href: "/progress", label: t.nav.progress, icon: "trend" };
+    case "nutrition": return { href: "/nutrition", label: t.nav.nutrition, icon: "meal" };
+    case "payments": return { href: "/payments", label: t.nav.payments, icon: "card" };
     case "teams": return { href: "/teams", label: t.nav.teams, icon: "group" };
     case "calendar": return { href: "/calendar", label: t.nav.calendar, icon: "calendar" };
     case "training": return { href: "/training", label: athlete ? t.nav.myTraining : t.nav.training, icon: athlete ? "library" : "chart" };
@@ -38,7 +42,7 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
 
 /** Navigation for a login: the sections its role may open, in a fixed order. */
 export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null): NavItem[] {
-  const allowed = sectionsFor(role, orgRole);
-  const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "exercises", "testing", "teams", "readiness", "injuries", "gps", "wearables", "code", "connect", "notifications", "settings"];
+  const allowed = menuSectionsFor(role, orgRole);
+  const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "notes", "progress", "nutrition", "exercises", "testing", "payments", "teams", "readiness", "injuries", "gps", "wearables", "code", "connect", "notifications", "settings"];
   return order.filter((s) => allowed.includes(s)).map((s) => entry(s, role, t));
 }
