@@ -156,4 +156,55 @@ test.describe.serial("Performance360 Lite", () => {
     await expect(page.getByText("אימון כוח פלג גוף תחתון · 45")).toBeVisible();
     await ctx.close();
   });
+  test("the website copy asks for a passcode, locks again, and forgetting it erases the data", async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    await page.goto(pathToFileURL("site-lite/index.html").href);
+
+    // first visit: create a passcode (short and mismatching ones are refused)
+    await expect(page.getByRole("heading", { name: "Create your passcode" })).toBeVisible();
+    await page.getByLabel(/^Passcode/).fill("short");
+    await page.getByLabel("Repeat the passcode").fill("short");
+    await page.getByRole("button", { name: /Create passcode/ }).click();
+    await expect(page.getByRole("heading", { name: "Create your passcode" })).toBeVisible();
+    await page.getByLabel(/^Passcode/).fill("correct horse");
+    await page.getByLabel("Repeat the passcode").fill("correct horses");
+    await page.getByRole("button", { name: /Create passcode/ }).click();
+    await expect(page.getByText("The two passcodes don't match.")).toBeVisible();
+    await page.getByLabel("Repeat the passcode").fill("correct horse");
+    await page.getByRole("button", { name: /Create passcode/ }).click();
+    await expect(page.getByRole("heading", { name: "Welcome" })).toBeVisible();
+    await page.getByRole("button", { name: "Start" }).click();
+
+    // add an athlete, then lock from Settings
+    await nav(page, "Athletes").click();
+    await page.getByRole("button", { name: "Add athlete" }).click();
+    await page.getByLabel("Name").fill("Locked Athlete");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect.poll(() => stored(page).then((v) => v !== null)).toBe(true);
+    await nav(page, "Settings").click();
+    await page.getByRole("button", { name: "Lock now" }).first().click();
+    await expect(page.getByRole("heading", { name: "Enter your passcode" })).toBeVisible();
+    await expect(page.getByText("Locked Athlete")).toHaveCount(0);
+
+    // wrong passcode, then the right one; a reload asks again
+    await page.getByLabel("Passcode").fill("not it at all");
+    await page.getByRole("button", { name: "Unlock" }).click();
+    await expect(page.getByText("That passcode isn't right.")).toBeVisible();
+    await page.getByLabel("Passcode").fill("correct horse");
+    await page.getByRole("button", { name: "Unlock" }).click();
+    await expect(nav(page, "Athletes")).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Enter your passcode" })).toBeVisible();
+
+    // forgot: the data is erased and a new passcode can be made
+    page.once("dialog", (d) => d.accept());
+    await page.getByRole("button", { name: "I forgot my passcode" }).click();
+    await expect(page.getByRole("heading", { name: "Create your passcode" })).toBeVisible();
+    expect(await stored(page)).toBeNull();
+    expect(errors).toEqual([]);
+    await ctx.close();
+  });
 });

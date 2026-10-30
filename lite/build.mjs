@@ -8,26 +8,27 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const result = await build({
-  entryPoints: [join(root, "lite/src/main.tsx")],
-  bundle: true, minify: true, write: false, format: "iife", target: "es2020", jsx: "automatic", charset: "utf8",
-  outdir: join(root, "dist-lite"), legalComments: "none",
-  alias: { "@": join(root, "src") },
-  define: { "process.env.NODE_ENV": '"production"' },
-  logLevel: "warning",
-});
 
-let js = "";
-let css = "";
-for (const f of result.outputFiles) {
-  if (f.path.endsWith(".js")) js = f.text;
-  else if (f.path.endsWith(".css")) css = f.text;
-}
-// Keep the inline script from ending the tag early or opening an HTML comment.
-js = js.replace(/<\/script/gi, "<\\/script").replace(/<!--/g, "<\\!--");
-
-const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'";
-const html = `<!doctype html>
+/** Bundles the app once; `lock` puts the passcode screen in front of it (the website build). */
+async function bundle(lock) {
+  const result = await build({
+    entryPoints: [join(root, "lite/src/main.tsx")],
+    bundle: true, minify: true, write: false, format: "iife", target: "es2020", jsx: "automatic", charset: "utf8",
+    outdir: join(root, "dist-lite"), legalComments: "none",
+    alias: { "@": join(root, "src") },
+    define: { "process.env.NODE_ENV": '"production"', __LOCK__: lock ? "true" : "false" },
+    logLevel: "warning",
+  });
+  let js = "";
+  let css = "";
+  for (const f of result.outputFiles) {
+    if (f.path.endsWith(".js")) js = f.text;
+    else if (f.path.endsWith(".css")) css = f.text;
+  }
+  // Keep the inline script from ending the tag early or opening an HTML comment.
+  js = js.replace(/<\/script/gi, "<\\/script").replace(/<!--/g, "<\\!--");
+  const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'";
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -43,10 +44,14 @@ const html = `<!doctype html>
 </body>
 </html>
 `;
+}
+
+// The file you open from disk has no passcode screen; the copy for a website (site-lite/index.html) has one.
+const plain = await bundle(false);
+const locked = await bundle(true);
 mkdirSync(join(root, "dist-lite"), { recursive: true });
 const out = join(root, "dist-lite/performance360-lite.html");
-writeFileSync(out, html);
-// A copy under a fixed name for static hosting (Netlify publishes the site-lite folder).
+writeFileSync(out, plain);
 mkdirSync(join(root, "site-lite"), { recursive: true });
-writeFileSync(join(root, "site-lite/index.html"), html);
-console.log(`built ${out} (${(html.length / 1024).toFixed(0)} KB)`);
+writeFileSync(join(root, "site-lite/index.html"), locked);
+console.log(`built ${out} (${(plain.length / 1024).toFixed(0)} KB) and site-lite/index.html with the passcode screen (${(locked.length / 1024).toFixed(0)} KB)`);

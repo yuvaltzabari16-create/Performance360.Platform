@@ -7,7 +7,7 @@ import { generateWorkout } from "@/lib/generator/generate";
 import { buildPreview, type WorkoutPreview } from "@/lib/generator/preview";
 import { personalDataFrom } from "./bridge";
 import { useApp } from "./ctx";
-import { ARTIFACT, ask } from "./platform";
+import { ARTIFACT, LOCK, ask } from "./platform";
 import { CATEGORIES, EQUIPMENT, LIBRARY, type LibraryItem } from "./library";
 import {
   csvCell, emptyState, exportJson, newId, parseImport, removeById, replaceById, todayIso,
@@ -299,6 +299,14 @@ export function Settings() {
         <label className="f">{t.language}<select aria-label={t.language} value={s.lang} onChange={(e) => update((st) => ({ ...st, lang: e.target.value === "he" ? "he" : "en" }))}><option value="en">English</option><option value="he">עברית</option></select></label>
         {!ARTIFACT && <label className="f">{t.theme}<select aria-label={t.theme} value={s.theme} onChange={(e) => update((st) => ({ ...st, theme: e.target.value as Theme }))}>{(["auto", "light", "dark"] as const).map((k) => <option key={k} value={k}>{t.themes[k]}</option>)}</select></label>}
       </div>
+      {LOCK && (
+        <div className="card">
+          <h2>{L.lock.lockNow}</h2>
+          <p className="muted small">{L.lock.lockBody}</p>
+          <button className="btn" onClick={() => window.dispatchEvent(new Event("performance360-lock"))}>{L.lock.lockNow}</button>
+          <p className="muted small" style={{ marginTop: ".6rem" }}>{L.lock.note}</p>
+        </div>
+      )}
       <div className="card">
         <h2>{t.backup}</h2>
         <p className="muted small">{t.storageIn[storageKind()]}</p>

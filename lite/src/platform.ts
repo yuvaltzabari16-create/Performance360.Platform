@@ -7,6 +7,9 @@ import type { Lang } from "./model";
  * The artifact viewer blocks alert/confirm and downloads started by the page, so those go through small helpers.
  */
 declare const __ARTIFACT__: boolean | undefined;
+declare const __LOCK__: boolean | undefined;
+/** True in the build served from a website: a passcode screen stands in front of the app. */
+export const LOCK: boolean = typeof __LOCK__ !== "undefined" && __LOCK__ === true;
 export const ARTIFACT: boolean = typeof __ARTIFACT__ !== "undefined" && __ARTIFACT__ === true;
 
 interface ClaudeNs { use(name: string): Promise<unknown> }

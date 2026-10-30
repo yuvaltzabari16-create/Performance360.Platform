@@ -15,6 +15,5 @@ export function personalDataFrom(s: LiteState, today: string): PersonalData {
     injuries: s.injuries.filter((i) => i.status === "open").map((i) => ({
       athleteId: i.athleteId, area: i.area, stage: i.stage, injuryDate: i.injuryDate, expectedReturn: i.expectedReturn,
     })),
-    wearable: [],
   };
 }

@@ -59,6 +59,7 @@ export function App() {
     r.dir = lang === "he" ? "rtl" : "ltr";
     if (state?.theme === "light" || state?.theme === "dark") r.dataset.theme = state.theme; else delete r.dataset.theme;
     document.title = LITE[lang].title;
+    try { localStorage.setItem("performance360-lite-lang", lang); } catch { /* the lock screen then uses the browser language */ }
   }, [lang, state?.theme]);
 
   const ctx = useMemo(() => (state ? { s: state, update, lang, L: litefor(lang), d: MAIN[lang], today: todayIso(), go: setScreen } : null), [state, update, lang]);

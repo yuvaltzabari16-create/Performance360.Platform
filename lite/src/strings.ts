@@ -46,6 +46,15 @@ const liteEn = {
     storageIn: "Saved in this page's shared store. Everyone with access sees the same data.",
     yes: "Yes", no: "No",
   },
+  lock: {
+    createTitle: "Create your passcode", createBody: "This page is public, but your data stays in this browser. A passcode keeps other people who open the page on this device out of it.",
+    pass: "Passcode (at least 8 characters)", confirm: "Repeat the passcode", create: "Create passcode and continue",
+    short: "Use at least 8 characters.", mismatch: "The two passcodes don't match.", noCrypto: "This browser can't protect the page with a passcode, so it stays open. Use a current browser over https.",
+    unlockTitle: "Enter your passcode", unlock: "Unlock", wrong: "That passcode isn't right.", wait: "Too many tries. Wait {s} seconds.",
+    forgot: "I forgot my passcode", forgotWarn: "There is no recovery. This erases all athletes, check-ins and programs stored in this browser and lets you start again. Continue?",
+    lockNow: "Lock now", lockBody: "Locks the page. The page also locks itself after 10 minutes without use.",
+    note: "The passcode keeps casual visitors out of the screens. It does not encrypt the data the browser stores, so export a backup and use a device only you control.",
+  },
   storage: {
     memory: "This browser can't store data for this file, so what you enter will be lost when you close the page. Export a backup in Settings before you leave.",
     backupDue: "Last backup: {when}. Export a fresh backup in Settings.",
@@ -137,6 +146,15 @@ const liteHe: Dict = {
     importWarn: "הייבוא מחליף את כל מה ששמור לכל הצוות. להמשיך?",
     storageIn: "נשמר במאגר המשותף של הדף. כל מי שיש לו גישה רואה את אותם נתונים.",
     yes: "כן", no: "לא",
+  },
+  lock: {
+    createTitle: "יצירת קוד גישה", createBody: "הדף הזה פומבי, אבל המידע שלכם נשאר בדפדפן הזה. קוד גישה מונע מאנשים אחרים שפותחים את הדף במכשיר הזה להיכנס אליו.",
+    pass: "קוד גישה (לפחות 8 תווים)", confirm: "חזרו על קוד הגישה", create: "יצירת קוד גישה והמשך",
+    short: "יש להשתמש בלפחות 8 תווים.", mismatch: "שני הקודים אינם תואמים.", noCrypto: "הדפדפן הזה לא יכול להגן על הדף בקוד גישה, ולכן הוא נשאר פתוח. השתמשו בדפדפן עדכני דרך https.",
+    unlockTitle: "הזינו את קוד הגישה", unlock: "פתיחה", wrong: "קוד הגישה שגוי.", wait: "יותר מדי ניסיונות. המתינו {s} שניות.",
+    forgot: "שכחתי את קוד הגישה", forgotWarn: "אין שחזור. הפעולה מוחקת את כל הספורטאים, השאלונים והתוכניות ששמורים בדפדפן הזה ומאפשרת להתחיל מחדש. להמשיך?",
+    lockNow: "נעילה עכשיו", lockBody: "נועל את הדף. הדף גם ננעל לבד אחרי 10 דקות בלי שימוש.",
+    note: "קוד הגישה מרחיק מבקרים מזדמנים מהמסכים. הוא לא מצפין את הנתונים שהדפדפן שומר, לכן כדאי לייצא גיבוי ולהשתמש במכשיר ששייך רק לכם.",
   },
   storage: {
     memory: "הדפדפן הזה לא מאפשר לשמור נתונים עבור הקובץ הזה, ולכן מה שתזינו יאבד כשתסגרו את הדף. ייצאו גיבוי בהגדרות לפני שתעזבו.",

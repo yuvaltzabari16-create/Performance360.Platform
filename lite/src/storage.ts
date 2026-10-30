@@ -78,3 +78,19 @@ export async function saveState(s: LiteState): Promise<boolean> {
 export async function requestPersistence(): Promise<void> {
   try { await navigator.storage?.persist?.(); } catch { /* ignore */ }
 }
+
+/** Erases everything this page stored in the browser (used when the passcode is forgotten). */
+export async function wipeStorage(): Promise<void> {
+  try {
+    const db = await openDb();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        tx.objectStore(STORE).delete(KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } finally { db.close(); }
+  } catch { /* no IndexedDB: nothing stored there */ }
+  try { localStorage.removeItem(LS_KEY); } catch { /* nothing to remove */ }
+}
