@@ -1,32 +1,29 @@
-# Performance360
+# Academy360
 
-Athletic performance management for coaches, practitioners and athletes:
-**Assess → Plan → Train → Monitor → Analyze → Adapt → Perform.**
+Academy management for a sports academy's staff and athletes, built on the Performance360 platform.
+The academy name you enter at sign-up is shown throughout the app; "Academy360" is the product name.
 
 Built with Next.js 15 (App Router, server actions), TypeScript, Tailwind CSS 4
 and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 
-## Status: Phase 1 core (plus parts of Phase 2)
+## What the academy gets
 
-| Module | State |
+| Area | What it does |
 | --- | --- |
-| Auth: sign up, sign in, password reset, sign out | Working (reset emails need SMTP configured in Supabase) |
-| Role onboarding (7 roles), enforced in the database | Working |
-| Athlete management: profiles, search/filter, archive, notes, flags | Working |
-| Personal coach codes, invitation links, confirmed connect, coach transfer | Working |
-| Exercise library: 347 system exercises with video links (from the coach-provided list), custom exercises, favorites | Working (live) |
-| Training planner: programs → phases → weeks → sessions → exercises, copy/duplicate, templates, versions, assignment, athlete logging, planned vs completed | Working |
-| Performance testing: 19 standard tests, custom tests, trials, batteries, trends, CSV export | Working |
-| Readiness check-ins with self-referenced review flags | Working |
-| Team accounts (director, staff roles, invitations, consented roster; live on the Supabase project since 2026-10-22), training groups, notifications (in-app), settings, JSON data export, account deactivation | Working |
-| Workout builder with automatic session builder, training calendar, athlete "Today's workout" | Working (rule-based, runs inside the app, no outside service) |
-| Return to play: injury timeline, staff injury board, clearance by qualified roles | Working |
-| GPS and wearables: CSV import (StatSports, Catapult, Polar, generic), distance, speed zones, sprints, heat maps | Working (live vendor sync needs vendor API access) |
-| Role logins: director (read-only club view), head coach, head of performance, physiotherapist, athlete, personal trainer | Working |
-| Messages and file attachments in every category | Working |
-| Wearables: WHOOP connection and Fitbit / WHOOP file import, shared with staff only by the athlete's choice | Working (live WHOOP is switched off until WHOOP approves the app, then `WHOOP_LIVE=1`; Fitbit live waits for Google approval) |
-| Security and compliance: CSP, https, rate limits, bot guard, two-factor, idle sign-out, account deletion, privacy policy, terms, parental consent for minors | Working (legal texts are a draft until reviewed) |
-| Reports/PDF, Google Calendar, payments, nutrition and custom forms, video feed, research library, subscriptions | **Not built yet** |
+| **Dashboard** | Per role: staff see athletes, active programs, sessions logged, tests this month, programs starting soon and recent tests; the director sees academy totals, staff and roster; athletes see today's workout, upcoming sessions, goals, results and coach feedback |
+| **My Athletes** | Profiles, goals, notes shared or private, files, parental consent for minors, search and archive |
+| **AI Assistant** | Full-page chat (also a floating button on every page). Role-specific knowledge base in English and Hebrew, including academy topics: development pathways across age groups, season testing plans, youth training, and how to use the app. Runs inside the app, no outside AI service, nothing typed leaves it |
+| **Training Calendar** | Every planned session by date, from each program's start date; athletes open and log sessions from it |
+| **Messages** | One-to-one messages with file attachments between people who work together |
+| **Staff** | The director invites staff with single-use invitations that fix their role, shares the academy code with athletes, manages the roster and splits it into squads |
+| **Workout Planner** | Programs → weeks → sessions → exercises, templates, copy, versions, assignment, automatic session builder, planned versus completed |
+| **Exercise Library** | 347 exercises with video, custom exercises, favorites, video feed |
+| **Testing** | 19 standard tests, custom tests, trials, batteries, trends and CSV export |
+
+The other Performance360 modules (groups, readiness check-ins, injuries and return to play, GPS, wearables, the
+personal coach code and the independent personal-trainer account) are still in the code base but closed in
+`src/lib/permissions.ts`: they are not in any menu and their pages redirect. Reopening one is a one-line change
+there (and `npm run docs:roles`).
 
 Documentation: [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Roles and access](docs/ROLES.md) ·
 [Deployment](docs/DEPLOYMENT.md) · [Database](supabase/README.md) · [Decisions](docs/adr) · [Known issues](docs/KNOWN-ISSUES.md) · [Changelog](CHANGELOG.md).
@@ -37,19 +34,18 @@ and no normative values are shown.
 
 ## Account types
 
-Sign-up offers three paths (`/` and `/onboarding`):
+Sign-up offers two paths (`/` and `/onboarding`):
 
 | Account | Who | What they get |
 | --- | --- | --- |
-| **Team** | A club or staff group | The creator becomes the **director** and the team gets an athlete code (`TEAM-XXXXXX`). The director invites each staff member with a single-use, 14-day invitation (`STAFF-XXXXXX`) that fixes their role: head coach, head of performance, assistant coach, physiotherapist, sports scientist or other staff. Everyone has their own login. |
-| **Personal Trainer** | An independent practitioner | Own roster, personal coach code (`P360-XXXXXX`) and programs. Can choose a profession (personal trainer, S&C coach, performance coach, physiotherapist, sports scientist). |
-| **Athlete** | The person being coached | Connects to a coach (`P360-`) or joins a team roster (`TEAM-`) after seeing who they are connecting with. Can leave at any time. |
+| **Academy** | The academy's director | Creates the academy and becomes its **director**. The academy gets an athlete code (`TEAM-XXXXXX`). The director invites each staff member with a single-use, 14-day invitation (`STAFF-XXXXXX`) that fixes their role: head coach, head of performance, assistant coach, physiotherapist, sports scientist or other staff. Everyone has their own login. |
+| **Athlete** | The person being coached | Joins the academy roster with the academy code after seeing which academy it is, and can leave at any time. |
 
-Team permissions: staff (everyone except the director) work with the athletes on the team roster; head coach and
-head of performance can also edit and archive athlete profiles. The **director sees the roster list and aggregated
-totals only, never individual athlete records.** Roster membership needs the athlete's own consent; staff can add an
-athlete who has no account yet, and that assertion is recorded. A removed member or a departing athlete loses access
-immediately.
+Staff (everyone except the director) work with the athletes on the academy roster; head coach and head of performance
+can also edit and archive athlete profiles. The **director runs the academy and reads athlete data read-only**; building
+programs and recording tests is the coaching staff's job (the database enforces this). Roster membership needs the
+athlete's own consent; staff can add an athlete who has no account yet, and that assertion is recorded. A removed
+member or a departing athlete loses access immediately.
 
 ## Security model
 
@@ -100,9 +96,10 @@ npm run dev
 In Supabase Auth settings, set the Site URL to your deployed domain and add
 `<site>/auth/callback` to the redirect URLs.
 
-The Supabase project `Performance360` (`https://ioimovfpzgohjzwkshev.supabase.co`)
-already has all migrations in `supabase/migrations` applied. Migration file names
-match the project's migration history, so `supabase db push` only sends new ones.
+Academy360 needs **its own Supabase project** (do not point it at the Performance360 project: the two apps
+would share users and data). Create one, apply every file in `supabase/migrations` in order, and set its URL and
+publishable key in `.env.local` and in the hosting provider. The database schema is the same as Performance360's,
+so fixes there can be brought over with `git pull performance360 main`.
 
 ## Tests
 
@@ -110,7 +107,7 @@ match the project's migration history, so `supabase db push` only sends new ones
 | --- | --- |
 | `npm run test` | Unit tests for metrics, form parsing and video embedding (Vitest) |
 | `npm run test:db` | Applies all migrations to a throwaway local Postgres and runs the RLS/permission, training-function and team-permission suites in `supabase/sql-tests` (needs Postgres 16 binaries) |
-| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, the three account types, team roles and roster consent, Hebrew RTL, mobile menu |
+| `npx playwright test` | End-to-end flows against a running app + Supabase (`E2E_BASE_URL`): coach onboarding, invitation and connection, program building and assignment, testing, athlete logging and readiness, cross-coach isolation, account types, team roles and roster consent, Hebrew RTL, mobile menu |
 | `npm run lint`, `npm run typecheck` | ESLint, TypeScript |
 
 ## Project layout

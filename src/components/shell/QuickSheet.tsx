@@ -16,6 +16,7 @@ const PATHS: Record<QuickIcon, string> = {
   calendar: "M4 6h16v14H4zM4 10h16M9 3v4M15 3v4",
   squad: "M4 6h16M4 12h16M4 18h10",
   invite: "M3 7l9 6 9-6M3 7v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1",
+  assistant: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",
   wearable: "M8 3h8l1 4H7zM8 21h8l1-4H7zM7 7h10v10H7zM12 10v4l2 1",
 };
 

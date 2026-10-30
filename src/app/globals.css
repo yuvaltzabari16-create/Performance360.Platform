@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Performance360 design tokens. Light is the default look; dark is switched on by Settings (data-theme="dark"), or follows the
+ * Academy360 design tokens. Light is the default look; dark is switched on by Settings (data-theme="dark"), or follows the
  * device when the choice is "system". The green brand stays in both. Every colour in the app comes from these tokens,
  * so components never hard-code a light-only colour.
  */

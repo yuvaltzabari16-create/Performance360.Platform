@@ -185,7 +185,7 @@ export function Logo({ className }: { className?: string }) {
         <path d="M16 3a13 13 0 0 1 12.6 9.8" fill="none" stroke="#23985e" strokeWidth="3" strokeLinecap="round" />
         <path d="M10 19l4-5 3 3 5-6" fill="none" stroke="#23985e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span>Performance<span className="text-brand-500">360</span></span>
+      <span>Academy<span className="text-brand-500">360</span></span>
     </span>
   );
 }

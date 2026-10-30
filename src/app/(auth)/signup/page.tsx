@@ -14,7 +14,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const { t, user } = await getSession();
   const next = safeNext(sp.next, "/onboarding");
   if (user) redirect(next);
-  const accountType = next.match(/type=(team|independent|athlete)/)?.[1] as "team" | "independent" | "athlete" | undefined;
+  const accountType = next.match(/type=(team|athlete)/)?.[1] as "team" | "athlete" | undefined;
   const inviteCode = next.match(/code=((?:P360|TEAM|STAFF)-[A-Z0-9]{6})/i)?.[1];
   return (
     <>

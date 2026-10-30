@@ -1,12 +1,12 @@
 import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Card, Field, FlashMessage, Input, Logo, Select } from "@/components/ui";
+import { Card, Field, FlashMessage, Input, Logo } from "@/components/ui";
 import { SubmitButton } from "@/components/ui/client";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
-import { INDEPENDENT_ROLES, type OrgRole } from "@/lib/types";
+import type { OrgRole } from "@/lib/types";
 import { completeOnboarding, createTeam, joinTeam } from "./actions";
 
 export const metadata = { title: "Welcome" };
@@ -21,7 +21,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   if (profile?.role) redirect(next === "/onboarding" ? "/dashboard" : next);
 
   // Invitation links carry their intent, so the matching account type is pre-selected.
-  const type = (["team", "independent", "athlete"] as const).find((x) => x === sp.type) ?? (next.startsWith("/connect") ? "athlete" : null);
+  const type = (["team", "athlete"] as const).find((x) => x === sp.type) ?? (next.startsWith("/connect") ? "athlete" : null);
   const here = `/onboarding?${new URLSearchParams({ ...(sp.type ? { type: sp.type } : {}), ...(sp.mode ? { mode: sp.mode } : {}), ...(sp.code ? { code: sp.code } : {}), next }).toString()}`;
   const to = (params: Record<string, string>) => `/onboarding?${new URLSearchParams({ ...params, ...(next !== "/dashboard" ? { next } : {}) })}`;
 
@@ -33,7 +33,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const to2 = t.accountTypes;
   const types = [
     { key: "team" as const, title: to2.team.title, body: to2.team.body, icon: "M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a4 4 0 0 1 0 7.8" },
-    { key: "independent" as const, title: to2.independent.title, body: to2.independent.body, icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" },
     { key: "athlete" as const, title: to2.athlete.title, body: to2.athlete.body, icon: "M2 12h4l3-8 4 16 3-8h6" },
   ];
 
@@ -49,7 +48,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         <div className="mt-6"><FlashMessage error={sp.error} /></div>
 
         {!type && (
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {types.map((x) => (
               <Link key={x.key} href={to({ type: x.key })} className="group flex flex-col rounded-xl border border-line p-5 transition-colors hover:border-brand-400 hover:bg-brand-50/40">
                 <span className="mb-4 grid size-10 place-items-center rounded-lg bg-brand-50 text-brand-600 group-hover:bg-brand-100">
@@ -70,23 +69,6 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
               <input type="hidden" name="type" value="athlete" />
               <input type="hidden" name="next" value={next} />
               <Field label={t.onboarding.yourName}><Input name="full_name" defaultValue={profile?.full_name ?? ""} required maxLength={120} /></Field>
-              <SubmitButton pendingText={t.common.saving}>{t.onboarding.continue}</SubmitButton>
-            </form>
-          </Card>
-        )}
-
-        {type === "independent" && (
-          <Card title={to2.independent.title}>
-            <form action={completeOnboarding} className="space-y-4">
-              <input type="hidden" name="type" value="independent" />
-              <input type="hidden" name="next" value={next} />
-              <Field label={t.onboarding.yourName}><Input name="full_name" defaultValue={profile?.full_name ?? ""} required maxLength={120} /></Field>
-              <Field label={t.onboarding.profession}>
-                <Select name="role" defaultValue="personal_trainer">
-                  {INDEPENDENT_ROLES.map((r) => <option key={r} value={r}>{t.roles[r]}</option>)}
-                </Select>
-              </Field>
-              <p className="text-xs text-muted">{t.onboarding.roleLocked}</p>
               <SubmitButton pendingText={t.common.saving}>{t.onboarding.continue}</SubmitButton>
             </form>
           </Card>

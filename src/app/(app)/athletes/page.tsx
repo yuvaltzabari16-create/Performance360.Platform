@@ -58,7 +58,6 @@ export default async function AthletesPage({ searchParams }: { searchParams: Pro
           !readOnly ? (
             <>
               <ButtonLink href="/export/athletes" variant="secondary" prefetch={false}>{t.common.exportCsv}</ButtonLink>
-              <ButtonLink href="/code" variant="secondary">{t.nav.code}</ButtonLink>
               <ButtonLink href="/athletes/new">{t.athletes.add}</ButtonLink>
             </>
           ) : (

@@ -9,7 +9,7 @@ import { THEME_COOKIE, parseTheme, themeAttr } from "@/lib/theme/theme";
 import { MOTION_COOKIE, TEXT_COOKIE, parseMotion, parseTextSize } from "@/lib/preferences";
 
 export const metadata: Metadata = {
-  title: { default: "Performance360", template: "%s · Performance360" },
+  title: { default: "Academy360", template: "%s · Academy360" },
   description: "Athletic performance management for coaches, practitioners and athletes.",
 };
 

@@ -18,7 +18,6 @@ const LOGIN_ACCOUNT: Record<(typeof LOGIN_ROLES)[number], Parameters<typeof sect
   physiotherapist: ["physiotherapist", "physiotherapist"],
   head_of_performance: ["performance_coach", "head_of_performance"],
   athlete: ["athlete", null],
-  personal_trainer: ["performance_coach", null],
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -27,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const next = safeNext(sp.next);
   if (user) redirect(next);
   const chosen = isLoginRole(sp.as) ? sp.as : null;
-  const roleName = (r: (typeof LOGIN_ROLES)[number]) => (r === "athlete" || r === "personal_trainer" ? t.roles[r] : t.orgRoles[r]);
+  const roleName = (r: (typeof LOGIN_ROLES)[number]) => (r === "athlete" ? t.roles[r] : t.orgRoles[r]);
   const optionHref = (r: string | null) => `/login?${r ? `as=${r}&` : ""}next=${encodeURIComponent(next)}`;
   return (
     <>

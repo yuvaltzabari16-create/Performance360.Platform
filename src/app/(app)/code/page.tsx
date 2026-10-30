@@ -38,7 +38,7 @@ export default async function CodePage({ searchParams }: { searchParams: Promise
               <div className="flex flex-wrap gap-2">
                 <CopyButton value={code.code} label={`${t.common.copy} ${tc.yourCode.toLowerCase()}`} copiedLabel={t.common.copied} />
                 <CopyButton value={link} label={`${t.common.copy} ${tc.inviteLink.toLowerCase()}`} copiedLabel={t.common.copied} />
-                <ShareButton title="Performance360" text={`${tc.shareText} ${code.code}`} url={link} label={t.common.share} fallbackLabel={t.common.copied} />
+                <ShareButton title="Academy360" text={`${tc.shareText} ${code.code}`} url={link} label={t.common.share} fallbackLabel={t.common.copied} />
               </div>
               <div>
                 <div className="text-xs text-muted">{tc.inviteLink}</div>

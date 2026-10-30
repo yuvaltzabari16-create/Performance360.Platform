@@ -98,3 +98,14 @@ describe("answer", () => {
     expect(answer("can you clear him to play", "physiotherapist", "en").text).toContain("cannot diagnose or clear");
   });
 });
+
+describe("academy starters", () => {
+  it("answers every suggested question from the knowledge base, in both languages", async () => {
+    const { getDictionary } = await import("@/lib/i18n");
+    const { ASSISTANT_ROLES } = await import("./roles");
+    for (const lang of ["en", "he"] as const) {
+      const t = getDictionary(lang);
+      for (const role of ASSISTANT_ROLES) for (const q of t.assistant.starters[role]) expect(answer(q, role, lang).topicId, `${lang} ${role}: ${q}`).not.toBeNull();
+    }
+  });
+});

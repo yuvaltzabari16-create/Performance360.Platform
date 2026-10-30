@@ -3,7 +3,7 @@ import { sectionsFor, type Section } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
 export type NavIcon =
-  | "home" | "team" | "users" | "group" | "calendar" | "library" | "chart" | "pulse" | "pin" | "chat" | "key" | "link" | "bell" | "settings";
+  | "home" | "team" | "users" | "group" | "calendar" | "library" | "sparkle" | "chart" | "pulse" | "pin" | "chat" | "key" | "link" | "bell" | "settings";
 
 export interface NavItem {
   href: string;
@@ -18,6 +18,7 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
     case "dashboard": return { href: "/dashboard", label: t.nav.dashboard, icon: "home" };
     case "team": return { href: "/team", label: t.nav.team, icon: "team" };
     case "athletes": return { href: "/athletes", label: t.nav.athletes, icon: "users" };
+    case "assistant": return { href: "/assistant", label: t.nav.assistant, icon: "sparkle" };
     case "teams": return { href: "/teams", label: t.nav.teams, icon: "group" };
     case "calendar": return { href: "/calendar", label: t.nav.calendar, icon: "calendar" };
     case "training": return { href: "/training", label: athlete ? t.nav.myTraining : t.nav.training, icon: athlete ? "library" : "chart" };
@@ -38,6 +39,6 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
 /** Navigation for a login: the sections its role may open, in a fixed order. */
 export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null): NavItem[] {
   const allowed = sectionsFor(role, orgRole);
-  const order: Section[] = ["dashboard", "team", "athletes", "teams", "calendar", "training", "exercises", "testing", "readiness", "injuries", "messages", "gps", "wearables", "code", "connect", "notifications", "settings"];
+  const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "exercises", "testing", "teams", "readiness", "injuries", "gps", "wearables", "code", "connect", "notifications", "settings"];
   return order.filter((s) => allowed.includes(s)).map((s) => entry(s, role, t));
 }

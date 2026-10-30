@@ -2,7 +2,7 @@ import type { Dictionary } from "@/lib/i18n";
 import { canAccess, canImportGps, canWriteTraining } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
-export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable";
+export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable" | "assistant";
 
 export interface QuickAction {
   id: string;
@@ -23,8 +23,10 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
     if (can("readiness")) out.push({ id: "checkin", href: "/readiness", label: q.checkin, icon: "checkin" });
     if (can("training")) out.push({ id: "today", href: "/training", label: q.todayWorkout, icon: "program" });
     if (can("injuries")) out.push({ id: "injury", href: "/injuries", label: q.reportPain, icon: "injury" });
+    if (can("calendar")) out.push({ id: "schedule", href: "/calendar", label: q.schedule, icon: "calendar" });
     if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
     if (can("wearables")) out.push({ id: "wearable", href: "/wearables", label: q.wearables, icon: "wearable" });
+    if (can("assistant")) out.push({ id: "assistant", href: "/assistant", label: q.askAssistant, icon: "assistant" });
     return out;
   }
   const writer = canWriteTraining(orgRole);
@@ -34,6 +36,7 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
     if (can("injuries")) out.push({ id: "injuries", href: "/injuries", label: q.openInjuries, icon: "injury" });
     if (can("calendar")) out.push({ id: "schedule", href: "/calendar", label: q.schedule, icon: "calendar" });
     if (can("gps")) out.push({ id: "gps", href: "/gps", label: q.gps, icon: "upload" });
+    if (can("assistant")) out.push({ id: "assistant", href: "/assistant", label: q.askAssistant, icon: "assistant" });
     return out;
   }
   if (can("athletes")) out.push({ id: "athlete", href: "/athletes/new", label: q.addAthlete, icon: "userPlus" });
@@ -43,6 +46,7 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
   if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
   if (can("gps") && canImportGps(orgRole)) out.push({ id: "gps", href: "/gps/import", label: q.importGps, icon: "upload" });
   if (can("code") && !orgRole) out.push({ id: "code", href: "/code", label: q.personalCode, icon: "key" });
-  if (orgRole === "head_of_performance" && can("teams")) out.push({ id: "squad", href: "/team", label: q.squads, icon: "squad" });
+  if (orgRole === "head_of_performance" && can("team")) out.push({ id: "squad", href: "/team", label: q.squads, icon: "squad" });
+  if (can("assistant")) out.push({ id: "assistant", href: "/assistant", label: q.askAssistant, icon: "assistant" });
   return out;
 }

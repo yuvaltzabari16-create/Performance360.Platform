@@ -12,6 +12,7 @@ export const navIconPaths: Record<NavIcon, string> = {
   group: "M4 6h16M4 12h16M4 18h10",
   calendar: "M4 6h16v14H4zM4 10h16M9 3v4M15 3v4",
   library: "M5 4h4v16H5zM10 4h4v16h-4zM15.5 4.5l3.8 1 -3.9 15-3.8-1z",
+  sparkle: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   pulse: "M2 12h4l3-8 4 16 3-8h6",
   chat: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z",

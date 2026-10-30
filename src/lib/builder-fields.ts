@@ -23,7 +23,7 @@ export const FIELD_COLUMNS: Record<FieldKey, (keyof ExercisePatch)[]> = {
   intensity: ["intensity_target"],
 };
 
-/** Soft colour per field, within the Performance360 palette (green primary, neutral and warm accents). */
+/** Soft colour per field, within the Academy360 palette (green primary, neutral and warm accents). */
 export const FIELD_TONES: Record<FieldKey, string> = {
   reps: "border-brand-200 bg-brand-50 text-brand-800",
   load: "border-slate-300 bg-slate-100 text-slate-800",

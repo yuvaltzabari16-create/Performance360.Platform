@@ -41,10 +41,9 @@ export default async function Landing() {
         </div>
         <section className="mt-14" aria-labelledby="choose">
           <h2 id="choose" className="text-sm font-semibold uppercase tracking-wide text-muted">{t.landing.chooseHeading}</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {([
               ["team", t.accountTypes.team, "M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 20v-1a4 4 0 0 0-3-3.9M16 4.1a4 4 0 0 1 0 7.8"],
-              ["independent", t.accountTypes.independent, "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
               ["athlete", t.accountTypes.athlete, "M2 12h4l3-8 4 16 3-8h6"],
             ] as const).map(([key, info, icon]) => (
               <Link key={key} href={`/signup?next=${encodeURIComponent(`/onboarding?type=${key}`)}`} data-account-type={key} className="group flex flex-col rounded-2xl bg-surface/90 ring-1 ring-line/60 p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]">

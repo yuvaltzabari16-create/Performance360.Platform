@@ -43,7 +43,7 @@ export async function login(formData: FormData) {
       : [{ data: null }, { data: null }];
     if (!matchesLoginRole(chosen, (prof?.role as UserRole | null) ?? null, (member?.org_role as OrgRole | null) ?? null)) {
       await supabase.auth.signOut();
-      const label = chosen === "athlete" || chosen === "personal_trainer" ? t.roles[chosen] : t.orgRoles[chosen];
+      const label = chosen === "athlete" ? t.roles[chosen] : t.orgRoles[chosen];
       fail(`/login?as=${chosen}&next=${encodeURIComponent(next)}`, t.auth.roleMismatch.replace("{role}", label));
     }
   }

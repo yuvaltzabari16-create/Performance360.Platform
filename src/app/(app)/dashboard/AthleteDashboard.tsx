@@ -1,4 +1,3 @@
-import { Icon } from "@/components/ui/Icon";
 import Link from "next/link";
 import { sessionDate } from "@/lib/calendar";
 import { ButtonLink, Card, EmptyState, PageHeader } from "@/components/ui";
@@ -7,7 +6,6 @@ import type { Dictionary } from "@/lib/i18n";
 import { bestTrial } from "@/lib/metrics";
 import { missingGuardianConsent } from "@/lib/minors";
 import type { TrainingSession } from "@/lib/types";
-import { OpenInjuriesCard, type OpenInjury } from "@/components/injury/OpenInjuriesCard";
 import { isoDaysAgo } from "./dates";
 
 export async function AthleteDashboard({ t }: { t: Dictionary }) {
@@ -20,26 +18,18 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
     return (
       <>
         <PageHeader title={`${td.greeting}, ${profile.full_name.split(" ")[0] || ""}`} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <EmptyState title={td.notConnected} action={<ButtonLink href="/connect">{td.connectCta}</ButtonLink>} />
-          <Card title={td.checkInToday}>
-            <p className="mb-3 text-sm text-ink-soft">{t.readiness.needsProfile}</p>
-            <ButtonLink href="/readiness">{td.checkInCta}</ButtonLink>
-          </Card>
-        </div>
+        <EmptyState title={td.notConnected} action={<ButtonLink href="/connect">{td.connectCta}</ButtonLink>} />
       </>
     );
   }
 
-  const [{ data: me }, { data: assignments }, { data: todayEntry }, { data: completions }, { data: notes }, { data: tests }, { data: rels }, { data: injuries }] = await Promise.all([
+  const [{ data: me }, { data: assignments }, { data: completions }, { data: notes }, { data: tests }, { data: rels }] = await Promise.all([
     supabase.from("athletes").select("short_term_goals, long_term_goals, date_of_birth, guardian_consent_at").eq("id", athleteId).single(),
     supabase.from("program_assignments").select("program_id, start_date, training_programs(title)").eq("athlete_id", athleteId).eq("status", "active"),
-    supabase.from("readiness_entries").select("id").eq("athlete_id", athleteId).eq("entry_date", today).maybeSingle(),
     supabase.from("workout_completions").select("session_id, status").eq("athlete_id", athleteId),
     supabase.from("athlete_notes").select("id, body, created_at").eq("athlete_id", athleteId).eq("shared_with_athlete", true).order("created_at", { ascending: false }).limit(3),
     supabase.from("test_results").select("id, tested_on, side, trials, test_definitions(name, unit, higher_is_better)").eq("athlete_id", athleteId).order("tested_on", { ascending: false }).limit(5),
     supabase.from("coach_athlete_relationships").select("id").eq("athlete_id", athleteId).eq("status", "active"),
-    supabase.from("injuries").select("id, athlete_id, body_area, stage, injury_date").eq("athlete_id", athleteId).eq("status", "open").order("injury_date", { ascending: true }).limit(5),
   ]);
   const programIds = (assignments ?? []).map((a) => a.program_id);
   const { data: sessions } = programIds.length
@@ -105,10 +95,6 @@ export async function AthleteDashboard({ t }: { t: Dictionary }) {
               ))}
             </ul>
           )}
-        </Card>
-        {(injuries ?? []).length > 0 && <OpenInjuriesCard injuries={injuries as OpenInjury[]} today={today} t={t} href="/injuries" showAthlete={false} />}
-        <Card title={td.checkInToday}>
-          {todayEntry ? <p className="flex items-center gap-1.5 text-sm text-brand-800"><Icon name="check" /> {td.checkInDone}</p> : <ButtonLink href="/readiness">{td.checkInCta}</ButtonLink>}
         </Card>
         <Card title={td.myGoals}>
           {!me?.short_term_goals && !me?.long_term_goals ? <p className="text-sm text-muted">{td.noGoals}</p> : (

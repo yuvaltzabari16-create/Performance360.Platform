@@ -3,20 +3,17 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { fail, safeNext, str } from "@/lib/forms";
-import { INDEPENDENT_ROLES, type UserRole } from "@/lib/types";
 
-/** Athlete and Personal Trainer (independent practitioner) accounts. */
+/** Athlete accounts. Staff come in through the academy (create it, or join with a staff invitation). */
 export async function completeOnboarding(formData: FormData) {
   const { supabase, user, t } = await getSession();
   if (!user) redirect("/login");
   const next = safeNext(str(formData, "next", 500));
-  const type = str(formData, "type", 20) === "athlete" ? "athlete" : "independent";
-  const back = `/onboarding?type=${type}&next=${encodeURIComponent(next)}`;
+  const back = `/onboarding?type=athlete&next=${encodeURIComponent(next)}`;
   const fullName = str(formData, "full_name", 120);
-  const role: UserRole | null = type === "athlete" ? "athlete" : (str(formData, "role", 40) as UserRole | null);
-  if (!role || !fullName || (type === "independent" && !INDEPENDENT_ROLES.includes(role))) fail(back, t.common.required);
-  // The database function validates and stores the role; the client only suggests it.
-  const { error } = await supabase.rpc("complete_onboarding", { p_role: role, p_full_name: fullName });
+  if (!fullName) fail(back, t.common.required);
+  // The database function validates and stores the role.
+  const { error } = await supabase.rpc("complete_onboarding", { p_role: "athlete", p_full_name: fullName });
   if (error) fail(back, error.message);
   redirect(next === "/onboarding" ? "/dashboard" : next);
 }

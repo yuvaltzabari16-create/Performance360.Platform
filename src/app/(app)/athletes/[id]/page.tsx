@@ -18,6 +18,7 @@ import { WearableSummary } from "@/components/wearables/WearableSummary";
 import type { DailyRow } from "@/lib/wearables/types";
 import { InjurySection } from "@/components/injury/InjurySection";
 import { loadInjuries } from "@/lib/injury-data";
+import { canAccess, type Section } from "@/lib/permissions";
 import { addNote, deleteNote, endRelationship, setAthleteStatus } from "../actions";
 import { addToRoster, removeFromRoster } from "../../team/actions";
 
@@ -33,6 +34,8 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const isSelf = a.user_id === user.id;
   const minorWithoutConsent = missingGuardianConsent(a, new Date().toISOString().slice(0, 10));
   const ta = t.athletes;
+  // Modules the academy has closed (readiness, injuries, wearables) are left off the profile too.
+  const opens = (section: Section) => canAccess(section, profile.role, org?.org_role ?? null);
 
   const [rels, assignments, completions, results, readiness, notes, dupes] = await Promise.all([
     supabase.from("coach_athlete_relationships").select("id, coach_id, kind, status, started_at").eq("athlete_id", id).eq("status", "active"),
@@ -187,7 +190,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             )}
           </Card>
 
-          {!isSelf && (
+          {!isSelf && opens("wearables") && (
             <Card title={t.wearables.cardTitle}>
               {wearableRows.length === 0 ? <p className="text-sm text-muted">{t.wearables.notShared}</p> : (
                 <div className="space-y-5">
@@ -198,16 +201,18 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             </Card>
           )}
 
-          <Card title={ta.readinessTrend}>
-            {readinessChart.length === 0 ? (
-              <p className="text-sm text-muted">{t.readiness.empty}</p>
-            ) : (
-              <>
-                <TrendChart data={readinessChart} series={[{ key: "index", label: t.readiness.index, color: "#23985e" }]} />
-                <p className="mt-2 text-xs text-muted">{t.readiness.indexHelp}</p>
-              </>
-            )}
-          </Card>
+          {opens("readiness") && (
+            <Card title={ta.readinessTrend}>
+              {readinessChart.length === 0 ? (
+                <p className="text-sm text-muted">{t.readiness.empty}</p>
+              ) : (
+                <>
+                  <TrendChart data={readinessChart} series={[{ key: "index", label: t.readiness.index, color: "#23985e" }]} />
+                  <p className="mt-2 text-xs text-muted">{t.readiness.indexHelp}</p>
+                </>
+              )}
+            </Card>
+          )}
 
           <Card title={ta.recentSessions}>
             {(completions.data ?? []).length === 0 ? (
@@ -234,7 +239,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             )}
           </Card>
 
-          <InjurySection
+          {opens("injuries") && <InjurySection
             injuries={injuries}
             events={injuryEvents}
             files={injuryFiles}
@@ -247,7 +252,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
             professional={isPro}
             canClear={canClear}
             canReport={!isDirector}
-          />
+          />}
 
           <Card title={ta.notes}>
             <div id="notes" />

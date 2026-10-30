@@ -9,7 +9,7 @@ export async function LegalPage({ title, intro, children }: { title: string; int
   return (
     <div className="flex min-h-dvh flex-col bg-surface">
       <header className="flex items-center justify-between px-4 py-5 sm:px-8">
-        <Link href={user ? "/dashboard" : "/"} aria-label="Performance360"><Logo className="text-lg text-ink" /></Link>
+        <Link href={user ? "/dashboard" : "/"} aria-label="Academy360"><Logo className="text-lg text-ink" /></Link>
         <Link href={user ? "/dashboard" : "/login"} className="text-sm text-brand-700 hover:underline">{t.legal.backHome}</Link>
       </header>
       <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-3xl flex-1 px-4 pb-16 pt-6 sm:px-6">

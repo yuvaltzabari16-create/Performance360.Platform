@@ -5,6 +5,12 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Academy360 (split from Performance360)
+- **Separate academy app**: new name and logo (Academy360), academy wording in English and Hebrew, and two sign-up paths: Academy (director) and Athlete. The independent personal-trainer account is removed from sign-up and sign-in.
+- **Nine areas**: Dashboard, My Athletes, AI Assistant, Training Calendar, Messages, Staff, Workout Planner, Exercise Library and Testing. Groups, readiness, injuries, GPS, wearables and the personal code are closed in the permission table, left off dashboards, athlete profiles and quick actions, and their pages redirect.
+- **AI Assistant page**: the assistant chat full size at `/assistant`, with role-specific suggested questions for an academy. New knowledge-base topics: a development pathway across age groups, planning testing across a season, recording a test and the training calendar. Every suggested question is checked by a test to have an answer.
+- **Dashboards**: staff see programs starting soon and an assistant shortcut instead of readiness, injury and GPS cards; the director sees academy totals, staff and roster; athletes see workouts, results, goals and feedback.
+
 ### Changed
 - **Live WHOOP is paused** until WHOOP responds to the developer application: the connect button is replaced by a "coming soon" note and the scheduled sync does nothing, even if keys are present, until `WHOOP_LIVE=1` is set. Importing a WHOOP or Fitbit export file is unaffected.
 - **No outside AI service.** The workout generator and the chat assistant now run entirely inside the app. "Auto-build session" picks exercises from your own library by focus, region, level, equipment and injury area (English and Hebrew requests, "Another version" for variety) and prescribes sets, reps, rest and RPE from fixed templates. The assistant answers from a hand-written, role-specific knowledge base in English and Hebrew, declines to diagnose or clear anyone, and says plainly when it has no answer. `ANTHROPIC_API_KEY`, `AI_*` settings and the mock provider are gone; nothing you type leaves the app.
