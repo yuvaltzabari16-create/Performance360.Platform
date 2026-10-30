@@ -25,7 +25,7 @@ h1 { font-size: 1.5rem; margin: 0 0 .75rem; } h2 { font-size: 1.1rem; margin: 0 
 .shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
 .side { padding: 1rem; border-inline-end: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .brand { display: flex; align-items: center; gap: .5rem; font-weight: 700; margin-bottom: 1rem; }
-.brand i { width: 28px; height: 28px; border-radius: 9px; background: var(--brand-600); display: inline-block; }
+
 .nav { display: flex; flex-direction: column; gap: .25rem; }
 .nav button { text-align: start; background: none; border: 0; padding: .55rem .7rem; border-radius: 10px; cursor: pointer; color: var(--ink-soft); }
 .nav button[aria-current="page"] { background: var(--brand-100); color: var(--brand-700); font-weight: 600; }

@@ -1,3 +1,4 @@
+import { LogoMark } from "./logo";
 import { type ReactNode } from "react";
 import { AppCtx, type Ctx, type Screen } from "./ctx";
 import { Athletes, AthleteDetail, Overview } from "./screens-core";
@@ -12,7 +13,7 @@ export function Shell({ ctx, screen, setScreen, banners }: { ctx: Ctx; screen: S
     <AppCtx.Provider value={ctx}>
       <div className="shell">
         <aside className="side no-print">
-          <div className="brand"><i aria-hidden="true" />{L.title}</div>
+          <div className="brand"><LogoMark />{L.title}</div>
           <nav className="nav" aria-label="Main">
             {NAV.map((n) => <button key={n} aria-current={screen.name === n ? "page" : undefined} onClick={() => setScreen({ name: n })}>{L.nav[n]}</button>)}
           </nav>

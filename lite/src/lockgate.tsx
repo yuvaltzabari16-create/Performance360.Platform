@@ -1,3 +1,4 @@
+import { LogoMark } from "./logo";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   checkPasscode, clearLock, createLockRecord, lockSupported, passcodeProblem, readLock, waitSeconds, writeLock, type LockRecord,
@@ -73,7 +74,7 @@ export function LockGate({ children }: { children: ReactNode }) {
   return (
     <div className="main" style={{ margin: "0 auto", maxWidth: 440 }}>
       <div className="card">
-        <div className="brand"><i aria-hidden="true" />Performance360</div>
+        <div className="brand"><LogoMark />Performance360</div>
         {mode === "create" ? (
           <form className="form" onSubmit={create}>
             <h1>{L.createTitle}</h1>
