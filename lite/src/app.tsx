@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppCtx, type Screen } from "./ctx";
+import { SANDBOX } from "./platform";
 import { Shell } from "./shell";
 import { todayIso, type LiteState } from "./model";
 import { loadState, requestPersistence, saveState, storageKind } from "./storage";
@@ -57,7 +58,8 @@ export function App() {
     const r = document.documentElement;
     r.lang = lang;
     r.dir = lang === "he" ? "rtl" : "ltr";
-    if (state?.theme === "light" || state?.theme === "dark") r.dataset.theme = state.theme; else delete r.dataset.theme;
+    // In the artifact viewer the viewer chooses the theme; the page must not override it.
+    if (!SANDBOX) { if (state?.theme === "light" || state?.theme === "dark") r.dataset.theme = state.theme; else delete r.dataset.theme; }
     document.title = LITE[lang].title;
     try { localStorage.setItem("performance360-lite-lang", lang); } catch { /* the lock screen then uses the browser language */ }
   }, [lang, state?.theme]);

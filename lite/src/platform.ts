@@ -8,16 +8,22 @@ import type { Lang } from "./model";
  */
 declare const __ARTIFACT__: boolean | undefined;
 declare const __LOCK__: boolean | undefined;
+declare const __SANDBOX__: boolean | undefined;
+/** True when the single-user app is published as a page inside the artifact viewer (no confirm dialogs, saves go through the viewer). */
+export const SANDBOX: boolean = typeof __SANDBOX__ !== "undefined" && __SANDBOX__ === true;
 /** True in the build served from a website: a passcode screen stands in front of the app. */
 export const LOCK: boolean = typeof __LOCK__ !== "undefined" && __LOCK__ === true;
 export const ARTIFACT: boolean = typeof __ARTIFACT__ !== "undefined" && __ARTIFACT__ === true;
+
+/** Pages whose host blocks the browser's own dialogs and downloads. */
+export const HOSTED = (): boolean => SANDBOX || ARTIFACT;
 
 interface ClaudeNs { use(name: string): Promise<unknown> }
 export const claudeNs = (): ClaudeNs | undefined => (globalThis as { claude?: ClaudeNs }).claude;
 
 /** Saves text as a file. In the artifact the viewer is asked to confirm the save (the page may not download by itself). */
 export async function saveFile(name: string, text: string, mime = "text/plain"): Promise<void> {
-  if (ARTIFACT) {
+  if (SANDBOX || ARTIFACT) {
     const dl = (await claudeNs()?.use("downloads").catch(() => null)) as { save(r: { filename: string; data: string }): Promise<unknown> } | null | undefined;
     if (dl) { try { await dl.save({ filename: name, data: text }); } catch { /* the viewer declined or saving is unavailable */ } }
     return;
@@ -37,6 +43,6 @@ type Asker = (message: string) => Promise<boolean>;
 let asker: Asker | null = null;
 export const registerAsker = (fn: Asker | null) => { asker = fn; };
 /** Yes/no question. The single file uses the browser's own dialog; the artifact shows an inline one. */
-export const ask = (message: string): Promise<boolean> => (ARTIFACT && asker ? asker(message) : Promise.resolve(window.confirm(message)));
+export const ask = (message: string): Promise<boolean> => ((SANDBOX || ARTIFACT) && asker ? asker(message) : Promise.resolve(window.confirm(message)));
 
 export const guessLang = (): Lang => (typeof navigator !== "undefined" && /^he/i.test(navigator.language) ? "he" : "en");
