@@ -6,7 +6,7 @@ describe("permissions", () => {
     for (const s of ["dashboard", "athletes", "teams", "calendar", "injuries", "messages", "gps", "team", "settings"] as const) {
       expect(canAccess(s, "org_admin", "director")).toBe(true);
     }
-    for (const s of ["training", "testing", "exercises", "readiness", "wearables", "code"] as const) expect(canAccess(s, "org_admin", "director")).toBe(false);
+    for (const s of ["training", "testing", "exercises", "readiness", "code"] as const) expect(canAccess(s, "org_admin", "director")).toBe(false);
     expect(canWriteTraining("director")).toBe(false);
   });
   it("gives the physiotherapist the medical side, tests, rehab programs and GPS import", () => {

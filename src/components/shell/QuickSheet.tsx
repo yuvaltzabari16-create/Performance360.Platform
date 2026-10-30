@@ -16,7 +16,6 @@ const PATHS: Record<QuickIcon, string> = {
   calendar: "M4 6h16v14H4zM4 10h16M9 3v4M15 3v4",
   squad: "M4 6h16M4 12h16M4 18h10",
   invite: "M3 7l9 6 9-6M3 7v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7M3 7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1",
-  wearable: "M8 3h8l1 4H7zM8 21h8l1-4H7zM7 7h10v10H7zM12 10v4l2 1",
 };
 
 export function QuickIconSvg({ icon, className = "size-6" }: { icon: QuickIcon; className?: string }) {

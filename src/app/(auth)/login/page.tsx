@@ -2,7 +2,10 @@ import Link from "next/link";
 import { BotGuardFields } from "@/components/security/BotGuardFields";
 import { redirect } from "next/navigation";
 import { Field, FlashMessage, Input } from "@/components/ui";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { SubmitButton } from "@/components/ui/client";
+import { CodeSignInForm } from "@/components/auth/CodeSignInForm";
+import { emailCodeEnabled, googleLoginEnabled, passwordLoginEnabled } from "@/lib/google";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
 import { sectionsFor } from "@/lib/permissions";
@@ -62,16 +65,31 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <p className="mt-3"><Link className="font-medium text-brand-700 hover:underline" href={t.loginRole[chosen].href}>{t.loginRole[chosen].newHere}</Link></p>
         </section>
       )}
-      <form action={login} className="space-y-4">
-        <BotGuardFields />
-        {chosen && <input type="hidden" name="as" value={chosen} />}
-        <input type="hidden" name="next" value={next} />
-        <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
-        <Field label={t.auth.password}><Input type="password" name="password" autoComplete="current-password" required /></Field>
-        <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.login}</SubmitButton>
-      </form>
+      {googleLoginEnabled() && (
+        <div className="space-y-3">
+          <GoogleButton href={`/auth/google?next=${encodeURIComponent(next)}${chosen ? `&as=${chosen}` : ""}`} label={t.auth.google} />
+          <p className="text-xs text-muted">{t.auth.googleNote}</p>
+          {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
+        </div>
+      )}
+      {emailCodeEnabled() && (
+        <div className="space-y-3">
+          <CodeSignInForm t={t} next={next} as={chosen} />
+          {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
+        </div>
+      )}
+      {passwordLoginEnabled() && (
+        <form action={login} className="space-y-4">
+          <BotGuardFields />
+          {chosen && <input type="hidden" name="as" value={chosen} />}
+          <input type="hidden" name="next" value={next} />
+          <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
+          <Field label={t.auth.password}><Input type="password" name="password" autoComplete="current-password" required /></Field>
+          <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.login}</SubmitButton>
+        </form>
+      )}
       <div className="mt-6 space-y-2 text-sm text-ink-soft">
-        <p><Link className="text-brand-700 hover:underline" href="/forgot-password">{t.auth.forgot}</Link></p>
+        {passwordLoginEnabled() && <p><Link className="text-brand-700 hover:underline" href="/forgot-password">{t.auth.forgot}</Link></p>}
         <p>{t.auth.noAccount} <Link className="font-medium text-brand-700 hover:underline" href={`/signup?next=${encodeURIComponent(next === "/dashboard" ? "/onboarding" : next)}`}>{t.auth.signup}</Link></p>
       </div>
     </>

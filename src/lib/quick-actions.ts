@@ -2,7 +2,7 @@ import type { Dictionary } from "@/lib/i18n";
 import { canAccess, canImportGps, canWriteTraining } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
-export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable";
+export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite";
 
 export interface QuickAction {
   id: string;
@@ -24,7 +24,6 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
     if (can("training")) out.push({ id: "today", href: "/training", label: q.todayWorkout, icon: "program" });
     if (can("injuries")) out.push({ id: "injury", href: "/injuries", label: q.reportPain, icon: "injury" });
     if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
-    if (can("wearables")) out.push({ id: "wearable", href: "/wearables", label: q.wearables, icon: "wearable" });
     return out;
   }
   const writer = canWriteTraining(orgRole);
