@@ -1,6 +1,6 @@
 # Deploying Performance360
 
-Hosting: Vercel for the Next.js app, Supabase for the database and sign-in. Follow the steps in order.
+Hosting: Netlify or Vercel for the Next.js app (section 2 for Vercel, section 2a for Netlify), Supabase for the database and sign-in. Follow the steps in order.
 Nothing here needs code changes.
 
 ## 1. Supabase (already created: project `ioimovfpzgohjzwkshev`)
@@ -51,6 +51,17 @@ Nothing here needs code changes.
    and sends HSTS.
 5. Note: the rate limiter keeps counters in memory per server instance. For several instances or heavy
    traffic, put the platform's firewall / rate limiting in front, or move the counters to a shared store.
+
+### 2a. Netlify (instead of Vercel)
+
+The repository already carries `netlify.toml` (build command, Next.js runtime, Node 22) and two scheduled functions in `netlify/functions` that replace the Vercel cron jobs.
+
+1. *Add new project → Import an existing project → GitHub*, pick the repository and branch `main`. Leave the build settings as they are: they come from `netlify.toml`.
+2. *Project configuration → Environment variables*: add the variables from the table in section 2 (at least the three required ones). `NEXT_PUBLIC_SITE_URL` is the Netlify address or your own domain. The `NEXT_PUBLIC_*` values are read at build time, so deploy again after changing them.
+3. Supabase → *Authentication → URL configuration*: the same address as Site URL, and `<address>/auth/callback` in Redirect URLs.
+4. Domain: *Domain management → Add a domain*; follow the DNS records Netlify shows.
+5. The scheduled functions need `CRON_SECRET` (any long random string) and `SUPABASE_SERVICE_ROLE_KEY`. Without them they do nothing.
+6. After the first deploy: `<address>/api/health` answers `ok`, then sign up and sign in once.
 
 ### 2b. Sign in with Google (Gmail accounts)
 
