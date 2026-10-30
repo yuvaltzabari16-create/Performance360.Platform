@@ -123,6 +123,12 @@ const he: Dictionary = {
     botBlocked: "לא הצלחנו לאמת את הטופס. יש לרענן את העמוד ולנסות שוב.",
     invalidCredentials: "האימייל או הסיסמה שגויים.",
     passwordRule: "לפחות 8 תווים.",
+    google: "המשך עם Google",
+    or: "או",
+    termsTitle: "עוד צעד אחד",
+    termsIntro: "לפני שממשיכים, יש לאשר את תנאי השימוש ואת מדיניות הפרטיות.",
+    termsContinue: "מאשר/ת וממשיך/ה",
+    googleNote: "חדש/ה כאן? ההמשך עם Google יוצר את החשבון שלך, ואת התנאים תאשר/י בעמוד הבא.",
     joinWithCode: "הוזמנת עם קוד המאמן",
   },
   onboarding: {

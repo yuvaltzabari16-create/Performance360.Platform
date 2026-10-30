@@ -121,6 +121,12 @@ const en = {
     botBlocked: "We couldn't verify this form. Please reload the page and try again.",
     invalidCredentials: "Email or password is incorrect.",
     passwordRule: "At least 8 characters.",
+    google: "Continue with Google",
+    or: "or",
+    termsTitle: "One more step",
+    termsIntro: "Before you continue, please confirm the terms of use and the privacy policy.",
+    termsContinue: "Accept and continue",
+    googleNote: "New here? Continuing with Google creates your account; you will confirm the terms on the next page.",
     joinWithCode: "You've been invited with coach code",
   },
   onboarding: {

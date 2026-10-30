@@ -40,6 +40,7 @@ Nothing here needs code changes.
 | `PAYMENT_PLANS`, `PAYMENT_ALLOWED_HOSTS` | when selling | Hosted checkout only; see `.env.example` |
 | `WEARABLE_TOKEN_KEY` | for wearables | 32 random bytes in base64 (`openssl rand -base64 32`); encrypts stored device tokens. Do not rotate without asking athletes to reconnect |
 | `WHOOP_LIVE`, `WHOOP_CLIENT_ID`, `WHOOP_CLIENT_SECRET` | for live WHOOP, after WHOOP approves the app | Leave unset until then: athletes see "coming soon" and can still import a WHOOP export file, and the scheduled sync does nothing. Set `WHOOP_LIVE=1` once approved. Keys from the WHOOP developer dashboard; redirect URI `<site>/api/wearables/whoop/callback`; scopes `offline read:recovery read:sleep read:cycles` |
+| `NEXT_PUBLIC_GOOGLE_LOGIN` | for Google sign-in | `1` shows "Continue with Google" (after step 2b below). `NEXT_PUBLIC_PASSWORD_LOGIN=0` hides the email and password form |
 | `RATE_LIMIT_*` | optional | Defaults are sensible |
 
    Never set `WEARABLES_MOCK`, `RATE_LIMIT_DISABLED` or `BOT_GUARD_MIN_MS` in production (tests only).
@@ -47,6 +48,16 @@ Nothing here needs code changes.
    and sends HSTS.
 5. Note: the rate limiter keeps counters in memory per server instance. For several instances or heavy
    traffic, put the platform's firewall / rate limiting in front, or move the counters to a shared store.
+
+### 2b. Sign in with Google (Gmail accounts)
+
+1. Google Cloud console → *APIs & Services* → *OAuth consent screen* (type External; app name, support email, your domain, privacy and terms links: `<site>/privacy`, `<site>/terms`). Publish it to *In production*; "Testing" only allows the test users you list.
+2. *Credentials* → *Create credentials* → *OAuth client ID* → *Web application*. Authorised redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback` (shown in Supabase under Authentication → Providers → Google).
+3. Supabase → *Authentication* → *Providers* → *Google*: enable, paste the client ID and client secret.
+4. Supabase → *Authentication* → *URL Configuration*: Site URL is the production address and `<site>/auth/callback` is in the Redirect URLs.
+5. Set `NEXT_PUBLIC_GOOGLE_LOGIN=1` in the host's Production variables and redeploy (the flag is read at build time).
+
+A first Google sign-in creates the account, asks the person to accept the terms and privacy policy, then continues to onboarding where they choose their account type. Two-step verification still applies on later sign-ins.
 
 ## 3. After the first deploy
 
