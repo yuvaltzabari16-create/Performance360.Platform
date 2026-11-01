@@ -903,7 +903,7 @@ const en = {
       active: "Subscription active.",
       activeUntil: "Subscription active until {date}.",
       pastDue: "Your last payment did not go through. Please update your payment details; access continues for a few days.",
-      expired: "Your trial or subscription has ended. Choose a plan to keep using Performance360. You can still open this page, your settings and the data export.",
+      expired: "Your trial or subscription has ended. Choose a plan to keep using Performance360 Academy. You can still open this page, your settings and the data export.",
       canceled: "Your subscription was canceled. Choose a plan to start again. Your data stays available for export.",
       directorOnly: "Only your team's director can start or change the subscription. Ask them to open this page.",
       manage: "Manage subscription",
