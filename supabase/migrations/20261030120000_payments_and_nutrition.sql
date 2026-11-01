@@ -34,7 +34,8 @@ create table public.athlete_payments (
 create index athlete_payments_org_idx on public.athlete_payments (org_id, due_date desc);
 create index athlete_payments_athlete_idx on public.athlete_payments (athlete_id);
 alter table public.athlete_payments enable row level security;
-revoke insert, update, delete on public.athlete_payments from anon, authenticated;
+revoke all on public.athlete_payments from anon, authenticated;
+grant select on public.athlete_payments to authenticated;
 
 create policy payments_select on public.athlete_payments for select to authenticated
   using (public.is_org_director(org_id) or public.is_platform_admin());
@@ -137,7 +138,8 @@ create table public.meal_logs (
 );
 create index meal_logs_athlete_idx on public.meal_logs (athlete_id, eaten_on desc);
 alter table public.meal_logs enable row level security;
-revoke update on public.meal_logs from anon, authenticated;
+revoke all on public.meal_logs from anon, authenticated;
+grant select, insert, delete on public.meal_logs to authenticated;
 grant update (eaten_on, meal_type, description, calories, protein_g, carbs_g, fat_g, water_ml) on public.meal_logs to authenticated;
 
 create policy meals_select on public.meal_logs for select to authenticated
