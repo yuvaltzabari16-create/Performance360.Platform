@@ -24,6 +24,9 @@
   --color-canvas: #f3f6f4;
   --color-charcoal: #1f2624;
   --color-mint: #e6f6ed;
+  /* The academy's logo mark: deep green arc and bars, bright green arrow and rising bar. */
+  --color-logo-deep: #0b5a3a;
+  --color-logo-bright: #3fae4f;
   --shadow-card: 0 1px 1px rgba(16, 40, 28, 0.03), 0 8px 24px -12px rgba(16, 70, 45, 0.16);
   --shadow-lift: 0 1px 2px rgba(16, 40, 28, 0.05), 0 20px 44px -18px rgba(16, 70, 45, 0.26);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Heebo", ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
@@ -35,6 +38,8 @@
 
 html[data-theme="dark"] {
   color-scheme: dark;
+  --color-logo-deep: #7fd9a8;
+  --color-logo-bright: #4cc463;
   --color-brand-50: #12261b;
   --color-brand-100: #173523;
   --color-brand-200: #1f4a31;
@@ -68,6 +73,7 @@ html[data-theme="dark"] {
 @media (prefers-color-scheme: dark) {
   html:not([data-theme="light"]):not([data-theme="dark"]) {
     color-scheme: dark;
+    --color-logo-deep: #7fd9a8; --color-logo-bright: #4cc463;
     --color-brand-50: #12261b; --color-brand-100: #173523; --color-brand-200: #1f4a31; --color-brand-300: #2f7a50; --color-brand-400: #3fae75; --color-brand-500: #34c27a; --color-brand-600: #22a361; --color-brand-700: #6fdba4; --color-brand-800: #98e8bf; --color-brand-900: #c2f2d9;
     --color-ink: #f1f5f3; --color-ink-soft: #bbc5c1; --color-muted: #8c9893; --color-line: #2a3330; --color-surface: #161c1a; --color-canvas: #0b0f0d; --color-charcoal: #0b0f0d; --color-mint: #12261b;
     --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -14px rgba(0, 0, 0, 0.7);

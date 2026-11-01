@@ -18,8 +18,8 @@
       "name": "Performance360 Academy logo mark",
       "license": "Proprietary",
       "proprietary": true,
-      "source": "Created for this project",
-      "usage": "Project-owned artwork."
+      "source": "Supplied by the academy owner; redrawn as vector (src/components/ui/index.tsx LogoMark, src/app/icon.svg, src/app/apple-icon.png)",
+      "usage": "Academy-owned artwork."
     }
   ],
   "reviewedExceptions": [

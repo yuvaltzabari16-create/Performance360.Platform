@@ -177,14 +177,27 @@ export function Avatar({ name, size = "md", className }: { name: string; size?: 
   return <span aria-hidden className={cx("inline-grid shrink-0 place-items-center rounded-full font-semibold ring-2 ring-surface", dim, tint, className)}>{initialsOf(name)}</span>;
 }
 
+/**
+ * The academy's mark: a ring that rises over the top, an arrow coming round underneath, and three rising bars.
+ * Drawn on the original artwork's grid; the colors come from the logo tokens, so dark mode gets lighter greens.
+ */
+export function LogoMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="250 266 690 690" className={className} aria-hidden>
+      <path d="M309 716A303 303 0 1 1 885 690" fill="none" stroke="var(--color-logo-deep)" strokeWidth="53" strokeLinecap="round" />
+      <path d="M848 774A303 303 0 0 1 416 856" fill="none" stroke="var(--color-logo-bright)" strokeWidth="53" />
+      <polygon points="355,812 453,803 378,908" fill="var(--color-logo-bright)" />
+      <rect x="473" y="626" width="68" height="90" rx="14" fill="var(--color-logo-deep)" />
+      <rect x="560" y="561" width="68" height="155" rx="14" fill="var(--color-logo-deep)" />
+      <rect x="647" y="496" width="68" height="220" rx="14" fill="var(--color-logo-bright)" />
+    </svg>
+  );
+}
+
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-        <path d="M16 3a13 13 0 0 1 12.6 9.8" fill="none" stroke="#23985e" strokeWidth="3" strokeLinecap="round" />
-        <path d="M10 19l4-5 3 3 5-6" fill="none" stroke="#23985e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <LogoMark className="size-8" />
       <span>Performance<span className="text-brand-500">360</span> <span className="font-medium text-ink-soft">Academy</span></span>
     </span>
   );
