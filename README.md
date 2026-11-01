@@ -17,7 +17,7 @@ and Supabase (Postgres, Auth). English and Hebrew (RTL) are supported.
 | **Messages** | One-to-one messages with file attachments between people who work together |
 | **Staff** | The owner invites coaches and physiotherapists with single-use invitations, makes other coaches owners, shares the academy code with athletes, manages the roster and splits it into squads |
 | **Workout Planner** | Programs → weeks → sessions → exercises, templates, copy, versions, assignment, automatic session builder, planned versus completed |
-| **Exercise Library** | 347 exercises with video, custom exercises, favorites, video feed |
+| **Exercise Library** | 348 exercises with video, custom exercises, favorites, video feed |
 | **Testing** | 19 standard tests, custom tests, trials, batteries, trends and CSV export |
 | **Nutrition** | Athletes log meals with an optional photo and optional calories, protein, carbs, fat and water; day totals and a 7-day chart. Coaches and physiotherapists who work with the athlete read the log and comment on meals |
 | **Payments** (owners) | Charges per athlete or for the whole roster at once (ILS, USD, EUR, GBP), mark paid with date and method or back to unpaid, outstanding / overdue / collected-this-month totals, and a "who owes" list. Only owners see payments; other coaches, physiotherapists and athletes do not. Tracking only: no money moves through the app |
