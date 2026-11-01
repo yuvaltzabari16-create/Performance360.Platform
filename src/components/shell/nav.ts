@@ -31,7 +31,6 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
     case "readiness": return { href: "/readiness", label: t.nav.readiness, icon: "pulse" };
     case "injuries": return { href: "/injuries", label: t.nav.injuries, icon: "pulse" };
     case "messages": return { href: "/messages", label: t.nav.messages, icon: "chat" };
-    case "wearables": return { href: "/wearables", label: t.nav.wearables, icon: "pulse" };
     case "gps": return { href: "/gps", label: t.nav.gps, icon: "pin" };
     case "code": return { href: "/code", label: t.nav.code, icon: "key" };
     case "connect": return { href: "/connect", label: t.nav.connect, icon: "link" };
@@ -43,6 +42,6 @@ function entry(section: Section, role: UserRole, t: Dictionary): NavItem {
 /** Navigation for a login: the sections its role may open, in a fixed order. */
 export function navFor(role: UserRole, t: Dictionary, orgRole: OrgRole | null = null, owner = false): NavItem[] {
   const allowed = menuSectionsFor(role, orgRole, owner);
-  const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "notes", "progress", "nutrition", "exercises", "testing", "payments", "teams", "readiness", "injuries", "gps", "wearables", "code", "connect", "notifications", "settings"];
+  const order: Section[] = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "notes", "progress", "nutrition", "exercises", "testing", "payments", "teams", "readiness", "injuries", "gps", "code", "connect", "notifications", "settings"];
   return order.filter((s) => allowed.includes(s)).map((s) => entry(s, role, t));
 }

@@ -11,14 +11,13 @@ import { normalize } from "./engine";
  * Reports facts and the app's own thresholds; it never diagnoses, predicts injury or clears anyone.
  */
 
-export const INTENTS = ["summary", "workload", "readiness", "injuries", "recovery", "alerts"] as const;
+export const INTENTS = ["summary", "workload", "readiness", "injuries", "alerts"] as const;
 export type Intent = (typeof INTENTS)[number];
 
 const WORD: Record<Exclude<Intent, "summary" | "alerts">, RegExp> = {
   workload: /\b(workload|work load|acwr|load ratio|training load|acute chronic)\b|עומס/,
   readiness: /\b(readiness|wellness|check in|checked in|check ins)\b|מוכנות|רווחה|שאלון/,
   injuries: /\b(injur\w*|rehab stage|return to play)\b|פציע|שיקום/,
-  recovery: /\b(recovery|hrv|whoop|resting heart rate|sleep)\b|התאוששות|שינה|וופ|דופק מנוחה/,
 };
 // "my X", "show X", "how is X": a request for the numbers, not a question about what the numbers mean.
 const ASK_OWN = /\b(show|check|what is|what s|whats|how is|how are|how was|give me|my latest|my current|my last|my today)\b|הראה|תראה|מה ה|איך ה|מה מצב|מה המצב|מה הנתונים/;
@@ -48,7 +47,6 @@ export function detectIntent(question: string, isStaff: boolean): Intent | null 
 
 export interface ReadinessRow { athleteId: string; date: string; sleepQuality: number | null; fatigue: number | null; soreness: number | null; stress: number | null; mood: number | null; motivation: number | null; pain: boolean }
 export interface InjuryRow { athleteId: string; area: string; stage: string; injuryDate: string; expectedReturn: string | null }
-export interface WearableRow { athleteId: string; day: string; recovery: number | null; hrv: number | null; sleepHours: number | null; restingHr: number | null }
 export interface PersonalData {
   today: string;
   /** Athlete id -> display name for everyone in the data (just the asker for athletes). */
@@ -58,7 +56,6 @@ export interface PersonalData {
   load: LoadEntry[];
   readiness: ReadinessRow[];
   injuries: InjuryRow[];
-  wearable: WearableRow[];
 }
 
 // ---- wording -----------------------------------------------------------------------------------------------
@@ -71,7 +68,7 @@ const T = {
     stage: { rest: "rest", rehab: "rehab", running: "running", modified: "modified training", full: "full training", cleared: "cleared" } as Record<string, string>,
     ratioLabel: { high: "higher than usual", ok: "in the usual range", low: "lower than usual", unknown: "not enough history yet" } as Record<string, string>,
     alert: { workload_high: (v: number) => `workload ratio ${v} (above ${HIGH_RATIO})`, workload_low: (v: number) => `workload ratio ${v} (below ${LOW_RATIO})`, recovery_low: (v: number) => `shared recovery ${v}% (below ${LOW_RECOVERY}%)` } as Record<AlertKind, (v: number) => string>,
-    h: { summary: "Your overview", workload: "Training load", readiness: "Wellness check-ins", injuries: "Injuries", recovery: "Recovery and sleep", alerts: "What needs attention" },
+    h: { summary: "Your overview", workload: "Training load", readiness: "Wellness check-ins", injuries: "Injuries", alerts: "What needs attention" },
   },
   he: {
     noData: "אני עדיין לא מוצא נתונים כאלה.",
@@ -80,7 +77,7 @@ const T = {
     stage: { rest: "מנוחה", rehab: "שיקום", running: "ריצה", modified: "אימון מותאם", full: "אימון מלא", cleared: "אושר" } as Record<string, string>,
     ratioLabel: { high: "גבוה מהרגיל", ok: "בטווח הרגיל", low: "נמוך מהרגיל", unknown: "אין עדיין מספיק היסטוריה" } as Record<string, string>,
     alert: { workload_high: (v: number) => `יחס עומס ${v} (מעל ${HIGH_RATIO})`, workload_low: (v: number) => `יחס עומס ${v} (מתחת ל-${LOW_RATIO})`, recovery_low: (v: number) => `התאוששות משותפת ${v}% (מתחת ל-${LOW_RECOVERY}%)` } as Record<AlertKind, (v: number) => string>,
-    h: { summary: "הסקירה שלכם", workload: "עומס אימונים", readiness: "שאלוני רווחה", injuries: "פציעות", recovery: "התאוששות ושינה", alerts: "מה דורש תשומת לב" },
+    h: { summary: "הסקירה שלכם", workload: "עומס אימונים", readiness: "שאלוני רווחה", injuries: "פציעות", alerts: "מה דורש תשומת לב" },
   },
 } as const;
 
@@ -142,33 +139,12 @@ function athleteInjuries(d: PersonalData, lang: Lang): string[] {
   });
 }
 
-function athleteRecovery(d: PersonalData, lang: Lang): string[] {
-  const rows = [...d.wearable].filter((r) => r.recovery != null || r.sleepHours != null).sort((a, b) => b.day.localeCompare(a.day));
-  if (rows.length === 0) return [lang === "he" ? "אין עדיין נתוני מכשיר לביש. אפשר לחבר WHOOP או לייבא קובץ Fitbit ב**מכשירים לבישים**." : "There is no wearable data yet. Connect WHOOP or import a Fitbit file in **Wearables**."];
-  const l = rows[0];
-  const last7 = rows.slice(0, 7);
-  const avg = (f: (r: WearableRow) => number | null) => { const v = last7.map(f).filter((x): x is number => x != null); return v.length ? r1(v.reduce((a, b) => a + b, 0) / v.length) : null; };
-  const bits = [
-    l.recovery != null ? (lang === "he" ? `התאוששות **${Math.round(l.recovery)}%**` : `recovery **${Math.round(l.recovery)}%**`) : null,
-    l.hrv != null ? `HRV **${r1(l.hrv)} ms**` : null,
-    l.sleepHours != null ? (lang === "he" ? `שינה **${r1(l.sleepHours)} שעות**` : `sleep **${r1(l.sleepHours)} h**`) : null,
-    l.restingHr != null ? (lang === "he" ? `דופק מנוחה **${Math.round(l.restingHr)}**` : `resting heart rate **${Math.round(l.restingHr)}**`) : null,
-  ].filter(Boolean);
-  const out = [lang === "he" ? `הנתון האחרון (${l.day}): ${bits.join(", ")}.` : `Latest reading (${l.day}): ${bits.join(", ")}.`];
-  const ar = avg((r) => r.recovery), as = avg((r) => r.sleepHours);
-  if (ar != null || as != null) out.push(lang === "he" ? `ממוצע ${last7.length} הימים האחרונים: ${ar != null ? `התאוששות ${ar}%` : ""}${ar != null && as != null ? ", " : ""}${as != null ? `שינה ${as} שעות` : ""}.` : `Average of the last ${last7.length} days: ${ar != null ? `recovery ${ar}%` : ""}${ar != null && as != null ? ", " : ""}${as != null ? `sleep ${as} h` : ""}.`);
-  if (l.recovery != null && l.recovery < LOW_RECOVERY) out.push(lang === "he" ? "ההתאוששות נמוכה היום. שימו לב לתחושה, וקחו אימון קל יותר אם נראה לכם נכון; כדאי לעדכן את הצוות." : "Recovery is low today. Listen to how you feel and consider an easier session; it's worth telling your staff.");
-  out.push(lang === "he" ? "המספרים יחסיים לבסיס האישי שלכם; מגמה של כמה ימים חשובה יותר מיום בודד." : "These numbers are relative to your own baseline; a trend over several days matters more than one day.");
-  return out;
-}
-
 // ---- staff -------------------------------------------------------------------------------------------------
 
 function staffAlertLines(d: PersonalData, lang: Lang): string[] {
   const t = T[lang];
-  const daily = d.wearable.map((w) => ({ athleteId: w.athleteId, day: w.day, recovery: w.recovery }));
-  const alerts = staffAlerts(d.load, daily, d.today);
-  if (alerts.length === 0) return [lang === "he" ? "אין התראות עומס או התאוששות כרגע." : "No workload or recovery alerts right now."];
+  const alerts = staffAlerts(d.load, [], d.today);
+  if (alerts.length === 0) return [lang === "he" ? "אין התראות עומס כרגע." : "No workload alerts right now."];
   return alerts.slice(0, 12).map((a) => `- **${name(d, a.athleteId)}**: ${t.alert[a.kind](a.value)}`);
 }
 
@@ -226,18 +202,6 @@ function staffInjuries(d: PersonalData, lang: Lang): string[] {
   return [lang === "he" ? `${d.injuries.length} פציעות פתוחות:` : `${d.injuries.length} open injuries:`, ...lines];
 }
 
-function staffRecovery(d: PersonalData, lang: Lang): string[] {
-  const latest = new Map<string, WearableRow>();
-  for (const w of d.wearable) { if (w.recovery == null) continue; const c = latest.get(w.athleteId); if (!c || w.day > c.day) latest.set(w.athleteId, w); }
-  if (latest.size === 0) return [lang === "he" ? "אין נתוני התאוששות משותפים. ספורטאים מחליטים אם לשתף את נתוני המכשיר שלהם עם הצוות." : "There is no shared recovery data. Athletes decide whether to share their wearable data with staff."];
-  const low = [...latest.values()].filter((w) => w.recovery! < LOW_RECOVERY).sort((a, b) => a.recovery! - b.recovery!);
-  const head = lang === "he" ? `נתונים משותפים מ-${latest.size} ספורטאים.` : `Shared data from ${latest.size} athlete(s).`;
-  const body = low.length
-    ? [lang === "he" ? `התאוששות נמוכה (מתחת ל-${LOW_RECOVERY}%):` : `Low recovery (below ${LOW_RECOVERY}%):`, ...low.slice(0, 12).map((w) => `- **${name(d, w.athleteId)}**: ${Math.round(w.recovery!)}% (${w.day})`)]
-    : [lang === "he" ? "אף אחד מהם מתחת לסף ההתאוששות הנמוכה." : "None of them are below the low-recovery threshold."];
-  return [head, ...body, lang === "he" ? "זה נתון אחד מתוך כמה; שוחחו עם הספורטאי לפני שמשנים משהו." : "This is one signal among several; talk to the athlete before changing anything."];
-}
-
 // ---- entry point -------------------------------------------------------------------------------------------
 
 export function personalAnswer(intent: Intent, isStaff: boolean, d: PersonalData, lang: Lang): string {
@@ -249,21 +213,20 @@ export function personalAnswer(intent: Intent, isStaff: boolean, d: PersonalData
       parts.push(section("alerts", staffAlertLines(d, lang)), section("readiness", staffReadiness(d, lang)), section("injuries", staffInjuries(d, lang)));
     } else if (intent === "workload") parts.push(section("workload", staffWorkload(d, lang)));
     else if (intent === "readiness") parts.push(section("readiness", staffReadiness(d, lang)));
-    else if (intent === "injuries") parts.push(section("injuries", staffInjuries(d, lang)));
-    else parts.push(section("recovery", staffRecovery(d, lang)));
+    else parts.push(section("injuries", staffInjuries(d, lang)));
   } else {
     const make: Record<Exclude<Intent, "alerts">, () => string[]> = {
-      workload: () => athleteWorkload(d, lang), readiness: () => athleteReadiness(d, lang), injuries: () => athleteInjuries(d, lang), recovery: () => athleteRecovery(d, lang),
+      workload: () => athleteWorkload(d, lang), readiness: () => athleteReadiness(d, lang), injuries: () => athleteInjuries(d, lang),
       summary: () => [],
     };
-    const keys: Exclude<Intent, "alerts" | "summary">[] = intent === "summary" || intent === "alerts" ? ["readiness", "workload", "recovery", "injuries"] : [intent];
+    const keys: Exclude<Intent, "alerts" | "summary">[] = intent === "summary" || intent === "alerts" ? ["readiness", "workload", "injuries"] : [intent];
     for (const k of keys) parts.push(section(k, make[k]()));
   }
   return [...parts.flatMap((p, i) => (i ? ["", ...p] : p)), "", t.asOf(d.today)].join("\n");
 }
 
 /** Which tables the loader needs for this question. */
-export function needs(intent: Intent): { load: boolean; readiness: boolean; injuries: boolean; wearable: boolean } {
-  if (intent === "summary" || intent === "alerts") return { load: true, readiness: true, injuries: true, wearable: true };
-  return { load: intent === "workload", readiness: intent === "readiness", injuries: intent === "injuries", wearable: intent === "recovery" };
+export function needs(intent: Intent): { load: boolean; readiness: boolean; injuries: boolean } {
+  if (intent === "summary" || intent === "alerts") return { load: true, readiness: true, injuries: true };
+  return { load: intent === "workload", readiness: intent === "readiness", injuries: intent === "injuries" };
 }

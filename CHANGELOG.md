@@ -5,6 +5,9 @@ The product has not been released publicly yet, so everything is under *Unreleas
 
 ## Unreleased
 
+### Performance360 Academy: Performance360's latest updates
+- Brought in from Performance360: **sign in with Google**, **sign-in by one-time email code** (off until `NEXT_PUBLIC_EMAIL_CODE_LOGIN=1`), team subscriptions with a 14-day trial and Stripe billing, Netlify scheduled functions, and the **removal of wearables**. The academy's sections, roles, payments, nutrition and athlete login are unchanged.
+
 ### Performance360 Academy: three roles
 - **Renamed** to Performance360 Academy.
 - **Only Coach, Physiotherapist and Athlete.** The director, head of performance, assistant coach, sports scientist and other-staff roles are gone from sign-up, sign-in, invitations and the Staff page. Whoever creates the academy joins as a coach and is its **owner**: invites staff, manages the roster, code and squads, sees payments, and reads every program assigned in the academy. Owners can make other coaches owners; an academy always keeps at least one. Coaches and physiotherapists share the same menu; only owners see Payments.
@@ -20,6 +23,8 @@ The product has not been released publicly yet, so everything is under *Unreleas
 - **Nine areas**: Dashboard, My Athletes, AI Assistant, Training Calendar, Messages, Staff, Workout Planner, Exercise Library and Testing. Groups, readiness, injuries, GPS, wearables and the personal code are closed in the permission table, left off dashboards, athlete profiles and quick actions, and their pages redirect.
 - **AI Assistant page**: the assistant chat full size at `/assistant`, with role-specific suggested questions for an academy. New knowledge-base topics: a development pathway across age groups, planning testing across a season, recording a test and the training calendar. Every suggested question is checked by a test to have an answer.
 - **Dashboards**: staff see programs starting soon and an assistant shortcut instead of readiness, injury and GPS cards; the director sees academy totals, staff and roster; athletes see workouts, results, goals and feedback.
+### Removed
+- **Wearables**: the Wearables page and menu entry, WHOOP connection and mock, Fitbit / WHOOP file import, the daily WHOOP sync, the wearables card on the athlete page, the wearables CSV export, the assistant's recovery questions and the privacy-policy text about them are gone (ADR 0007). GPS import is unchanged. The database tables stay in place, unused, so no stored data is deleted.
 
 ### Changed
 - **Live WHOOP is paused** until WHOOP responds to the developer application: the connect button is replaced by a "coming soon" note and the scheduled sync does nothing, even if keys are present, until `WHOOP_LIVE=1` is set. Importing a WHOOP or Fitbit export file is unaffected.
@@ -27,6 +32,10 @@ The product has not been released publicly yet, so everything is under *Unreleas
 - **Assistant answers from your data.** Ask "show my workload / readiness / injuries / recovery" or "how am I doing" (athletes), or "who is at risk", "who has not checked in today", "which athletes have a high workload", "who is injured" (staff). Answers use the app's own thresholds and the rows the person's database permissions already allow (squad-scoped for coaches, wearables only when shared), say when there isn't enough data, and never diagnose or clear anyone.
 
 ### Added
+- **Sign in with an email code**: "Email me a sign-in code" on the sign-in and sign-up pages (off until `NEXT_PUBLIC_EMAIL_CODE_LOGIN=1`; setup in docs/DEPLOYMENT.md section 2b). A one-time 6-digit code replaces the password; new addresses create an account, accept the terms and choose their account type. The role choice and two-step verification apply as for passwords.
+- **Ready for Netlify**: `netlify.toml` plus two scheduled functions (`netlify/functions`) that run the daily notification-email and WHOOP jobs, and a Netlify setup section in docs/DEPLOYMENT.md.
+- **Team subscriptions**: every team starts with a 14-day trial; payment happens on the payment provider's hosted page (Stripe Payment Link); a signed webhook records the subscription; the billing page shows the plan status and, for the director, the plans and a manage link. With `BILLING_REQUIRED=1`, a team whose trial and subscription ended can only open billing, settings and the data export. Setup in docs/DEPLOYMENT.md section 2c.
+- **Sign in with Google**: a "Continue with Google" button on the sign-in and sign-up pages (off until `NEXT_PUBLIC_GOOGLE_LOGIN=1`; setup in docs/DEPLOYMENT.md). New Google accounts accept the terms and privacy policy first, then choose their account type; the "Sign in as" role choice and two-step verification apply to Google sign-ins as well. `NEXT_PUBLIC_PASSWORD_LOGIN=0` can hide the password form.
 - **Settings, expanded**: grouped sections with a jump bar (profile, preferences, appearance, notifications, security, privacy and data, account). New: phone and job title, week start (Monday, Sunday or Saturday), 12 or 24-hour clock, the page to open after sign-in, text size, reduce motion, change email, consent record, wearable-sharing shortcut and a JSON export button next to the CSV downloads.
 - **Professional icons**: text symbols and emoji (stars, arrows, check marks, play signs) are replaced by one set of outline icons in the app.
 - **Quick actions**: a "+" tab in the phone tab bar and a "Quick actions" button in the sidebar open a sheet of one-tap actions for the role (add athlete, record a test, new program, log an injury, message, import GPS, daily check-in, ...). Only actions the login may do appear.

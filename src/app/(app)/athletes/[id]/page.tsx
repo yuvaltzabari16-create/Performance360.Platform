@@ -13,9 +13,6 @@ import { ageFromDob, bestTrial, isImprovement, percentChange, sessionLoad, welln
 import type { Athlete, ReadinessEntry, TestDefinition } from "@/lib/types";
 import { displayHeight, displayMass, round } from "@/lib/units";
 import { missingGuardianConsent } from "@/lib/minors";
-import { WearableCharts } from "@/components/wearables/WearableCharts";
-import { WearableSummary } from "@/components/wearables/WearableSummary";
-import type { DailyRow } from "@/lib/wearables/types";
 import { InjurySection } from "@/components/injury/InjurySection";
 import { loadInjuries } from "@/lib/injury-data";
 import { canAccess, type Section } from "@/lib/permissions";
@@ -34,7 +31,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const isSelf = a.user_id === user.id;
   const minorWithoutConsent = missingGuardianConsent(a, new Date().toISOString().slice(0, 10));
   const ta = t.athletes;
-  // Modules the academy has closed (readiness, injuries, wearables) are left off the profile too.
+  // Modules the academy has closed (readiness, injuries) are left off the profile too.
   const opens = (section: Section) => canAccess(section, profile.role, org?.org_role ?? null);
 
   const [rels, assignments, completions, results, readiness, notes, dupes] = await Promise.all([
@@ -62,8 +59,6 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
   const onMyRoster = Boolean(org && rosterRows?.some((r) => r.org_id === org.org_id));
   const canAddToRoster = Boolean(org && ["head_coach", "head_of_performance", "assistant_coach"].includes(org.org_role) && !a.user_id && !onMyRoster && myRel);
   const canRemoveFromRoster = Boolean(onMyRoster && org && ["head_coach", "head_of_performance"].includes(org.org_role));
-  const { data: wearableData } = await supabase.from("wearable_daily").select("*").eq("athlete_id", id).gte("day", new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10)).order("day", { ascending: false }).limit(120);
-  const wearableRows = (wearableData ?? []) as DailyRow[];
   const athleteFiles = await loadAttachments(supabase, "athlete", [id]);
   const isDirector = org?.org_role === "director"; // read-only view of roster athletes
   const isPro = profile.role !== "athlete" && !isDirector;
@@ -190,17 +185,6 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
               </ul>
             )}
           </Card>
-
-          {!isSelf && opens("wearables") && (
-            <Card title={t.wearables.cardTitle}>
-              {wearableRows.length === 0 ? <p className="text-sm text-muted">{t.wearables.notShared}</p> : (
-                <div className="space-y-5">
-                  <WearableSummary latest={wearableRows[0]} t={t} />
-                  <WearableCharts rows={wearableRows} t={t} />
-                </div>
-              )}
-            </Card>
-          )}
 
           {opens("readiness") && (
             <Card title={ta.readinessTrend}>

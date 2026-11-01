@@ -34,7 +34,7 @@ Payments and meal logs have their own tables and row-level security (`supabase/m
 tested in `supabase/sql-tests/98_payments_nutrition_test.sql`). Meal photos are stored like other attachments (5 MB, PNG, JPEG or
 WebP only) and are the only files shown in the page instead of downloaded, from a sandboxed response.
 
-The other Performance360 modules (groups, readiness check-ins, injuries and return to play, GPS, wearables, the
+The other Performance360 modules (groups, readiness check-ins, injuries and return to play, GPS, the
 personal coach code and the independent personal-trainer account) are still in the code base but closed in
 `src/lib/permissions.ts`: they are not in any menu and their pages redirect. Reopening one is a one-line change
 there (and `npm run docs:roles`).

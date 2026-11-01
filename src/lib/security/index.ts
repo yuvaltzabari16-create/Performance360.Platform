@@ -43,6 +43,7 @@ export function securityContext(request: NextRequest) {
   // Next.js reads the nonce from the request's CSP header and stamps it on its scripts.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
   requestHeaders.set("content-security-policy", csp);
   return { requestHeaders, csp, https };
 }

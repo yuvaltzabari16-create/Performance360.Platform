@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SECTIONS, canAccess, menuSectionsFor, sectionsFor } from "./permissions";
 
 const ACADEMY = ["dashboard", "athletes", "assistant", "calendar", "messages", "team", "training", "exercises", "testing", "nutrition"] as const;
-const CLOSED = ["teams", "readiness", "injuries", "gps", "wearables", "code"] as const;
+const CLOSED = ["teams", "readiness", "injuries", "gps", "code"] as const;
 
 describe("permissions", () => {
   it("opens the academy areas to coaches and physiotherapists, without payments", () => {

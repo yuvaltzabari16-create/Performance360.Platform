@@ -25,3 +25,20 @@ select tests.check((select guardian_consent_source from public.athletes where id
 select tests.throws(format($$update public.athletes set guardian_consent_source = 'robot' where id = %L$$, :'aid')) as bad_src \gset
 select tests.check(:'bad_src'::boolean, 'unknown consent sources are rejected');
 reset role;
+
+-- Accepting the terms after a sign-in without a sign-up form (Google).
+\set u3 '''cccc0000-0000-0000-0000-000000000003'''
+insert into auth.users (id, email, raw_user_meta_data) values (:u3, 'google@consent.test', '{"full_name": "G User"}');
+select tests.check((select terms_version is null from public.profiles where id = :u3), 'a Google account starts without an acceptance record');
+set role authenticated;
+set request.jwt.claim.sub = :u3;
+select public.accept_terms('2026-10');
+select tests.check((select terms_version = '2026-10' and terms_accepted_at is not null from public.profiles where id = :u3), 'accept_terms stores the version and time on the caller''s own profile');
+select tests.throws($$select public.accept_terms('  ')$$) as blank \gset
+select tests.check(:'blank'::boolean, 'an empty version is rejected');
+reset role;
+select tests.check((select terms_version is null from public.profiles where id = :u2), 'accepting does not touch anyone else''s profile');
+set role anon;
+select tests.throws($$select public.accept_terms('2026-10')$$) as anon_try \gset
+select tests.check(:'anon_try'::boolean, 'signed-out callers cannot accept terms');
+reset role;

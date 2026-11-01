@@ -1,6 +1,6 @@
 # ADR 0006: Wearable data is athlete-owned; Fitbit starts as file import
 
-Status: accepted
+Status: superseded by ADR 0007 (the wearables feature was removed)
 
 Recovery, heart-rate variability and sleep are health data, so the **athlete** connects and owns them: only the
 athlete (never staff) can connect, import, share or erase, and staff and the director read the data only while

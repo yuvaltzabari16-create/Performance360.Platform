@@ -6,14 +6,14 @@
  * Performance360 Academy has three roles: Coach, Physiotherapist and Athlete. Coaches and physiotherapists open the
  * dashboard, my athletes, AI assistant, training calendar, messages, staff, workout planner, exercise library, testing
  * and nutrition; the academy owner (a coach) also opens payments. Athletes get their own set below. The other modules inherited from
- * Performance360 (groups, readiness, injuries, GPS, wearables, personal code) stay in the code base
+ * Performance360 (groups, readiness, injuries, GPS, personal code) stay in the code base
  * but are closed here, so their pages redirect and they never appear in the menu.
  */
 import type { OrgRole, UserRole } from "./types";
 
 export const SECTIONS = [
   "dashboard", "team", "athletes", "assistant", "teams", "calendar", "training", "notes", "progress", "nutrition", "exercises", "testing", "payments",
-  "readiness", "injuries", "messages", "gps", "wearables", "code", "connect", "notifications", "settings",
+  "readiness", "injuries", "messages", "gps", "code", "connect", "notifications", "settings",
 ] as const;
 export type Section = (typeof SECTIONS)[number];
 

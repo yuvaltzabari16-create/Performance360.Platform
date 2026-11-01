@@ -1,4 +1,4 @@
-/** Small CSV reader for wearable exports: quotes, BOM, comma / semicolon / tab separators. */
+/** Small CSV reader for GPS exports: quotes, BOM, comma / semicolon / tab separators. */
 
 export interface Csv {
   headers: string[];

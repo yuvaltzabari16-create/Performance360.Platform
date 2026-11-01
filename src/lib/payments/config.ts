@@ -49,3 +49,15 @@ export function configuredPlans(): PaymentPlan[] {
   const hosts = (process.env.PAYMENT_ALLOWED_HOSTS ?? "").split(",").map((h) => h.trim().toLowerCase()).filter(Boolean);
   return parsePlans(process.env.PAYMENT_PLANS, hosts);
 }
+
+/** Adds the team id and the payer's email to a hosted checkout link, so the provider reports which team paid. */
+export function withCheckoutContext(url: string, ctx: { orgId?: string | null; email?: string | null }): string {
+  try {
+    const u = new URL(url);
+    if (ctx.orgId) u.searchParams.set("client_reference_id", ctx.orgId);
+    if (ctx.email) u.searchParams.set("prefilled_email", ctx.email);
+    return u.toString();
+  } catch {
+    return url;
+  }
+}

@@ -12,7 +12,7 @@ export const MATRIX_ROLES: { label: string; role: UserRole; orgRole: OrgRole | n
 const SECTION_LABEL: Record<Section, string> = {
   dashboard: "Dashboard", team: "Staff", athletes: "My Athletes", assistant: "AI Assistant", teams: "Groups", calendar: "Training Calendar", training: "Workout Planner (athletes: Workout Tracker)",
   notes: "Coach Notes", progress: "My Progress", nutrition: "Nutrition", payments: "Payments",
-  exercises: "Exercise Library", testing: "Testing", readiness: "Readiness", injuries: "Injuries", messages: "Messages", gps: "GPS", wearables: "Wearables",
+  exercises: "Exercise Library", testing: "Testing", readiness: "Readiness", injuries: "Injuries", messages: "Messages", gps: "GPS",
   code: "Personal Code", connect: "Join the academy", notifications: "Notifications", settings: "Settings",
 };
 

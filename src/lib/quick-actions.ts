@@ -2,7 +2,7 @@ import type { Dictionary } from "@/lib/i18n";
 import { canAccess, canImportGps, canWriteTraining } from "@/lib/permissions";
 import type { OrgRole, UserRole } from "@/lib/types";
 
-export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "wearable" | "assistant" | "meal" | "payment";
+export type QuickIcon = "userPlus" | "test" | "program" | "injury" | "chat" | "upload" | "checkin" | "key" | "calendar" | "squad" | "invite" | "assistant" | "meal" | "payment";
 
 export interface QuickAction {
   id: string;
@@ -26,7 +26,6 @@ export function quickActionsFor(role: UserRole, orgRole: OrgRole | null, t: Dict
     if (can("nutrition")) out.push({ id: "meal", href: "/nutrition", label: q.logMeal, icon: "meal" });
     if (can("calendar")) out.push({ id: "schedule", href: "/calendar", label: q.schedule, icon: "calendar" });
     if (can("messages")) out.push({ id: "message", href: "/messages", label: q.message, icon: "chat" });
-    if (can("wearables")) out.push({ id: "wearable", href: "/wearables", label: q.wearables, icon: "wearable" });
     if (can("assistant")) out.push({ id: "assistant", href: "/assistant", label: q.askAssistant, icon: "assistant" });
     return out;
   }

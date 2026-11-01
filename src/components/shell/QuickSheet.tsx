@@ -19,7 +19,6 @@ const PATHS: Record<QuickIcon, string> = {
   assistant: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z",
   meal: "M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2.2 0-4 2.7-4 6v4h4",
   payment: "M3 6h18v12H3zM3 10h18M7 15h4",
-  wearable: "M8 3h8l1 4H7zM8 21h8l1-4H7zM7 7h10v10H7zM12 10v4l2 1",
 };
 
 export function QuickIconSvg({ icon, className = "size-6" }: { icon: QuickIcon; className?: string }) {

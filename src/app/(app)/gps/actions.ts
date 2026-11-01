@@ -32,7 +32,7 @@ function pitchFrom(fd: FormData) {
   };
 }
 
-/** Imports a wearable export (summary or position data) and matches athletes to the roster by name. */
+/** Imports a GPS export (summary or position data) and matches athletes to the roster by name. */
 export async function importGpsSession(formData: FormData) {
   const { supabase, org, t } = await requireSection("gps");
   const back = "/gps/import";

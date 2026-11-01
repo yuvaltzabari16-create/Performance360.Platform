@@ -1,6 +1,6 @@
 import { workloads, type LoadEntry, type WorkloadStatus } from "@/lib/gps/workload";
 
-/** Recovery below this (WHOOP "red" zone) is worth a conversation. Athletes decide what staff see; only shared data arrives here. */
+/** Recovery below this is worth a conversation (kept for imports of recovery data; no source feeds it now). */
 export const LOW_RECOVERY = 34;
 
 export interface DailyRow {

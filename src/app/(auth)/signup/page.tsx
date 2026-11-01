@@ -2,7 +2,10 @@ import Link from "next/link";
 import { BotGuardFields } from "@/components/security/BotGuardFields";
 import { redirect } from "next/navigation";
 import { Field, FlashMessage, Input } from "@/components/ui";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { SubmitButton } from "@/components/ui/client";
+import { CodeSignInForm } from "@/components/auth/CodeSignInForm";
+import { emailCodeEnabled, googleLoginEnabled, passwordLoginEnabled } from "@/lib/google";
 import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
 import { signup } from "../actions";
@@ -30,20 +33,35 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
         </p>
       )}
       <FlashMessage error={sp.error} />
-      <form action={signup} className="space-y-4">
-        <BotGuardFields />
-        <input type="hidden" name="next" value={next} />
-        <Field label={t.auth.fullName}><Input name="full_name" autoComplete="name" required maxLength={120} /></Field>
-        <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
-        <Field label={t.auth.password} hint={t.auth.passwordRule}><Input type="password" name="password" autoComplete="new-password" minLength={8} required /></Field>
-        <label className="flex items-start gap-2.5 text-sm text-ink-soft">
-          <input type="checkbox" name="accept_terms" required className="mt-0.5 size-4 shrink-0 rounded border-line accent-brand-600" />
-          <span>
-            {t.auth.acceptPrefix} <Link className="font-medium text-brand-700 underline" href="/terms" target="_blank">{t.auth.acceptTerms}</Link> {t.auth.acceptAnd}<Link className="font-medium text-brand-700 underline" href="/privacy" target="_blank">{t.auth.acceptPrivacy}</Link>
-          </span>
-        </label>
-        <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.signup}</SubmitButton>
-      </form>
+      {googleLoginEnabled() && (
+        <div className="space-y-3">
+          <GoogleButton href={`/auth/google?next=${encodeURIComponent(next)}`} label={t.auth.google} />
+          <p className="text-xs text-muted">{t.auth.googleNote}</p>
+          {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
+        </div>
+      )}
+      {emailCodeEnabled() && (
+        <div className="space-y-3">
+          <CodeSignInForm t={t} next={next} />
+          {passwordLoginEnabled() && <p className="py-2 text-center text-xs uppercase tracking-wide text-muted">{t.auth.or}</p>}
+        </div>
+      )}
+      {passwordLoginEnabled() && (
+        <form action={signup} className="space-y-4">
+          <BotGuardFields />
+          <input type="hidden" name="next" value={next} />
+          <Field label={t.auth.fullName}><Input name="full_name" autoComplete="name" required maxLength={120} /></Field>
+          <Field label={t.common.email}><Input type="email" name="email" autoComplete="email" required /></Field>
+          <Field label={t.auth.password} hint={t.auth.passwordRule}><Input type="password" name="password" autoComplete="new-password" minLength={8} required /></Field>
+          <label className="flex items-start gap-2.5 text-sm text-ink-soft">
+            <input type="checkbox" name="accept_terms" required className="mt-0.5 size-4 shrink-0 rounded border-line accent-brand-600" />
+            <span>
+              {t.auth.acceptPrefix} <Link className="font-medium text-brand-700 underline" href="/terms" target="_blank">{t.auth.acceptTerms}</Link> {t.auth.acceptAnd}<Link className="font-medium text-brand-700 underline" href="/privacy" target="_blank">{t.auth.acceptPrivacy}</Link>
+            </span>
+          </label>
+          <SubmitButton className="w-full" pendingText={t.common.loading}>{t.auth.signup}</SubmitButton>
+        </form>
+      )}
       <p className="mt-6 text-sm text-ink-soft">
         {t.auth.haveAccount} <Link className="font-medium text-brand-700 hover:underline" href={`/login?next=${encodeURIComponent(next)}`}>{t.auth.login}</Link>
       </p>
