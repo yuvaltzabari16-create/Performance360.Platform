@@ -79,7 +79,7 @@ export default async function ProgressPage() {
                   <div><dt className="text-xs text-muted">{tp.best}</dt><dd className="num font-semibold">{s.personalBest ?? "—"} {g.def.unit}</dd></div>
                   <div><dt className="text-xs text-muted">{tp.sinceFirst}</dt><dd className="num font-semibold">{pct(s.changeFromBaselinePct)}</dd></div>
                 </dl>
-                {data.length > 1 && <TrendChart data={data} series={[{ key: "best", label: g.def.name, color: "#23985e" }]} unit={g.def.unit} height={160} reversed={!g.def.higher_is_better} />}
+                {data.length > 1 && <TrendChart data={data} series={[{ key: "best", label: g.def.name, color: "#3fae4f" }]} unit={g.def.unit} height={160} reversed={!g.def.higher_is_better} />}
               </Card>
             );
           })}

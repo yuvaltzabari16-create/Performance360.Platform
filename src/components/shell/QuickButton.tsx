@@ -10,7 +10,7 @@ export function QuickButton({ actions, title, closeLabel }: { actions: QuickActi
   if (actions.length === 0) return null;
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className="press mx-3 mb-3 flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-[15px] font-semibold text-white shadow-[0_6px_16px_-8px_rgba(21,122,74,0.75)] hover:bg-brand-700">
+      <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className="press mx-3 mb-3 flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-[15px] font-semibold text-white shadow-[0_6px_16px_-8px_rgba(11,90,58,0.75)] hover:bg-brand-700">
         <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
         {title}
       </button>

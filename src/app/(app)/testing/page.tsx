@@ -117,7 +117,7 @@ export default async function TestingPage({ searchParams }: { searchParams: Prom
     });
 
   const testFiles = await loadAttachments(supabase, "test", [athleteId]);
-  const sideColors = { both: "#23985e", left: "#2563eb", right: "#d97706" };
+  const sideColors = { both: "#3fae4f", left: "#2563eb", right: "#d97706" };
 
   return (
     <>

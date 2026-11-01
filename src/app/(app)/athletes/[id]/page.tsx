@@ -192,7 +192,7 @@ export default async function AthletePage({ params, searchParams }: { params: Pr
                 <p className="text-sm text-muted">{t.readiness.empty}</p>
               ) : (
                 <>
-                  <TrendChart data={readinessChart} series={[{ key: "index", label: t.readiness.index, color: "#23985e" }]} />
+                  <TrendChart data={readinessChart} series={[{ key: "index", label: t.readiness.index, color: "#3fae4f" }]} />
                   <p className="mt-2 text-xs text-muted">{t.readiness.indexHelp}</p>
                 </>
               )}

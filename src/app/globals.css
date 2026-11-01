@@ -6,16 +6,16 @@
  * so components never hard-code a light-only colour.
  */
 @theme {
-  --color-brand-50: #effaf3;
-  --color-brand-100: #d7f2e0;
-  --color-brand-200: #b0e4c4;
-  --color-brand-300: #7ccfa0;
-  --color-brand-400: #46b47a;
-  --color-brand-500: #23985e;
-  --color-brand-600: #157a4a;
-  --color-brand-700: #12623d;
-  --color-brand-800: #114e33;
-  --color-brand-900: #0f402b;
+  --color-brand-50: #edf7ef;
+  --color-brand-100: #d5eedb;
+  --color-brand-200: #abdcb7;
+  --color-brand-300: #78c58a;
+  --color-brand-400: #52b763;
+  --color-brand-500: #3fae4f;
+  --color-brand-600: #0b5a3a;
+  --color-brand-700: #094c31;
+  --color-brand-800: #073e28;
+  --color-brand-900: #05301f;
   --color-ink: #1a211f;
   --color-ink-soft: #46514d;
   --color-muted: #6b7672;
@@ -23,8 +23,9 @@
   --color-surface: #ffffff;
   --color-canvas: #f3f6f4;
   --color-charcoal: #1f2624;
-  --color-mint: #e6f6ed;
-  /* The academy's logo mark: deep green arc and bars, bright green arrow and rising bar. */
+  --color-mint: #e7f6ea;
+  /* The academy's logo mark: deep green arc and bars, bright green arrow and rising bar. The brand scale above is built
+     from the same two greens: 600 is the deep green (buttons, selected items), 500 the bright green (highlights). */
   --color-logo-deep: #0b5a3a;
   --color-logo-bright: #3fae4f;
   --shadow-card: 0 1px 1px rgba(16, 40, 28, 0.03), 0 8px 24px -12px rgba(16, 70, 45, 0.16);
@@ -40,16 +41,16 @@ html[data-theme="dark"] {
   color-scheme: dark;
   --color-logo-deep: #7fd9a8;
   --color-logo-bright: #4cc463;
-  --color-brand-50: #12261b;
-  --color-brand-100: #173523;
-  --color-brand-200: #1f4a31;
-  --color-brand-300: #2f7a50;
-  --color-brand-400: #3fae75;
-  --color-brand-500: #34c27a;
-  --color-brand-600: #22a361;
-  --color-brand-700: #6fdba4;
-  --color-brand-800: #98e8bf;
-  --color-brand-900: #c2f2d9;
+  --color-brand-50: #10241a;
+  --color-brand-100: #153222;
+  --color-brand-200: #1c472f;
+  --color-brand-300: #2b7445;
+  --color-brand-400: #3ea657;
+  --color-brand-500: #4cc463;
+  --color-brand-600: #2f9a4c;
+  --color-brand-700: #7fd9a8;
+  --color-brand-800: #a6e6c3;
+  --color-brand-900: #cdf3de;
   --color-ink: #f1f5f3;
   --color-ink-soft: #bbc5c1;
   --color-muted: #8c9893;
@@ -74,7 +75,7 @@ html[data-theme="dark"] {
   html:not([data-theme="light"]):not([data-theme="dark"]) {
     color-scheme: dark;
     --color-logo-deep: #7fd9a8; --color-logo-bright: #4cc463;
-    --color-brand-50: #12261b; --color-brand-100: #173523; --color-brand-200: #1f4a31; --color-brand-300: #2f7a50; --color-brand-400: #3fae75; --color-brand-500: #34c27a; --color-brand-600: #22a361; --color-brand-700: #6fdba4; --color-brand-800: #98e8bf; --color-brand-900: #c2f2d9;
+    --color-brand-50: #10241a; --color-brand-100: #153222; --color-brand-200: #1c472f; --color-brand-300: #2b7445; --color-brand-400: #3ea657; --color-brand-500: #4cc463; --color-brand-600: #2f9a4c; --color-brand-700: #7fd9a8; --color-brand-800: #a6e6c3; --color-brand-900: #cdf3de;
     --color-ink: #f1f5f3; --color-ink-soft: #bbc5c1; --color-muted: #8c9893; --color-line: #2a3330; --color-surface: #161c1a; --color-canvas: #0b0f0d; --color-charcoal: #0b0f0d; --color-mint: #12261b;
     --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 28px -14px rgba(0, 0, 0, 0.7);
     --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 24px 48px -18px rgba(0, 0, 0, 0.8);

@@ -79,7 +79,7 @@ async function AthleteReadiness({ sp, t }: { sp: Record<string, string | undefin
         </Card>
         <div className="space-y-6">
           <Card title={tr.index}>
-            {chart.length === 0 ? <p className="text-sm text-muted">{tr.empty}</p> : <TrendChart data={chart} series={[{ key: "index", label: tr.index, color: "#23985e" }]} />}
+            {chart.length === 0 ? <p className="text-sm text-muted">{tr.empty}</p> : <TrendChart data={chart} series={[{ key: "index", label: tr.index, color: "#3fae4f" }]} />}
             <p className="mt-2 text-xs text-muted">{tr.indexHelp}</p>
           </Card>
           <Card title={tr.history}>

@@ -80,7 +80,7 @@ export default async function GpsPage({ searchParams }: { searchParams: Promise<
 
           {trend.length >= 2 && (
             <Card title={tg.trend}>
-              <TrendChart data={trend} series={[{ key: "distance", label: tg.distance, color: "#23985e" }]} unit="m" />
+              <TrendChart data={trend} series={[{ key: "distance", label: tg.distance, color: "#3fae4f" }]} unit="m" />
             </Card>
           )}
 

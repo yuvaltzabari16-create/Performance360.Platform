@@ -12,7 +12,7 @@ export function BarsChart({ data, dataKey, label, height = 200 }: { data: Record
           <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#6b7672" }} tickLine={false} axisLine={{ stroke: "#e4e8e6" }} />
           <YAxis tick={{ fontSize: 11, fill: "#6b7672" }} tickLine={false} axisLine={false} width={56} />
           <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e4e8e6", fontSize: 12 }} />
-          <Bar dataKey={dataKey} name={label} fill="#23985e" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar dataKey={dataKey} name={label} fill="#3fae4f" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>

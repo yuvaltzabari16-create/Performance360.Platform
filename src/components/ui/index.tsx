@@ -7,7 +7,7 @@ export function cx(...parts: (string | false | null | undefined)[]) {
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 const variants: Record<Variant, string> = {
-  primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-[0_6px_16px_-8px_rgba(21,122,74,0.75)]",
+  primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-[0_6px_16px_-8px_rgba(11,90,58,0.75)]",
   secondary: "bg-brand-50 text-brand-700 hover:bg-brand-100",
   ghost: "text-brand-700 hover:bg-brand-50",
   danger: "bg-red-50 text-red-700 hover:bg-red-100",

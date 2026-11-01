@@ -40,7 +40,7 @@ export function NavLinks({ items, unread }: { items: NavItem[]; unread: number }
               aria-current={active ? "page" : undefined}
               className={cx(
                 "press flex items-center gap-3 rounded-xl px-3.5 py-2 text-[15px]",
-                active ? "bg-brand-600 font-semibold text-white shadow-[0_6px_14px_-8px_rgba(21,122,74,0.8)]" : "text-ink-soft hover:bg-brand-50 hover:text-ink",
+                active ? "bg-brand-600 font-semibold text-white shadow-[0_6px_14px_-8px_rgba(11,90,58,0.8)]" : "text-ink-soft hover:bg-brand-50 hover:text-ink",
               )}
             >
               <svg viewBox="0 0 24 24" className={cx("size-[19px] shrink-0", active ? "text-white" : "text-brand-600")} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

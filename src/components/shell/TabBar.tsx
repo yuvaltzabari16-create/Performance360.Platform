@@ -59,7 +59,7 @@ export function TabBar({ items, unread, moreLabel, closeLabel, quick, quickLabel
           {main.slice(0, 2).map((item) => tab(item))}
           {quick.length > 0 && (
             <li className="flex items-center justify-center">
-              <button type="button" aria-label={quickLabel} aria-haspopup="dialog" onClick={() => setQuickOpen(true)} className="press -mt-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-[0_10px_24px_-8px_rgba(21,122,74,0.9)] ring-4 ring-surface hover:bg-brand-700">
+              <button type="button" aria-label={quickLabel} aria-haspopup="dialog" onClick={() => setQuickOpen(true)} className="press -mt-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-[0_10px_24px_-8px_rgba(11,90,58,0.9)] ring-4 ring-surface hover:bg-brand-700">
                 <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
               </button>
             </li>
