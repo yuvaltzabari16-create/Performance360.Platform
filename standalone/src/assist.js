@@ -1,4 +1,4 @@
-/* ================= AI assistant (no Claude) =================
+/* ================= AI assistant =================
    1. A built-in planner that builds workouts from the academy's exercise library and answers common
       questions from the academy's own data. Runs in the browser, no outside service.
    2. If the owner connects an AI provider (OpenAI-compatible: OpenAI, Gemini, Groq, OpenRouter...)
