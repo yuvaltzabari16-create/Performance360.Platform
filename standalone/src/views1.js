@@ -65,7 +65,6 @@ function navHtml() {
 /* ---------- page ---------- */
 function page() {
   if (S.phase === "boot") return gate(`<div class="row"><span class="spinner"></span><b>Opening Performance360 Academy…</b></div>`);
-  if (S.phase === "nodb") return gate(`<h2>Sign in to open the academy</h2><p class="muted">This app keeps its records in a private, access-controlled store on claude.ai. Open it from its claude.ai link while signed in to your Claude account.</p><p class="small faint">If you are signed in and still see this, ask the academy owner to share the app with you.</p>`);
   if (S.revoked) return gate(`<h2>Your access changed</h2><p class="muted">The academy owner changed who can use this app. Reload the page to continue.</p>`);
   if (S.phase === "loading" || !S.role) return gate(`<div class="row"><span class="spinner"></span><b>Loading your academy…</b></div>${S.slow ? `<p class="notice warn">The data store is taking longer than usual to answer. Check your connection; this page will continue by itself when it does.</p>` : ""}`);
   if (needsLogin()) return gate(loginScreen(), true);
@@ -98,7 +97,7 @@ function viewMeta() { const v = VIEWS[S.view]; return v && v.meta ? v.meta() : {
 function viewBody() { const v = VIEWS[S.view]; return v ? v.body() : ""; }
 
 /* ---------- onboarding ---------- */
-function signedInAs() { return `<div class="notice good row" style="gap:8px">${icon("shield")}<span>Signed in with your Claude account</span><b translate="no">${esc(S.viewerName || "")}</b></div>`; }
+function signedInAs() { return ""; }
 function staffOnboarding() {
   return `<h3>Staff sign-in</h3>${signedInAs()}<p>You've been given staff access to <b>${esc(settings().name)}</b>. Set up your staff profile to continue.</p>
   <form class="form" data-form="staff-join">

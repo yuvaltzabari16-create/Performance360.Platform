@@ -141,7 +141,7 @@ VIEWS.progress = {
 VIEWS.assistant = {
   meta: () => ({ title: "AI assistant", sub: "Ask about your athletes, plans and testing", actions: S.chat.length ? `<button class="btn" data-act="ai-clear">New chat</button>` : "" }),
   body: () => {
-    if (!S.sample) return `<div class="card">${empty("spark", "The assistant isn't available here", "It runs on Claude and needs this app opened on claude.ai with AI access allowed. You can turn it on from the artifact's Permissions menu.")}</div>`;
+    if (!S.sample) return "";
     const prompts = ["Who needs attention this week and why?", "Summarise today's sessions", "Suggest a 4-week in-season strength block for my squad", "Compare the latest sprint results", "Draft a message reminding athletes to log meals"];
     return `<div class="card"><div class="thread" style="max-height:60vh">${S.chat.length ? S.chat.map((m) => `<div class="msg${m.role === "user" ? " mine" : ""}"><div class="ai" translate="no">${esc(m.content || "…")}</div></div>`).join("") : `<div class="stack" style="padding:12px"><p class="muted">The assistant can read a summary of your academy (roster, plans, logs, tests). It can't see payments, staff-only notes, meal photos or messages, and it never changes your data.</p><div class="chips">${prompts.map((p) => `<button class="chip" data-act="ai-ask" data-q="${esc(p)}">${esc(p)}</button>`).join("")}</div></div>`}</div>
     <form class="composer" data-form="ai"><textarea id="ai_q" name="q" required maxlength="2000" placeholder="Ask anything about your athletes" aria-label="Question"></textarea><button class="btn primary"${S.aiBusy ? " disabled" : ""}>${S.aiBusy ? '<span class="spinner"></span>' : icon("send")}Ask</button></form></div>`;

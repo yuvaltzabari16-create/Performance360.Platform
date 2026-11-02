@@ -89,25 +89,7 @@ const unsubs = [];
 let mealUnsub = null;
 
 /* ---------- boot ---------- */
-async function boot() {
-  try { applyTheme(localPref("theme") || "system"); applyLang(); } catch {}
-  const timer = setTimeout(() => { if (S.phase === "boot") { S.phase = "nodb"; render(); } }, 12000);
-  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]).catch(() => [null, null]);
-  clearTimeout(timer);
-  if (!db || !user) { S.phase = "nodb"; return render(); }
-  S.db = db; S.user = user;
-  const [uid, isOwner, isAdmin, me] = await Promise.all([user.id(), user.isOwner(), user.canEdit(), user.me().catch(() => null)]);
-  if (!uid) { S.phase = "nodb"; return render(); }
-  S.uid = uid; S.signedIn = !!readSession(); S.isOwner = !!isOwner; S.isAdmin = !!isAdmin || !!isOwner; S.viewerName = (me && me.name) || "";
-  claude.use("sample").then((s) => { S.sample = s; render(); });
-  claude.use("downloads").then((d) => { S.downloads = d; });
-  const t = location.hash.slice(1); if (t) S.view = t;
-  window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== S.view) go(v, false); });
-  S.phase = "loading"; render();
-  setTimeout(() => { if (!S.loaded.settings && !S.loaded.me) { S.slow = true; render(); } }, 10000);
-  subscribeCommon();
-  if (S.isAdmin) subscribeStaff(); else subscribeAthlete();
-}
+async function boot() { /* replaced in platform.js */ }
 
 function onErr(key) { return (e) => { S.loaded[key] = true; if (e && e.code === "revoked") S.revoked = true; console.warn(key, e && e.code); schedule(); }; }
 function watchDoc(path, apply, key) {

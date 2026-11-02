@@ -1,4 +1,4 @@
-/* ================= standalone platform: Supabase, no Claude ================= */
+/* ================= standalone platform: Supabase ================= */
 const APPCFG = window.P360_CONFIG || {};
 let SB = null;
 const AUTH = { step: "code", user: null, join: null, newCode: "", busy: false, error: "", fresh: false };

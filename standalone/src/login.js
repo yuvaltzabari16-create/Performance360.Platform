@@ -53,22 +53,7 @@ function enterBox(k) {
     <label class="check"><input type="checkbox" id="login_keep" checked> <span>Keep me signed in on this device</span></label>
     <div><button class="btn primary" data-act="login-enter" data-k="${k}">Continue as ${esc(roleName(k))}</button></div></div>`;
 }
-function loginPanel(k) {
-  const r = S.role;
-  if (k === "owner") {
-    if (S.isOwner) return enterBox("owner");
-    return `<p class="notice warn">Only the academy owner can sign in here. ${S.isAdmin ? "Sign in as Coach or Physiotherapist." : "Sign in as Athlete."}</p>`;
-  }
-  if (k === "coach" || k === "physio") {
-    if (S.isOwner) return `<p class="notice">You're the academy owner. Sign in with Owner + Coach.</p>`;
-    if (!S.isAdmin) return `<p class="notice warn">This Claude account has athlete access. To sign in as staff, ask the academy owner to share the app with you as Editor, then reload.</p>`;
-    if (r === "coach" || r === "physio") return r === k ? enterBox(k) : `<p class="notice warn">This account is registered as ${esc(roleName(r))}. Sign in as ${esc(roleName(r))}, or ask the academy owner to change your role.</p>`;
-    return staffOnboarding(k);
-  }
-  if (S.isAdmin) return `<p class="notice warn">This Claude account has staff access. Sign in as ${S.isOwner ? "Owner + Coach" : r === "physio" ? "Physiotherapist" : "Coach or Physiotherapist"}.</p>`;
-  if (r === "athlete") return enterBox("athlete");
-  return S.readOnly ? viewOnlyGate() : athleteOnboarding();
-}
+function loginPanel() { return ""; }
 staffOnboarding = function (k) {
   const conf = codeConf(k);
   return `<p>First time here? Set up your ${k === "physio" ? "physiotherapist" : "coach"} profile for <b>${esc(settings().name)}</b>.</p>
