@@ -30,7 +30,7 @@ VIEWS.calendar = {
 /* session form + detail (modals) */
 function sessionFormModal(m) {
   const s = settings(); const progs = vals(S.programs);
-  const progOpts = [["", "No program, write exercises below"], ...progs.flatMap((p) => (p.days || []).map((d, i) => [`${p.id}|${i}`, `${p.name} · ${d.name || "Day " + (i + 1)}`]))];
+  const progOpts = [["", "No workout, write exercises below"], ...progs.map((p) => [p.id, p.name || "Workout"])];
   const ex = m.edit;
   return `<div class="hd"><h2>${ex ? "Edit session" : "New session"}</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
   <form class="form" data-form="session" data-sid="${esc(ex?.id || "")}" data-u="${esc(ex?.athlete || "")}">
@@ -41,7 +41,7 @@ function sessionFormModal(m) {
     <label class="f">Start<input id="ss_time" name="time" type="time" value="${esc(ex?.time || "16:00")}"></label>
     <label class="f">Minutes<input id="ss_min" name="minutes" type="number" min="5" max="480" value="${esc(ex?.minutes || s.defaultMinutes)}"></label>
     <label class="f">Location<input id="ss_loc" name="location" maxlength="60" value="${esc(ex?.location || "")}"></label>
-    ${ex ? "" : `<label class="f full">From program<select id="ss_prog" name="prog">${sel(progOpts)}</select></label>`}
+    ${ex ? "" : `<label class="f full">From a saved workout<select id="ss_prog" name="prog">${sel(progOpts)}</select></label>`}
     <label class="f full">Exercises (one per line: name; sets x reps; load)<textarea id="ss_items" name="items" rows="5" placeholder="Goblet Squat; 3x8; 16 kg&#10;Nordic Hamstring Curl; 3x5">${esc((ex?.items || []).map((i) => [i.ex, i.sets && i.reps ? `${i.sets}x${i.reps}` : i.reps || "", i.load || ""].filter(Boolean).join("; ")).join("\n"))}</textarea></label>
     <label class="f full">Notes for the athlete<textarea id="ss_notes" name="notes" maxlength="1000">${esc(ex?.notes || "")}</textarea></label>
     <div class="formactions"><button type="button" class="btn" data-act="modal-close">Cancel</button><button class="btn primary">${ex ? "Save changes" : "Create session"}</button></div>

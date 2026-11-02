@@ -2,7 +2,7 @@ import sys, json, os
 D = os.path.dirname(os.path.abspath(__file__))
 safe = lambda js: js.replace('</script', '<\\/script').replace('<!--', '<\\!--')
 cfg = json.load(open(sys.argv[2])) if len(sys.argv) > 2 else {}
-order = ['core.js','i18n.js','he.js','he2.js','views1.js','views2.js','views3.js','actions.js','login.js','legal.js','platform.js']
+order = ['core.js','i18n.js','he.js','he2.js','he3.js','views1.js','views2.js','views3.js','actions.js','login.js','legal.js','platform.js','builder.js','assist.js','updates.js']
 app = '\n'.join(open(os.path.join(D, f)).read() for f in order if os.path.exists(os.path.join(D, f)))
 lib = json.load(open(os.path.join(D, 'lib-seed.json')))
 app = 'const LIB_SEED = ' + json.dumps(lib, ensure_ascii=False, separators=(',',':')) + ';\n' + app + '\nboot();\n'

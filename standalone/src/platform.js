@@ -139,7 +139,7 @@ function makeDb(A) {
       },
     };
   }
-  return { doc: docRef, collection: (p) => coll(p), start };
+  return { doc: docRef, collection: (p) => coll(p), start, refresh: () => refresh().catch(() => {}) };
 }
 
 /* ---------- meal photos in private storage ---------- */
@@ -205,7 +205,7 @@ async function afterSignIn() {
 }
 async function enterAcademy(a) {
   S.academy = a; S.uid = a.member_id; S.isOwner = a.role === "owner"; S.isAdmin = a.role !== "athlete";
-  S.viewerName = a.display_name || ""; S.signedIn = true; S.downloads = DOWNLOADS; S.sample = null;
+  S.viewerName = a.display_name || ""; S.signedIn = true; S.downloads = DOWNLOADS; S.sample = S.isAdmin ? makeAssistant() : null;
   const names = {}; try { (await rpc("acad_member_names", { a: a.id }) || []).forEach((m) => { names[m.member_id] = m.display_name; }); } catch {}
   S.memberNames = names;
   S.db = makeDb(a.id);
@@ -284,7 +284,7 @@ page = function () {
   if (S.phase === "noconfig") return gate(`<h2>Almost ready</h2><p class="muted">This copy of the app isn't connected to its database yet. Add the Supabase address and public key in the configuration at the top of index.html.</p>`);
   if (S.phase === "auth") return authPage();
   let html = _page();
-  if (S.phase === "ready" && !needsLogin()) html = html.replace('<main class="view">', '<main class="view">' + planBanner());
+  if (S.phase === "ready" && !needsLogin()) html = html.replace('<main class="view">', '<main class="view">' + planBanner()) + tabBar();
   return html + (S.legal ? legalModal() : "");
 };
 function planBanner() {
@@ -356,7 +356,7 @@ FORMS["add-person"] = async (fd) => {
   const name = String(fd.get("name") || "").trim(); const role = String(fd.get("role") || "athlete");
   try {
     const rows = await rpc("acad_add_member", { a: S.academy.id, p_role: role, p_display: name });
-    S.memberNames[rows[0].member_id] = name; S.people = null; loadPeople(true);
+    S.memberNames[rows[0].member_id] = name; S.people = null; loadPeople(true); S.db.refresh();
     S.modal = { kind: "add-person", result: { name, code: rows[0].login_code } }; render(); return true;
   } catch (e) { toast(errText(e), true); return false; }
 };

@@ -13,7 +13,7 @@
     const L = lvl(a), me = meM(a)?.id, s = p.split("/"); if (!L || !me) return false; if (w && !active(a)) return false;
     let pr, pw, sr, sw;
     switch (s[0]) {
-      case "academy": pr = 1; pw = 3; break; case "library": pr = 1; pw = 2; break;
+      case "academy": pr = 1; pw = 3; break; case "library": pr = 1; pw = 2; break; case "updates": pr = 1; pw = 2; break; case "staffupdates": pr = 2; pw = 2; break;
       case "staff": pr = 1; pw = 3; sr = 1; sw = 2; break;
       case "athletes": case "logs": case "meals": case "inbox": pr = 2; pw = 2; sr = 1; sw = 1; break;
       case "roster": case "plan": case "notes": case "tests": pr = 2; pw = 2; sr = 1; sw = 2; break;

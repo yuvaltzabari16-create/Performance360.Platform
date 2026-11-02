@@ -200,7 +200,7 @@ const FORMS = {
     }
     const who = targetsFrom(fd.get("who")); if (!who.length) { toast("Choose who the session is for.", true); return false; }
     let its = items; const pr = fd.get("prog");
-    if (pr) { const [pid, di] = pr.split("|"); const day = S.programs[pid]?.days?.[+di]; if (day) { its = day.items.concat(items); if (!base.title) base.title = `${S.programs[pid].name} · ${day.name}`; } }
+    if (pr && S.programs[pr]) { const w = normalizeWorkout(S.programs[pr]); its = flattenWorkout(w).concat(items); base.workout = { sections: w.sections }; if (!base.title) base.title = w.name || "Workout"; }
     const id = newId();
     const ok = await act(async () => { for (const u of who) await upsert(`plan/${u}`, { sessions: { [id]: { ...base, items: its } } }); }, `Session added for ${who.length} athlete${who.length > 1 ? "s" : ""}`);
     if (ok) { S.modal = null; S.sel.calDay = base.date; render(); } return ok;
