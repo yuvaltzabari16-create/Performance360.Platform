@@ -1,22 +1,22 @@
 # Performance360 Academy — standalone web app
 
-One-file website (`site/index.html`) on Supabase. Everyone signs in with their email and a one-time code; no Claude, Google or password.
+One-file website (`site/index.html`) on Supabase. Everyone signs in with one personal code (8 letters and numbers); no email, password, Claude or Google account.
 
 ## Roles
-| Sign-in | How someone gets it |
+| Person | How they get their personal code |
 |---|---|
-| Owner + Coach | Opens a new academy from the sign-in screen (30-day free trial) |
-| Coach | Coach code from the owner (Settings → Access & roles) |
-| Physiotherapist | Physiotherapist code from the owner |
-| Athlete | Athlete code from the owner or any coach |
+| Owner + Coach | Opens a new academy on the sign-in screen (30-day free trial) and is shown their code |
+| Coach / Physiotherapist | The owner adds them (Staff → Add) and sends the code, or they enter the shared coach/physio join code and type their name |
+| Athlete | The owner or a coach adds them (My athletes → Add athlete), or they enter the shared athlete join code |
 
-All access rules live in Postgres (`supabase/migrations/20261101120000_academy_standalone.sql`), tested by `supabase/sql-tests/99_academy_standalone_test.sql` (`npm run test:db`).
+A lost or leaked code is replaced in Settings → Access & roles; the old one stops working and that person is signed out everywhere. Each phone stays signed in after the first time.
+
+All access rules live in Postgres (`supabase/migrations/20261102090000_academy_code_login.sql`), tested by `supabase/sql-tests/99_academy_standalone_test.sql` (`npm run test:db`).
 
 ## Set up once
 1. **Database**: run the migration above in Supabase → SQL Editor.
-2. **Email codes**: Supabase → Authentication → Email Templates. In both **Magic Link** and **Confirm signup**, put the code in the message, e.g. `Your Performance360 sign-in code: {{ .Token }}`.
-3. **Email sending** (needed before selling): Authentication → SMTP Settings → connect your own email provider (Resend, Postmark, SendGrid...). Supabase's built-in sender only allows a few emails per hour.
-4. **Publish**: drag the `site` folder (or `performance360-academy-site.zip`) onto Netlify → Deploys. `_headers` adds the security headers.
+2. **Turn on code sign-in**: Supabase → Authentication → Sign In / Providers → enable **Allow anonymous sign-ins** (each phone gets an invisible device sign-in, which the personal code links to a person). Turning on CAPTCHA there is recommended once you sell widely.
+3. **Publish**: drag the `site` folder (or `performance360-academy-site.zip`) onto Netlify → Deploys. `_headers` adds the security headers.
 
 ## Selling: subscriptions
 New academies get 30 days free. When a trial ends, records become read-only until you mark the academy as paid (SQL Editor):

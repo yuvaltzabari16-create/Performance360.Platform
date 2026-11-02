@@ -1,7 +1,7 @@
 /* ================= standalone platform: Supabase, no Claude ================= */
 const APPCFG = window.P360_CONFIG || {};
 let SB = null;
-const AUTH = { step: "role", role: null, email: "", user: null, academies: [], busy: false, error: "", note: "", resendAt: 0 };
+const AUTH = { step: "code", user: null, join: null, newCode: "", busy: false, error: "", fresh: false };
 const isLazy = (coll) => coll.startsWith("meals/");
 const parentOf = (p) => p.slice(0, p.lastIndexOf("/"));
 const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
@@ -177,40 +177,36 @@ const DOWNLOADS = {
   },
 };
 
-/* ---------- boot and sign-in ---------- */
-const tileOf = (r) => (r === "owner" ? "owner" : r);
+/* ---------- boot and sign-in: one personal code ---------- */
 boot = async function () {
   try { applyTheme(localPref("theme") || "system"); applyLang(); } catch {}
   window.addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v === "terms" || v === "privacy") { S.legal = v; render(); return; } if (S.phase === "ready" && v && v !== S.view) go(v, false); });
   const h = location.hash.slice(1); if (h === "terms" || h === "privacy") S.legal = h;
   if (!window.supabase || !APPCFG.url || !APPCFG.key) { S.phase = "noconfig"; return render(); }
   SB = window.supabase.createClient(APPCFG.url, APPCFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "p360-academy-auth" } });
-  SB.auth.onAuthStateChange((ev) => { if (ev === "SIGNED_OUT") setTimeout(() => location.reload(), 0); });
-  S.phase = "auth"; AUTH.busy = true; render();
+  S.phase = "auth"; AUTH.step = "code"; AUTH.busy = true; render();
   const { data } = await SB.auth.getSession().catch(() => ({ data: {} }));
-  AUTH.busy = false;
-  if (!data || !data.session) { AUTH.step = "role"; return render(); }
-  AUTH.user = data.session.user; AUTH.role = localPref("role"); await afterSignIn();
+  if (data && data.session) { AUTH.user = data.session.user; return afterSignIn(); }
+  AUTH.busy = false; render();
 };
-async function afterSignIn(preferId) {
+async function ensureDevice() {
+  if (AUTH.user) return true;
+  const { data, error } = await SB.auth.signInAnonymously();
+  if (error || !data || !data.user) { AUTH.error = /anonymous/i.test(error?.message || "") ? "Sign-in isn't switched on for this app yet. Ask the academy owner." : authError(error); return false; }
+  AUTH.user = data.user; return true;
+}
+async function afterSignIn() {
   S.phase = "auth"; AUTH.busy = true; AUTH.error = ""; render();
-  let list;
-  try { list = (await rpc("acad_my_academies", {})) || []; } catch (e) { AUTH.busy = false; AUTH.error = authError(e); AUTH.step = "role"; return render(); }
-  AUTH.busy = false; AUTH.academies = list;
-  const want = AUTH.role;
-  if (!want) { if (list.length === 1) return enterAcademy(list[0]); AUTH.step = list.length ? "pick" : "role"; return render(); }
-  const mine = list.filter((a) => tileOf(a.role) === want);
-  const saved = preferId || localPref("academy");
-  const pick = mine.find((a) => a.id === saved) || (mine.length === 1 ? mine[0] : null);
-  if (pick) return enterAcademy(pick);
-  AUTH.step = mine.length > 1 ? "pick" : want === "owner" ? "create" : "join";
-  render();
+  let rows = [];
+  try { rows = (await rpc("acad_whoami", {})) || []; } catch (e) { AUTH.busy = false; AUTH.error = authError(e); AUTH.step = "code"; return render(); }
+  AUTH.busy = false;
+  if (rows.length) return enterAcademy(rows[0]);
+  AUTH.step = "code"; render();
 }
 async function enterAcademy(a) {
-  setLocalPref("academy", a.id); setLocalPref("role", tileOf(a.role));
-  S.academy = a; S.uid = AUTH.user.id; S.isOwner = a.role === "owner"; S.isAdmin = a.role !== "athlete";
+  S.academy = a; S.uid = a.member_id; S.isOwner = a.role === "owner"; S.isAdmin = a.role !== "athlete";
   S.viewerName = a.display_name || ""; S.signedIn = true; S.downloads = DOWNLOADS; S.sample = null;
-  const names = {}; try { (await rpc("acad_member_names", { a: a.id }) || []).forEach((m) => { names[m.user_id] = m.display_name; }); } catch {}
+  const names = {}; try { (await rpc("acad_member_names", { a: a.id }) || []).forEach((m) => { names[m.member_id] = m.display_name; }); } catch {}
   S.memberNames = names;
   S.db = makeDb(a.id);
   S.user = {
@@ -232,69 +228,55 @@ computeRole = function () {
   if (r === "owner") return "owner";
   if (r === "coach" || r === "physio") return S.loaded.staff ? r : null;
   if (!S.loaded.me) return null;
-  return S.athletes[S.uid] ? "athlete" : "athlete-new";
+  return S.athletes[S.uid] && S.athletes[S.uid].consent ? "athlete" : "athlete-new";
 };
 needsLogin = () => S.role === "athlete-new";
-loginScreen = () => `<h3 style="font-size:20px">Create your athlete profile</h3><p class="muted">You joined <b>${esc(S.academy?.name || "")}</b>. One more step so your coaches can plan your training.</p>${athleteOnboarding()}`;
-signedInAs = () => `<div class="notice good row" style="gap:8px">${icon("shield")}<span>Signed in as</span><b translate="no">${esc(AUTH.user?.email || "")}</b></div>`;
+loginScreen = () => `<h3 style="font-size:20px">Welcome, ${esc(firstName(S.viewerName || S.athletes[S.uid]?.name || ""))}</h3><p class="muted">You're signed in to <b translate="no">${esc(S.academy?.name || "")}</b>. Fill in your profile once so your coaches can plan your training.</p>${athleteOnboarding()}`;
+signedInAs = () => "";
 function authError(e) {
   const m = String((e && e.message) || "");
   if (/too_many_attempts/.test(m)) return "Too many wrong codes. Wait 15 minutes and try again.";
   if (/academy_inactive/.test(m)) return "This academy's subscription isn't active. Ask the academy owner.";
-  if (/already_member_(\w+)/.test(m)) return `This email is already registered at this academy as ${roleName(tileOf(m.match(/already_member_(\w+)/)[1]))}. Choose that sign-in instead.`;
-  if (/too_many_academies/.test(m)) return "One account can open up to 3 academies.";
-  if (/rate limit|too many/i.test(m)) return "Too many emails were sent. Wait a few minutes and try again.";
-  if (/expired|invalid/i.test(m) && /otp|token/i.test(m)) return "That code is wrong or has expired. Check the latest email or send a new code.";
+  if (/name_required/.test(m)) return "Enter your full name.";
+  if (/rate limit|too many/i.test(m)) return "Too many tries from this network. Wait a few minutes and try again.";
   if (/network|fetch/i.test(m)) return "Can't reach the server. Check your connection and try again.";
   return m || "Something went wrong.";
 }
+const tileOf = (r) => (r === "owner" ? "owner" : r);
+const fmtCode = (c) => (c && c.length === 8 ? c.slice(0, 4) + "-" + c.slice(4) : c || "");
 
 /* ---------- sign-in screens ---------- */
 function authPage() {
-  const tile = (k, l, ic, sub) => `<button class="logintile" role="radio" aria-checked="${AUTH.role === k}" data-act="auth-role" data-k="${k}">${icon(ic)}<span><b>${l}</b><small>${sub}</small></span></button>`;
   let body = "";
-  if (AUTH.busy && !AUTH.step) body = `<div class="row"><span class="spinner"></span>Loading…</div>`;
-  else if (AUTH.step === "role") body = `<h3 style="font-size:20px">Sign in</h3><p class="muted">Choose how you use the academy.</p>
-    <div class="logins" role="radiogroup" aria-label="Sign in as">${LOGINS.map(([k, l, ic, sub]) => tile(k, l, ic, sub)).join("")}</div>
-    ${AUTH.user ? `<p class="small muted">Signed in as <b translate="no">${esc(AUTH.user.email || "")}</b>.</p>` : ""}`;
-  else if (AUTH.step === "email") body = `${back()}<h3 style="font-size:20px">${esc(roleName(AUTH.role))}</h3><p class="muted">Enter your email. We'll send you a one-time sign-in code. No password needed.</p>
-    <form class="stack" data-form="auth-email"><label class="f">Email<input id="au_email" name="email" type="email" required autocomplete="email" inputmode="email" maxlength="120" value="${esc(AUTH.email)}" translate="no"></label>
-    <button class="btn primary"${AUTH.busy ? " disabled" : ""}>${AUTH.busy ? '<span class="spinner"></span>' : ""}Send me a code</button></form>`;
-  else if (AUTH.step === "code") body = `${back("email")}<h3 style="font-size:20px">Check your email</h3><p class="muted">We sent a sign-in code to <b translate="no">${esc(AUTH.email)}</b>. It works once and expires soon.</p>
-    <form class="stack" data-form="auth-code"><label class="f">Sign-in code<input id="au_code" name="code" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,12}" maxlength="12" style="font-size:24px;letter-spacing:.3em;text-align:center" translate="no"></label>
-    <button class="btn primary"${AUTH.busy ? " disabled" : ""}>${AUTH.busy ? '<span class="spinner"></span>' : ""}Sign in</button></form>
-    <div class="row small"><button class="btn sm ghost" data-act="auth-resend"${Date.now() < AUTH.resendAt ? " disabled" : ""}>Send a new code</button><button class="btn sm ghost" data-act="auth-step" data-s="email">Use a different email</button></div>`;
-  else if (AUTH.step === "create") body = `${back()}<h3 style="font-size:20px">Open your academy</h3>${signedInAs()}<p class="muted">Start a 30-day free trial. You'll get sign-in codes for your coaches, physiotherapists and athletes.</p>
+  if (AUTH.step === "code") body = `<h3 style="font-size:22px">Sign in</h3><p class="muted">Enter your personal code.</p>
+    <form class="stack" data-form="auth-code"><label class="f"><span class="sr">Your code</span><input id="au_code" name="code" required maxlength="12" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="XXXX-XXXX" aria-label="Your code" class="bigcode" translate="no"></label>
+    <button class="btn primary big"${AUTH.busy ? " disabled" : ""}>${AUTH.busy ? '<span class="spinner"></span>' : ""}Enter</button></form>
+    <p class="small muted">Don't have a code? Ask your coach or the academy owner.</p>
+    <div class="newacad"><span>Own an academy?</span><button class="btn sm" data-act="auth-step" data-s="create">Open a new academy</button></div>`;
+  else if (AUTH.step === "join") body = `${back()}<h3 style="font-size:20px">Join ${esc(AUTH.join.academy_name || "")}</h3><p class="muted">You're joining as <b>${esc(roleName(tileOf(AUTH.join.role)))}</b>. What's your name?</p>
+    <form class="form" data-form="auth-join"><label class="f full">Full name<input id="aj2_name" name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+    ${AUTH.join.role !== "athlete" ? `<label class="check full"><input type="checkbox" id="aj2_ok" name="agree" required> <span>I will keep athlete records confidential, use them only for coaching and care, and not copy them outside the academy.</span></label>`
+      : `<label class="check full"><input type="checkbox" id="aj2_ok" name="agree" required> <span>I agree to the <a href="#terms">Terms of Service</a> and the <a href="#privacy">Privacy Policy</a>.</span></label>`}
+    <div class="formactions"><button class="btn primary"${AUTH.busy ? " disabled" : ""}>Join</button></div></form>`;
+  else if (AUTH.step === "create") body = `${back()}<h3 style="font-size:20px">Open your academy</h3><p class="muted">Start a 30-day free trial. You'll get your own code, and codes to give your coaches, physiotherapists and athletes.</p>
     <form class="form" data-form="auth-create"><label class="f full">Academy name<input id="ac_name" name="name" required minlength="2" maxlength="80"></label>
-    <label class="f">Your name<input id="ac_me" name="me" required maxlength="80"></label><label class="f">Main sport<input id="ac_sport" name="sport" maxlength="40"></label>
+    <label class="f">Your name<input id="ac_me" name="me" required minlength="2" maxlength="80" autocomplete="name"></label><label class="f">Main sport<input id="ac_sport" name="sport" maxlength="40"></label>
     <label class="check full"><input type="checkbox" id="ac_ok" name="agree" required> <span>I agree to the <a href="#terms">Terms of Service</a> and the <a href="#privacy">Privacy Policy</a>, and I'm responsible for getting consent from athletes and, for minors, their parents.</span></label>
     <div class="formactions"><button class="btn primary"${AUTH.busy ? " disabled" : ""}>Open my academy</button></div></form>`;
-  else if (AUTH.step === "join") {
-    const other = AUTH.academies.filter((a) => tileOf(a.role) !== AUTH.role);
-    const staff = AUTH.role === "coach" || AUTH.role === "physio";
-    body = `${back()}<h3 style="font-size:20px">${esc(roleName(AUTH.role))}</h3>${signedInAs()}
-    ${other.length ? `<div class="notice warn stack" style="gap:6px"><span>This email is registered as ${other.map((a) => `<b>${esc(roleName(tileOf(a.role)))}</b> at <b translate="no">${esc(a.name)}</b>`).join(", ")}.</span><div><button class="btn sm" data-act="auth-continue" data-id="${esc(other[0].id)}">Continue as ${esc(roleName(tileOf(other[0].role)))}</button></div></div>` : ""}
-    <p class="muted">First time here? Enter the ${AUTH.role === "athlete" ? "athlete code from your coach" : AUTH.role === "physio" ? "physiotherapist code from the academy owner" : "coach code from the academy owner"}.</p>
-    <form class="form" data-form="auth-join"><label class="f full">${AUTH.role === "athlete" ? "Academy code" : AUTH.role === "physio" ? "Physiotherapist code" : "Coach code"}<input id="aj2_code" name="code" required maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. K7M2QXPA9R" style="font-size:18px;letter-spacing:.15em;text-transform:uppercase" translate="no"></label>
-    <label class="f full">Full name<input id="aj2_name" name="name" required maxlength="80"></label>
-    ${staff ? `<label class="check full"><input type="checkbox" id="aj2_ok" name="agree" required> <span>I will keep athlete records confidential, use them only for coaching and care, and not copy them outside the academy.</span></label>`
-      : `<label class="check full"><input type="checkbox" id="aj2_ok" name="agree" required> <span>I agree to the <a href="#terms">Terms of Service</a> and the <a href="#privacy">Privacy Policy</a>.</span></label>`}
-    <div class="formactions"><button class="btn primary"${AUTH.busy ? " disabled" : ""}>Join the academy</button></div></form>`;
-  } else if (AUTH.step === "pick") {
-    const mine = AUTH.role ? AUTH.academies.filter((a) => tileOf(a.role) === AUTH.role) : AUTH.academies;
-    body = `${back()}<h3 style="font-size:20px">Choose an academy</h3><div class="list">${mine.map((a) => `<button class="li clickable" style="border:0;background:none;text-align:start;width:100%" data-act="auth-continue" data-id="${esc(a.id)}"><span class="av sm">${esc(initials(a.name))}</span><span class="grow"><b translate="no">${esc(a.name)}</b><span class="small muted" style="display:block">${esc(roleName(tileOf(a.role)))}</span></span>${icon(RTL() ? "left" : "right")}</button>`).join("")}</div>`;
-  }
-  const err = AUTH.error ? `<p class="notice bad" role="alert">${esc(AUTH.error)}</p>` : AUTH.note ? `<p class="notice good">${esc(AUTH.note)}</p>` : "";
-  const brand = esc(APPCFG.productName || "Performance360 Academy");
+  else if (AUTH.step === "yourcode") body = `<h3 style="font-size:20px">This is your personal code</h3>
+    <div class="codeshow" translate="no">${esc(fmtCode(AUTH.newCode))}</div>
+    <p class="muted">Use it to sign in on any phone or computer. Keep it private: anyone with this code can sign in as you. This phone stays signed in.</p>
+    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(fmtCode(AUTH.newCode))}">Copy</button><button class="btn primary" data-act="auth-done">I saved it, continue</button></div>`;
+  const err = AUTH.error ? `<p class="notice bad" role="alert">${esc(AUTH.error)}</p>` : "";
   return `<div class="landing">
     <section class="pitch"><div class="row" style="flex-wrap:nowrap">${LOGO.replace('class="logo"', 'class="logo" style="width:52px;height:52px"')}<div><div class="pitch-brand" translate="no">Performance<b>360</b> Academy</div></div></div>
       <h1 class="pitch-h">Run your whole sports academy in one place.</h1>
-      <ul class="pitch-list"><li>${icon("cal")}<span>Training calendar, workout planner and a 348-exercise video library</span></li><li>${icon("gauge")}<span>Testing, leaderboards, training load and progress for every athlete</span></li><li>${icon("leaf")}<span>Nutrition logs with meal photos and coach feedback</span></li><li>${icon("card")}<span>Payments tracking that only the owner can see</span></li><li>${icon("shield")}<span>Separate sign-ins for owner, coaches, physiotherapists and athletes; each athlete sees only their own data</span></li></ul>
+      <ul class="pitch-list"><li>${icon("cal")}<span>Training calendar, workout planner and a 348-exercise video library</span></li><li>${icon("gauge")}<span>Testing, leaderboards, training load and progress for every athlete</span></li><li>${icon("leaf")}<span>Nutrition logs with meal photos and coach feedback</span></li><li>${icon("card")}<span>Payments tracking that only the owner can see</span></li><li>${icon("shield")}<span>Everyone signs in with their own code; each athlete sees only their own data</span></li></ul>
       <p class="pitch-trial">${icon("check")}<span>30-day free trial for new academies. No card needed.</span></p></section>
-    <section class="card authcard"><div class="row" style="justify-content:flex-end;gap:6px">${toolBtns()}</div>${err}${body}
-      <div class="legal-links small"><a href="#terms">Terms of Service</a> · <a href="#privacy">Privacy Policy</a>${AUTH.user ? ` · <button class="linkbtn" data-act="sign-out">Sign out</button>` : ""}</div></section>
+    <section class="card authcard"><div class="row" style="justify-content:space-between;gap:6px"><span class="pitch-brand mobile-brand" translate="no">Performance<b>360</b></span>${toolBtns()}</div>${err}${body}
+      <div class="legal-links small"><a href="#terms">Terms of Service</a> · <a href="#privacy">Privacy Policy</a></div></section>
   </div>${S.legal ? legalModal() : ""}`;
-  function back(step) { return `<button class="btn sm ghost" data-act="auth-step" data-s="${step || "role"}" style="align-self:flex-start">${icon(RTL() ? "right" : "left")}Back</button>`; }
+  function back() { return `<button class="btn sm ghost" data-act="auth-step" data-s="code" style="align-self:flex-start">${icon(RTL() ? "right" : "left")}Back</button>`; }
 }
 
 const _page = page;
@@ -327,64 +309,97 @@ render = function () {
   }
 };
 
-/* ---------- sign-in codes (from the server) ---------- */
+/* ---------- codes: shared join codes and personal codes ---------- */
+function loadPeople(force) {
+  if ((S.people && !force) || S.peopleLoading) return;
+  S.peopleLoading = true;
+  Promise.all([rpc("acad_people", { a: S.academy.id }), isStaff() ? rpc("acad_codes_list", { a: S.academy.id }) : Promise.resolve([])])
+    .then(([people, codes]) => { S.people = people || []; S.codes = Object.fromEntries((codes || []).map((r) => [r.role, r.code])); }, () => { S.people = S.people || []; S.codes = S.codes || {}; })
+    .finally(() => { S.peopleLoading = false; schedule(); });
+}
+const personOf = (mid) => (S.people || []).find((p) => p.member_id === mid);
+function codeLine(mid) {
+  loadPeople(); const p = personOf(mid);
+  if (!S.people) return `<span class="spinner"></span>`;
+  if (!p) return `<span class="muted small">Not available</span>`;
+  return `<span class="row" style="flex-wrap:nowrap"><code translate="no" class="codebox">${esc(fmtCode(p.login_code))}</code><button class="btn sm" data-act="copy-text" data-t="${esc(fmtCode(p.login_code))}">Copy</button>${armBtn("rc-" + mid, "New code", "reset-code", `data-m="${esc(mid)}"`)}</span>`;
+}
 joinCodeCard = function () {
-  const own = S.role === "owner";
-  if (!S.codes && !S.codesLoading) {
-    S.codesLoading = true;
-    rpc("acad_codes_list", { a: S.academy.id }).then((rows) => { S.codes = Object.fromEntries((rows || []).map((r) => [r.role, r.code])); }, () => { S.codes = {}; }).finally(() => { S.codesLoading = false; schedule(); });
-  }
-  const rows = [["athlete", "Athletes"], ["coach", "Coaches"], ["physio", "Physiotherapists"]].filter(([k]) => own || k === "athlete");
-  return `<div class="card"><div class="hd"><h2>Sign-in codes</h2></div>
-    <p class="muted">Give each person the code for their role. They choose that role on the sign-in screen, sign in with their email and enter the code once. Create a new code if one reaches the wrong person; the old one stops working at once.</p>
-    ${!S.codes ? `<div class="row" style="margin-top:8px"><span class="spinner"></span></div>` : `<div class="list" style="margin-top:8px">${rows.map(([k, label]) => { const code = S.codes[k]; return `<div class="li" style="flex-wrap:wrap"><div class="grow" style="min-width:140px"><div class="t">${label}</div><span class="pill ${code ? "good" : "warn"}">${code ? "On" : "Off"}</span></div>
-      ${code ? `<code translate="no" class="codebox">${esc(code)}</code><button class="btn sm" data-act="copy-code" data-k="${k}">Copy</button>` : ""}
-      ${own ? `<button class="btn sm${code ? "" : " primary"}" data-act="code-new" data-k="${k}">${icon("key")}${code ? "New code" : "Turn on"}</button>${code ? armBtn("code-off-" + k, "Turn off", "code-off", `data-k="${k}"`) : ""}` : ""}</div>`; }).join("")}</div>`}
-    ${APPCFG.siteUrl ? `<p class="small muted" style="margin-top:8px">App address: <b translate="no">${esc(APPCFG.siteUrl)}</b></p>` : ""}</div>`;
+  const own = S.role === "owner"; loadPeople();
+  const roles = [["athlete", "Athletes"], ["coach", "Coaches"], ["physio", "Physiotherapists"]].filter(([k]) => own || k === "athlete");
+  const people = (S.people || []).filter((p) => p.member_id !== S.uid);
+  return `<div class="card"><div class="hd"><h2>Your sign-in code</h2></div><p class="muted">Use it to sign in on another phone or computer. Keep it private.</p><div style="margin-top:8px">${codeLine(S.uid)}</div></div>
+  <div class="card"><div class="hd"><h2>People and their codes</h2><button class="btn sm primary" data-act="add-person">${icon("plus")}Add a person</button></div>
+    <p class="muted">Each person signs in with their own code. Send it to them privately with this app's address${APPCFG.siteUrl ? `: <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. If a code is lost or reaches the wrong person, create a new one; the old one stops working and they're signed out everywhere.</p>
+    ${!S.people ? `<div class="row" style="margin-top:8px"><span class="spinner"></span></div>` : people.length ? `<div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Name</th><th>Role</th><th>Code</th><th>Last sign-in</th></tr></thead><tbody>${people.map((p) => `<tr><td><b translate="no">${esc(p.display_name)}</b></td><td>${esc(roleName(tileOf(p.role)))}</td><td>${codeLine(p.member_id)}</td><td class="small muted">${p.last_sign_in ? esc(ago(p.last_sign_in)) : "Not yet"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="small muted" style="margin-top:8px">Nobody else yet.</p>`}</div>
+  <div class="card"><div class="hd"><h2>Shared join codes</h2></div>
+    <p class="muted">Optional. Instead of adding people one by one, give a group one shared code. Each person enters it once, types their name and gets their own personal code.</p>
+    ${!S.codes ? "" : `<div class="list" style="margin-top:8px">${roles.map(([k, label]) => { const code = S.codes[k]; return `<div class="li" style="flex-wrap:wrap"><div class="grow" style="min-width:140px"><div class="t">${label}</div><span class="pill ${code ? "good" : "warn"}">${code ? "On" : "Off"}</span></div>
+      ${code ? `<code translate="no" class="codebox">${esc(fmtCode(code))}</code><button class="btn sm" data-act="copy-text" data-t="${esc(fmtCode(code))}">Copy</button>` : ""}
+      ${own ? `<button class="btn sm" data-act="code-new" data-k="${k}">${icon("key")}${code ? "New code" : "Turn on"}</button>${code ? armBtn("code-off-" + k, "Turn off", "code-off", `data-k="${k}"`) : ""}` : ""}</div>`; }).join("")}</div>`}</div>`;
 };
+function addPersonModal(m) {
+  if (m.result) return `<div class="hd"><h2>${esc(m.result.name)} was added</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
+    <p class="muted">Their personal code:</p><div class="codeshow" translate="no">${esc(fmtCode(m.result.code))}</div>
+    <p class="small muted">Send it to them privately${APPCFG.siteUrl ? ` with the address <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. They type it once on their phone and they're in.</p>
+    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(`${fmtCode(m.result.code)}${APPCFG.siteUrl ? " " + APPCFG.siteUrl : ""}`)}">Copy code and address</button><button class="btn primary" data-act="modal-close">Done</button></div>`;
+  const roles = S.role === "owner" ? [["athlete", "Athlete"], ["coach", "Coach"], ["physio", "Physiotherapist"]] : [["athlete", "Athlete"]];
+  return `<div class="hd"><h2>Add a person</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
+  <form class="form" data-form="add-person"><label class="f full">Full name<input id="ap2_name" name="name" required minlength="2" maxlength="80"></label>
+    <label class="f full">Role<select id="ap2_role" name="role">${sel(roles, m.role || "athlete")}</select></label>
+    <div class="formactions"><button type="button" class="btn" data-act="modal-close">Cancel</button><button class="btn primary">Add and get code</button></div></form>`;
+}
+const _modalHtml = modalHtml;
+modalHtml = function () { if (S.modal && S.modal.kind === "add-person") return `<div class="modal" data-act="modal-bg" role="dialog" aria-modal="true"><div class="box">${addPersonModal(S.modal)}</div></div>`; return _modalHtml(); };
+ACTIONS["add-person"] = (d) => { S.modal = { kind: "add-person", role: d.role || "athlete" }; render(); };
+FORMS["add-person"] = async (fd) => {
+  const name = String(fd.get("name") || "").trim(); const role = String(fd.get("role") || "athlete");
+  try {
+    const rows = await rpc("acad_add_member", { a: S.academy.id, p_role: role, p_display: name });
+    S.memberNames[rows[0].member_id] = name; S.people = null; loadPeople(true);
+    S.modal = { kind: "add-person", result: { name, code: rows[0].login_code } }; render(); return true;
+  } catch (e) { toast(errText(e), true); return false; }
+};
+ACTIONS["reset-code"] = async (d) => { await act(async () => { await rpc("acad_reset_code", { a: S.academy.id, m: d.m }); S.people = null; loadPeople(true); }, "New code created. The old one no longer works."); };
 ACTIONS["code-new"] = async (d) => { await act(async () => { const c = await rpc("acad_rotate_code", { a: S.academy.id, r: d.k }); S.codes = { ...(S.codes || {}), [d.k]: c }; }, "New code created. The old one no longer works."); render(); };
 ACTIONS["code-off"] = async (d) => { await act(async () => { await rpc("acad_disable_code", { a: S.academy.id, r: d.k }); const c = { ...(S.codes || {}) }; delete c[d.k]; S.codes = c; }, "Code turned off"); render(); };
-ACTIONS["copy-code"] = (d) => { const c = (S.codes || {})[d.k] || ""; try { navigator.clipboard.writeText(c).then(() => toast("Code copied"), () => toast("Select the code and copy it.", true)); } catch { toast("Select the code and copy it.", true); } };
-ACTIONS["sign-out"] = async () => { try { await SB.auth.signOut(); } catch {} location.reload(); };
+ACTIONS["copy-text"] = (d) => { try { navigator.clipboard.writeText(d.t || "").then(() => toast("Copied"), () => toast("Select the code and copy it.", true)); } catch { toast("Select the code and copy it.", true); } };
+ACTIONS["sign-out"] = async () => { try { await rpc("acad_sign_out", {}); } catch {} try { await SB.auth.signOut(); } catch {} location.reload(); };
 
 /* ---------- sign-in actions ---------- */
-ACTIONS["auth-role"] = (d) => { AUTH.role = d.k; AUTH.error = ""; AUTH.note = ""; if (AUTH.user) { setLocalPref("role", d.k); afterSignIn(); } else { AUTH.step = "email"; render(); } };
-ACTIONS["auth-step"] = (d) => { AUTH.step = d.s; AUTH.error = ""; AUTH.note = ""; S.dirty.clear(); render(); };
-ACTIONS["auth-continue"] = (d) => { const a = AUTH.academies.find((x) => x.id === d.id); if (a) enterAcademy(a); };
-ACTIONS["auth-resend"] = async () => { await sendCode(AUTH.email); };
+ACTIONS["auth-step"] = (d) => { AUTH.step = d.s; AUTH.error = ""; S.dirty.clear(); render(); };
+ACTIONS["auth-done"] = () => { AUTH.fresh = true; afterSignIn(); };
 ACTIONS["legal-close"] = () => { S.legal = null; if (location.hash === "#terms" || location.hash === "#privacy") { try { history.replaceState(null, "", location.pathname + location.search + (S.phase === "ready" ? "#" + S.view : "")); } catch {} } render(); };
-async function sendCode(email) {
-  AUTH.busy = true; AUTH.error = ""; render();
-  const { error } = await SB.auth.signInWithOtp({ email, options: { shouldCreateUser: true, data: { otp_signup: true, locale: LANG } } });
-  AUTH.busy = false;
-  if (error) { AUTH.error = authError(error); render(); return false; }
-  AUTH.email = email; AUTH.step = "code"; AUTH.note = ""; AUTH.resendAt = Date.now() + 60000; setTimeout(schedule, 60500); render(); return true;
-}
-FORMS["auth-email"] = async (fd) => { const email = String(fd.get("email") || "").trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { AUTH.error = "Enter a valid email address."; render(); return false; } return sendCode(email); };
 FORMS["auth-code"] = async (fd) => {
-  const token = String(fd.get("code") || "").replace(/\D/g, "");
-  if (token.length < 6) { AUTH.error = "Enter the code from the email."; render(); return false; }
+  const code = String(fd.get("code") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (code.length < 8) { AUTH.error = "Codes have 8 letters and numbers. Check it and try again."; render(); return false; }
   AUTH.busy = true; AUTH.error = ""; render();
-  const { data, error } = await SB.auth.verifyOtp({ email: AUTH.email, token, type: "email" });
-  AUTH.busy = false;
-  if (error || !data || !data.user) { AUTH.error = authError(error || { message: "invalid otp" }); render(); return false; }
-  AUTH.user = data.user; AUTH.fresh = true; setLocalPref("role", AUTH.role); await afterSignIn(); return true;
-};
-FORMS["auth-create"] = async (fd) => {
-  if (!fd.get("agree")) return false;
-  AUTH.busy = true; render();
-  try { const id = await rpc("acad_create_academy", { p_name: String(fd.get("name") || "").trim(), p_display: String(fd.get("me") || "").trim(), p_sport: String(fd.get("sport") || "").trim() }); AUTH.busy = false; await afterSignIn(id); return true; }
-  catch (e) { AUTH.busy = false; AUTH.error = authError(e); render(); return false; }
+  try {
+    if (!(await ensureDevice())) { AUTH.busy = false; render(); return false; }
+    const rows = (await rpc("acad_enter", { p_code: code })) || [];
+    AUTH.busy = false;
+    if (!rows.length) { AUTH.error = "That code isn't right. Check it, or ask your coach or the academy owner."; render(); return false; }
+    if (rows[0].kind === "join") { AUTH.join = { ...rows[0], code }; AUTH.step = "join"; render(); return true; }
+    AUTH.fresh = true; await afterSignIn(); return true;
+  } catch (e) { AUTH.busy = false; AUTH.error = authError(e); render(); return false; }
 };
 FORMS["auth-join"] = async (fd) => {
   if (!fd.get("agree")) return false;
   AUTH.busy = true; AUTH.error = ""; render();
   try {
-    const rows = await rpc("acad_join", { p_code: String(fd.get("code") || ""), p_display: String(fd.get("name") || "").trim() });
+    const rows = (await rpc("acad_join", { p_code: AUTH.join.code, p_display: String(fd.get("name") || "").trim() })) || [];
     AUTH.busy = false;
-    if (!rows || !rows.length) { AUTH.error = AUTH.role === "athlete" ? "That academy code isn't right. Ask your coach for the current code." : "That staff code isn't right. Ask the academy owner for the current code."; render(); return false; }
-    if (tileOf(rows[0].role) !== AUTH.role) { AUTH.role = tileOf(rows[0].role); setLocalPref("role", AUTH.role); toast(`That code is for the ${roleName(AUTH.role)} role, so you joined as ${roleName(AUTH.role)}.`); }
-    await afterSignIn(rows[0].academy_id); return true;
+    if (!rows.length) { AUTH.error = "That code no longer works. Ask for the current one."; AUTH.step = "code"; render(); return false; }
+    AUTH.newCode = rows[0].login_code; AUTH.step = "yourcode"; render(); return true;
+  } catch (e) { AUTH.busy = false; AUTH.error = authError(e); render(); return false; }
+};
+FORMS["auth-create"] = async (fd) => {
+  if (!fd.get("agree")) return false;
+  AUTH.busy = true; AUTH.error = ""; render();
+  try {
+    if (!(await ensureDevice())) { AUTH.busy = false; render(); return false; }
+    const rows = await rpc("acad_create_academy", { p_name: String(fd.get("name") || "").trim(), p_display: String(fd.get("me") || "").trim(), p_sport: String(fd.get("sport") || "").trim() });
+    AUTH.busy = false; AUTH.newCode = rows[0].login_code; AUTH.step = "yourcode"; render(); return true;
   } catch (e) { AUTH.busy = false; AUTH.error = authError(e); render(); return false; }
 };
 
@@ -395,3 +410,13 @@ function legalModal() {
   return `<div class="modal" role="dialog" aria-modal="true" translate="no"><div class="box legal">${`<div class="hd"><h2>${v.title}</h2><button class="iconbtn" data-act="legal-close" aria-label="${he ? "סגירה" : "Close"}">${icon("x")}</button></div>`}
     <p class="small muted">${he ? "עודכן" : "Updated"}: ${esc(LEGAL_DATE)}</p>${v.body.replace(/\{vendor\}/g, vendor).replace(/\{contact\}/g, contact)}</div></div>`;
 }
+
+/* ---------- add people, show codes where they belong ---------- */
+const _athMeta = VIEWS.athletes.meta;
+VIEWS.athletes.meta = () => { const m = _athMeta(); if (!S.sel.athlete) m.actions = `<button class="btn primary" data-act="add-person" data-role="athlete">${icon("plus")}Add athlete</button>`; return m; };
+const _staffMeta = VIEWS.staff.meta;
+VIEWS.staff.meta = () => { const m = _staffMeta(); if (S.role === "owner") m.actions = `<button class="btn primary" data-act="add-person" data-role="coach">${icon("plus")}Add coach or physio</button>`; return m; };
+const _athProfile = athProfile;
+athProfile = function (u) { return `<div class="card"><div class="hd"><h2>Sign-in code</h2></div><p class="muted">This athlete signs in with this code.</p><div style="margin-top:8px">${codeLine(u)}</div></div>` + _athProfile(u); };
+const _cfgProfile = CFG.profile;
+CFG.profile = () => (isStaff() ? "" : `<div class="card"><div class="hd"><h2>Your sign-in code</h2></div><p class="muted">Use it to sign in on another phone or computer. Keep it private.</p><div style="margin-top:8px">${codeLine(S.uid)}</div></div>`) + _cfgProfile();

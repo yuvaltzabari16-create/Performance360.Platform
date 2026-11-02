@@ -23,7 +23,7 @@ document.addEventListener("change", async (e) => {
   }
   const c = el.dataset.change; if (!c) return;
   if (["ast", "agrp", "calAth", "lc", "test", "tgrp", "nutAth", "sid"].includes(c)) { S.sel[c] = el.value; return render(); }
-  if (c === "staff-role") return act(() => rpc("acad_set_member_role", { a: S.academy.id, u: el.dataset.u, r: el.value === "physio" ? "physio" : "coach" }), "Role updated");
+  if (c === "staff-role") return act(() => rpc("acad_set_member_role", { a: S.academy.id, m: el.dataset.u, r: el.value === "physio" ? "physio" : "coach" }), "Role updated");
   if (c === "pay-mark" && el.value) return act(() => S.db.doc(`payments/${el.dataset.u}`).update({ charges: { [el.dataset.id]: { paid: true, paidOn: today(), method: el.value } } }), "Marked as paid");
 });
 document.addEventListener("click", async (e) => {
@@ -81,11 +81,11 @@ const ACTIONS = {
       await removePhotos(meals.docs.map((m) => m.data().photoPath).filter(Boolean));
       for (const m of meals.docs) await S.db.doc(`meals/${u}/items/${m.id}`).delete();
       for (const p of paths) await S.db.doc(p).delete();
-      await rpc("acad_remove_member", { a: S.academy.id, u });
+      await rpc("acad_remove_member", { a: S.academy.id, m: u });
     }, "Athlete removed");
     if (ok) { S.sel.athlete = null; render(); }
   },
-  "remove-staff": (d) => act(() => rpc("acad_remove_member", { a: S.academy.id, u: d.u }), "Removed. Their access ended."),
+  "remove-staff": (d) => act(() => rpc("acad_remove_member", { a: S.academy.id, m: d.u }), "Removed. Their access ended."),
   "prog-new": () => { S.edit.program = { id: newId(), name: "New program", goal: "", days: [{ name: "Day A", items: [{ ex: "", sets: 3, reps: "8", load: "", rest: "90s", note: "" }] }], fresh: true }; render(); },
   "prog-edit": (d) => { const p = S.programs[d.id]; if (p) { S.edit.program = JSON.parse(JSON.stringify({ ...p, id: d.id, days: p.days || [] })); render(); } },
   "prog-copy": (d) => act(() => { const p = S.programs[d.id]; return S.db.doc(`programs/${newId()}`).set({ ...p, name: p.name + " (copy)", updatedAt: nowIso(), by: S.uid }); }, "Program duplicated"),
@@ -148,7 +148,7 @@ const ACTIONS = {
     const u = S.uid;
     const ok = await act(async () => {
       if (!isStaff()) { const meals = await S.db.collection(`meals/${u}/items`).get(); await removePhotos(meals.docs.map((m) => m.data().photoPath).filter(Boolean)); }
-      await rpc("acad_delete_my_account", {});
+      await rpc("acad_delete_me", { a: S.academy.id });
     }, "Your account was deleted");
     if (ok) { try { await SB.auth.signOut(); } catch {} location.reload(); }
   },
@@ -183,7 +183,7 @@ const FORMS = {
     const u = S.uid;
     if (!(await verifyCode("athlete", fd.get("code")))) return false;
     try {
-      await S.db.doc(`athletes/${u}`).set({ name: g(fd, "name", 80), sport: g(fd, "sport", 40), position: g(fd, "position", 40), dob: isDay(dob) ? dob : "", phone: g(fd, "phone", 30), guardian: g(fd, "guardian", 80), emergency: g(fd, "emergency", 100), medical: g(fd, "medical", 800), minor: age < 18, consent: { version: TERMS_VERSION, at: nowIso() }, createdAt: nowIso() });
+      await upsert(`athletes/${u}`, { name: g(fd, "name", 80), sport: g(fd, "sport", 40), position: g(fd, "position", 40), dob: isDay(dob) ? dob : "", phone: g(fd, "phone", 30), guardian: g(fd, "guardian", 80), emergency: g(fd, "emergency", 100), medical: g(fd, "medical", 800), minor: age < 18, consent: { version: TERMS_VERSION, at: nowIso() }, createdAt: nowIso() });
     } catch (e) { if (e && e.code === "invalid_argument") { S.readOnly = true; render(); return false; } throw e; }
     await upsert(`logs/${u}`, { createdAt: nowIso() }).catch(() => {});
     await upsert(`inbox/${u}`, { createdAt: nowIso() }).catch(() => {});
