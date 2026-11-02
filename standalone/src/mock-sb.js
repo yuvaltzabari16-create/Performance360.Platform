@@ -94,6 +94,7 @@
     acad_set_member_role: ({ a, m, r }) => { if (lvl(a) < 3) return err("owner only", "42501"); const x = st.mem.find((y) => y.id === m); x.r = r; const d = st.docs[key(a, "staff/" + m)]; if (d) d.data.role = r; save(); return ok(null); },
     acad_remove_member: ({ a, m }) => { const x = st.mem.find((y) => y.id === m); if (!x) return ok(null); if (!(lvl(a) === 3 || (lvl(a) === 2 && x.r === "athlete"))) return err("not allowed", "42501"); st.mem = st.mem.filter((y) => y !== x); if (x.r !== "athlete") delete st.docs[key(a, "staff/" + m)]; save(); return ok(null); },
     acad_delete_me: ({ a }) => { const m = meM(a); if (m.r === "owner") { st.acad = st.acad.filter((x) => x.id !== a); Object.keys(st.docs).forEach((k) => { if (k.startsWith(a + "|")) delete st.docs[k]; }); } st.mem = st.mem.filter((x) => x.a !== a || m.r !== "owner" ? x.id !== m.id : false); save(); return ok(null); },
+    acad_cal_token: ({ a, renew }) => { const m = meM(a); if (!m) return err("not signed in", "28000"); st.cal = st.cal || {}; if (renew || !st.cal[m.id]) st.cal[m.id] = Math.random().toString(16).slice(2).padEnd(16, "0") + Math.random().toString(16).slice(2).padEnd(16, "0"); save(); return ok(st.cal[m.id].slice(0, 32)); },
     acad_merge: ({ a, p, patch }) => { const d = st.docs[key(a, p)]; if (!d || !can(a, p, true)) return err("document not found", "P0002"); d.data = merge(d.data, JSON.parse(JSON.stringify(patch))); save(); return ok(null); },
   };
   window.supabase = {

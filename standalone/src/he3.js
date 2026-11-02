@@ -32,3 +32,23 @@ HE_PATTERNS.unshift(
   [/^(\d+) sections$/, (m) => `${m[1]} מקטעים`], [/^Updated (.+)$/, (m) => `עודכן ${tr(m[1])}`],
   [/^(\d+) sessions added for (\d+) athletes?$/, (m) => `${m[1]} אימונים נוספו ל-${m[2]} ספורטאים`],
 );
+Object.assign(HE, {
+  "Reports": "דוחות", "My report": "הדוח שלי", "Quick actions": "פעולות מהירות", "Build workout with assistant": "בניית אימון עם העוזר", "Record test results": "רישום תוצאות מבדקים",
+  "Export a report": "ייצוא דוח", "Sync calendar": "סנכרון ללוח שנה", "Sync with your calendar": "סנכרון עם לוח השנה שלך",
+  "All academy sessions appear in your phone's calendar and update by themselves when the plan changes.": "כל האימונים באקדמיה יופיעו בלוח השנה בטלפון ויתעדכנו מעצמם כשהתוכנית משתנה.",
+  "Your training sessions appear in your phone's calendar and update by themselves when the plan changes.": "האימונים שלך יופיעו בלוח השנה בטלפון ויתעדכנו מעצמם כשהתוכנית משתנה.",
+  "Add to iPhone / Mac calendar": "הוספה ליומן של אייפון / מק", "Add to Google Calendar": "הוספה ל-Google Calendar", "Calendar link (for Outlook or other apps)": "קישור ללוח השנה (ל-Outlook ואפליקציות אחרות)",
+  "Keep this link private: anyone with it can see the schedule. If it reaches the wrong person, create a new link; the old one stops working.": "שמרו את הקישור לעצמכם: כל מי שיש לו אותו יכול לראות את לוח האימונים. אם הגיע לאדם הלא נכון, צרו קישור חדש; הישן יפסיק לעבוד.",
+  "Download calendar file (.ics)": "הורדת קובץ יומן (‎.ics)", "New link": "קישור חדש", "New calendar link created. Add it again in your calendar.": "נוצר קישור יומן חדש. הוסיפו אותו שוב ללוח השנה.",
+  "Add to my calendar": "הוספה ליומן שלי", "Export attendance, load, tests, nutrition and payments": "ייצוא נוכחות, עומס, מבדקים, תזונה ותשלומים",
+  "Your training, tests and nutrition in one report": "האימונים, המבדקים והתזונה שלך בדוח אחד", "Excel (CSV)": "אקסל (CSV)", "Print / PDF": "הדפסה / PDF",
+  "Report": "דוח", "Attendance & training load": "נוכחות ועומס אימונים", "Test results": "תוצאות מבדקים", "Nutrition logging": "תיעוד תזונה", "Athlete report": "דוח ספורטאי",
+  "Period": "תקופה", "Last 7 days": "7 ימים אחרונים", "Last 30 days": "30 ימים אחרונים", "Last 90 days": "90 ימים אחרונים", "Last 12 months": "12 חודשים אחרונים", "Custom dates": "תאריכים לבחירה",
+  "From": "מתאריך", "To": "עד תאריך", "Planned": "תוכננו", "Completed": "הושלמו", "Attendance %": "% נוכחות", "Missed": "הוחמצו", "Workouts logged": "אימונים שדווחו", "Minutes": "דקות",
+  "Load (RPE×min)": "עומס (RPE×דקות)", "Avg RPE": "RPE ממוצע", "Pain reports": "דיווחי כאב", "No data for this period.": "אין נתונים לתקופה הזו.",
+  "Days with meals": "ימים עם ארוחות", "Meals logged": "ארוחות שתועדו", "Days in range": "ימים בתקופה", "Logging %": "% תיעוד", "Charged": "חויב", "Overdue charges": "חיובים באיחור",
+  "Average effort": "מאמץ ממוצע", "days with meals logged": "ימים עם תיעוד ארוחות", "Training load": "עומס אימונים", "Attendance": "נוכחות", "Sessions": "אימונים", "Weekly load": "עומס שבועי",
+  "Log today's workout": "דיווח האימון של היום", "Message my coach": "הודעה למאמן", "My training calendar": "לוח האימונים שלי", "Previous": "קודם", "Latest": "אחרון", "Best": "שיא",
+  "Athletes": "ספורטאים", "Athlete": "ספורטאי/ת", "All active athletes": "כל הספורטאים הפעילים", "Test": "מבדק", "Date": "תאריך", "Session": "אימון", "Status": "סטטוס", "Load": "עומס",
+});
+HE_PATTERNS.unshift([/^(.+) · (\d+) rows$/, (m) => `${m[1]} · ${m[2]} שורות`], [/^(\d+) of (\d+) sessions$/, (m) => `${m[1]} מתוך ${m[2]} אימונים`], [/^(\d+) minutes$/, (m) => `${m[1]} דקות`]);
