@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="116 116 288 288">
+  <style>.d{stroke:#0e5a38;fill:#0e5a38}.l{stroke:#3db04e;fill:#3db04e}@media (prefers-color-scheme:dark){.d{stroke:#e9f5ee;fill:#e9f5ee}}</style>
+  <path class="d" d="M139.2 303.3A128 128 0 1 1 383.1 292.6" fill="none" style="fill:none" stroke-width="22" stroke-linecap="round"/>
+  <path class="l" d="M366.2 330.2A128 128 0 0 1 184.3 363.1" style="fill:none" stroke-width="21"/>
+  <path class="l" d="M200.2 341.3L160.8 346L168.4 384.9Z" stroke-width="0"/>
+  <rect class="d" x="209" y="266" width="29" height="39" rx="5" stroke-width="0"/>
+  <rect class="d" x="246" y="239" width="28" height="66" rx="5" stroke-width="0"/>
+  <rect class="l" x="282" y="212" width="29" height="93" rx="5" stroke-width="0"/>
+</svg>

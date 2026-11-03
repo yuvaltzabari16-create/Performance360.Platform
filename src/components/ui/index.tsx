@@ -177,15 +177,25 @@ export function Avatar({ name, size = "md", className }: { name: string; size?: 
   return <span aria-hidden className={cx("inline-grid shrink-0 place-items-center rounded-full font-semibold ring-2 ring-surface", dim, tint, className)}>{initialsOf(name)}</span>;
 }
 
+/** The Performance360 mark: a training-cycle arc with an arrow around rising bars. Colours come from the logo tokens. */
+export function LogoMark({ className = "size-7" }: { className?: string }) {
+  return (
+    <svg viewBox="116 116 288 288" className={className} aria-hidden>
+      <path d="M139.2 303.3A128 128 0 1 1 383.1 292.6" fill="none" className="stroke-logo" strokeWidth="22" strokeLinecap="round" />
+      <path d="M366.2 330.2A128 128 0 0 1 184.3 363.1" fill="none" className="stroke-logo-accent" strokeWidth="21" />
+      <path d="M200.2 341.3L160.8 346L168.4 384.9Z" className="fill-logo-accent" strokeLinejoin="round" />
+      <rect x="209" y="266" width="29" height="39" rx="5" className="fill-logo" />
+      <rect x="246" y="239" width="28" height="66" rx="5" className="fill-logo" />
+      <rect x="282" y="212" width="29" height="93" rx="5" className="fill-logo-accent" />
+    </svg>
+  );
+}
+
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cx("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-        <path d="M16 3a13 13 0 0 1 12.6 9.8" fill="none" stroke="#23985e" strokeWidth="3" strokeLinecap="round" />
-        <path d="M10 19l4-5 3 3 5-6" fill="none" stroke="#23985e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      <span>Performance<span className="text-brand-500">360</span></span>
+    <span className={cx("inline-flex items-center gap-2 font-bold tracking-[-0.02em]", className)}>
+      <LogoMark />
+      <span><span className="text-logo">Performance</span><span className="text-logo-accent">360</span></span>
     </span>
   );
 }
