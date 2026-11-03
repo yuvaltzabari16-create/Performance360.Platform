@@ -232,6 +232,8 @@ const en = {
     ],
     ctaHeading: "Ready to bring your whole program into one place?",
     ctaSub: "Create an account in a minute and invite your athletes today.",
+    sectionsLabel: "Page sections",
+    mock: { today: "Today", date: "Tuesday", readiness: "Readiness", sleep: "Sleep", load: "Load", soreness: "Soreness", workout: "Lower body strength", ex: ["Back squat", "Romanian deadlift", "Nordic curl"], sets: "4 × 5", week: "This week", checkIn: "Check-in sent" },
     footerLinks: { privacy: "Privacy", terms: "Terms", accessibility: "Accessibility" },
   },
   setup: {

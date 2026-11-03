@@ -234,6 +234,8 @@ const he: Dictionary = {
     ],
     ctaHeading: "מוכנים להכניס את כל התוכנית למקום אחד?",
     ctaSub: "פותחים חשבון בדקה ומזמינים את הספורטאים כבר היום.",
+    sectionsLabel: "חלקי העמוד",
+    mock: { today: "היום", date: "יום שלישי", readiness: "מוכנות", sleep: "שינה", load: "עומס", soreness: "כאב שרירים", workout: "כוח פלג גוף תחתון", ex: ["סקוואט אחורי", "דדליפט רומני", "נורדיק קרל"], sets: "4 × 5", week: "השבוע", checkIn: "הדיווח נשלח" },
     footerLinks: { privacy: "פרטיות", terms: "תנאי שימוש", accessibility: "נגישות" },
   },
   setup: {
