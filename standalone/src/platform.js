@@ -330,7 +330,7 @@ joinCodeCard = function () {
   const people = (S.people || []).filter((p) => p.member_id !== S.uid);
   return `<div class="card"><div class="hd"><h2>Your sign-in code</h2></div><p class="muted">Use it to sign in on another phone or computer. Keep it private.</p><div style="margin-top:8px">${codeLine(S.uid)}</div></div>
   <div class="card"><div class="hd"><h2>People and their codes</h2><button class="btn sm primary" data-act="add-person">${icon("plus")}Add a person</button></div>
-    <p class="muted">Each person signs in with their own code. Send it to them privately with this app's address${APPCFG.siteUrl ? `: <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. If a code is lost or reaches the wrong person, create a new one; the old one stops working and they're signed out everywhere.</p>
+    <p class="muted">Each person signs in with their own code. Send it to them privately with this app's address${appUrl() ? `: <b translate="no">${esc(appUrl())}</b>` : ""}. If a code is lost or reaches the wrong person, create a new one; the old one stops working and they're signed out everywhere.</p>
     ${!S.people ? `<div class="row" style="margin-top:8px"><span class="spinner"></span></div>` : people.length ? `<div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Name</th><th>Role</th><th>Code</th><th>Last sign-in</th></tr></thead><tbody>${people.map((p) => `<tr><td><b translate="no">${esc(p.display_name)}</b></td><td>${esc(roleName(tileOf(p.role)))}</td><td>${codeLine(p.member_id)}</td><td class="small muted">${p.last_sign_in ? esc(ago(p.last_sign_in)) : "Not yet"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="small muted" style="margin-top:8px">Nobody else yet.</p>`}</div>
   <div class="card"><div class="hd"><h2>Shared join codes</h2></div>
     <p class="muted">Optional. Instead of adding people one by one, give a group one shared code. Each person enters it once, types their name and gets their own personal code.</p>
@@ -341,8 +341,8 @@ joinCodeCard = function () {
 function addPersonModal(m) {
   if (m.result) return `<div class="hd"><h2>${esc(m.result.name)} was added</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
     <p class="muted">Their personal code:</p><div class="codeshow" translate="no">${esc(fmtCode(m.result.code))}</div>
-    <p class="small muted">Send it to them privately${APPCFG.siteUrl ? ` with the address <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. They type it once on their phone and they're in.</p>
-    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(`${fmtCode(m.result.code)}${APPCFG.siteUrl ? " " + APPCFG.siteUrl : ""}`)}">Copy code and address</button><button class="btn primary" data-act="modal-close">Done</button></div>`;
+    <p class="small muted">Send it to them privately${appUrl() ? ` with the address <b translate="no">${esc(appUrl())}</b>` : ""}. They type it once on their phone and they're in.</p>
+    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(inviteText(m.result.name, m.result.code))}">Copy invitation message</button><button class="btn primary" data-act="modal-close">Done</button></div>`;
   const roles = S.role === "owner" ? [["athlete", "Athlete"], ["coach", "Coach"], ["physio", "Physiotherapist"]] : [["athlete", "Athlete"]];
   return `<div class="hd"><h2>Add a person</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
   <form class="form" data-form="add-person"><label class="f full">Full name<input id="ap2_name" name="name" required minlength="2" maxlength="80"></label>

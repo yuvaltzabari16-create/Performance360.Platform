@@ -52,7 +52,7 @@ VIEWS.admin = {
           <td class="small">${lastActive(p) ? esc(ago(lastActive(p))) : "–"}</td>
           <td class="small">${ath ? (lw ? esc(fmtDay(lw)) : '<span class="faint">None</span>') : "–"}</td><td class="small">${ath ? (lm ? esc(fmtDay(lm)) : '<span class="faint">None</span>') : "–"}</td>
           <td class="r">${p.devices || 0}</td>
-          <td>${code ? `<span class="row" style="flex-wrap:nowrap;gap:4px"><code translate="no" class="codebox" style="font-size:14px">${esc(fmtCode(code))}</code><button class="mini" data-act="copy-text" data-t="${esc(`${fmtCode(code)}${APPCFG.siteUrl ? " " + APPCFG.siteUrl : ""}`)}" aria-label="Copy code">${icon("copy")}</button>${ath ? `<button class="mini" data-act="thread" data-u="${esc(p.member_id)}" aria-label="Message">${icon("chat")}</button>` : ""}</span>` : "–"}</td></tr>`; }).join("")}
+          <td>${code ? `<span class="row" style="flex-wrap:nowrap;gap:4px"><code translate="no" class="codebox" style="font-size:14px">${esc(fmtCode(code))}</code><button class="mini" data-act="copy-text" data-t="${esc(inviteText(p.display_name || "", code))}" aria-label="Copy invitation">${icon("copy")}</button>${ath ? `<button class="mini" data-act="thread" data-u="${esc(p.member_id)}" aria-label="Message">${icon("chat")}</button>` : ""}</span>` : "–"}</td></tr>`; }).join("")}
       </tbody></table></div>` : `<p class="muted">Nobody matches.</p>`}
       <p class="small faint" style="margin-top:10px">"Last seen" is when the person last opened the app. Devices are the phones or computers currently signed in with their code.</p></div>
     ${S.platformAdmin && S.platform ? platformCard() : ""}`;

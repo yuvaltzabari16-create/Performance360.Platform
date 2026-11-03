@@ -65,3 +65,15 @@ Object.assign(HE, {
 });
 HE_PATTERNS.unshift([/^Inactive (\d+) days$/, (m) => `לא פעיל ${m[1]} ימים`], [/^(\d+) people never signed in\. Tap to see who, and send them their code again\.$/, (m) => `${m[1]} אנשים עוד לא נכנסו אף פעם. הקישו כדי לראות מי, ולשלוח להם שוב את הקוד.`],
   [/^Paid until (.+)$/, (m) => `שולם עד ${m[1]}`], [/^Trial until (.+)$/, (m) => `ניסיון עד ${m[1]}`]);
+Object.assign(HE, {
+  "Put the app on your home screen": "שימו את האפליקציה במסך הבית", "Open it with one tap, full screen, like any other app.": "פותחים בלחיצה אחת, במסך מלא, כמו כל אפליקציה.",
+  "Install the app": "התקנת האפליקציה", "Hide": "הסתרה", "Install now": "התקנה עכשיו", "Home screen": "מסך הבית",
+  "Install the app on this phone or computer to open it with one tap.": "התקינו את האפליקציה בטלפון או במחשב הזה כדי לפתוח אותה בלחיצה אחת.",
+  "The first time you open the app from the home screen, enter your personal code once more. After that it stays signed in.": "בפעם הראשונה שפותחים את האפליקציה ממסך הבית, מקלידים שוב את הקוד האישי. אחרי זה היא נשארת מחוברת.",
+  "Tip: send athletes the app address with their code; they install it the same way.": "טיפ: שלחו לספורטאים את כתובת האפליקציה עם הקוד שלהם; הם מתקינים באותה דרך.",
+  "Copy invitation message": "העתקת הודעת הזמנה", "Copy invitation": "העתקת הזמנה", "The app was added to your home screen": "האפליקציה נוספה למסך הבית",
+  "Open this page in": "פתחו את הדף ב-", "Tap the": "לחצו על כפתור", "Share": "שיתוף", "Scroll down and tap": "גללו למטה ולחצו", "Add to Home Screen": "הוספה למסך הבית",
+  "Tap": "לחצו", "Add": "הוספה", ". The Performance360 icon appears on your home screen.": ". הסמל של Performance360 יופיע במסך הבית.",
+  "button": "", "at the bottom of the screen (or at the top on iPad).": "בתחתית המסך (או למעלה באייפד).", "Tap the menu": "לחצו על התפריט", "at the top.": "למעלה.",
+  "Install app": "התקנת אפליקציה", "Add to Home screen": "הוספה למסך הבית", ", then": ", ואז", "Install": "התקנה", "or": "או", "Tap the button below, then": "לחצו על הכפתור למטה, ואז",
+});

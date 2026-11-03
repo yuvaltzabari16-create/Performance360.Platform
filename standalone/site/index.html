@@ -3,7 +3,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Performance360 Academy: training, testing, nutrition and payments for sports academies.">
 <meta name="theme-color" content="#0b5a3a"><meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='250 266 690 690'%3E%3Cpath d='M309 716A303 303 0 1 1 885 690' fill='none' stroke='%230b5a3a' stroke-width='53' stroke-linecap='round'/%3E%3Cpath d='M848 774A303 303 0 0 1 416 856' fill='none' stroke='%233fae4f' stroke-width='53'/%3E%3Cpolygon points='355,812 453,803 378,908' fill='%233fae4f'/%3E%3Crect x='473' y='626' width='68' height='90' rx='14' fill='%230b5a3a'/%3E%3Crect x='560' y='561' width='68' height='155' rx='14' fill='%230b5a3a'/%3E%3Crect x='647' y='496' width='68' height='220' rx='14' fill='%233fae4f'/%3E%3C/svg%3E"><link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='250 266 690 690'%3E%3Cpath d='M309 716A303 303 0 1 1 885 690' fill='none' stroke='%230b5a3a' stroke-width='53' stroke-linecap='round'/%3E%3Cpath d='M848 774A303 303 0 0 1 416 856' fill='none' stroke='%233fae4f' stroke-width='53'/%3E%3Cpolygon points='355,812 453,803 378,908' fill='%233fae4f'/%3E%3Crect x='473' y='626' width='68' height='90' rx='14' fill='%230b5a3a'/%3E%3Crect x='560' y='561' width='68' height='155' rx='14' fill='%230b5a3a'/%3E%3Crect x='647' y='496' width='68' height='220' rx='14' fill='%233fae4f'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='250 266 690 690'%3E%3Cpath d='M309 716A303 303 0 1 1 885 690' fill='none' stroke='%230b5a3a' stroke-width='53' stroke-linecap='round'/%3E%3Cpath d='M848 774A303 303 0 0 1 416 856' fill='none' stroke='%233fae4f' stroke-width='53'/%3E%3Cpolygon points='355,812 453,803 378,908' fill='%233fae4f'/%3E%3Crect x='473' y='626' width='68' height='90' rx='14' fill='%230b5a3a'/%3E%3Crect x='560' y='561' width='68' height='155' rx='14' fill='%230b5a3a'/%3E%3Crect x='647' y='496' width='68' height='220' rx='14' fill='%233fae4f'/%3E%3C/svg%3E"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="P360 Academy"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* ===== Configuration: the only part you edit ===== */
@@ -362,6 +363,9 @@ h2 svg,h3 svg{width:1em;height:1em;vertical-align:-.12em;color:var(--brand)}
   .pill{border:1px solid #ccc} svg.chart text{fill:#333}
   svg.chart{max-height:200px}
 }
+.installcard{background:linear-gradient(135deg,var(--brand-soft),var(--surface) 70%)}
+.appicon{width:52px;height:52px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none}
+.inl{display:inline-flex;vertical-align:-4px;color:var(--info)} .inl svg{width:18px;height:18px}
 </style>
 <div id="app"><div class="gate"><div class="card"><div class="row"><span class="spinner"></span><b>Performance360 Academy</b></div></div></div></div>
 <div id="toast" class="toast" hidden></div>
@@ -1139,6 +1143,18 @@ Object.assign(HE, {
 });
 HE_PATTERNS.unshift([/^Inactive (\d+) days$/, (m) => `לא פעיל ${m[1]} ימים`], [/^(\d+) people never signed in\. Tap to see who, and send them their code again\.$/, (m) => `${m[1]} אנשים עוד לא נכנסו אף פעם. הקישו כדי לראות מי, ולשלוח להם שוב את הקוד.`],
   [/^Paid until (.+)$/, (m) => `שולם עד ${m[1]}`], [/^Trial until (.+)$/, (m) => `ניסיון עד ${m[1]}`]);
+Object.assign(HE, {
+  "Put the app on your home screen": "שימו את האפליקציה במסך הבית", "Open it with one tap, full screen, like any other app.": "פותחים בלחיצה אחת, במסך מלא, כמו כל אפליקציה.",
+  "Install the app": "התקנת האפליקציה", "Hide": "הסתרה", "Install now": "התקנה עכשיו", "Home screen": "מסך הבית",
+  "Install the app on this phone or computer to open it with one tap.": "התקינו את האפליקציה בטלפון או במחשב הזה כדי לפתוח אותה בלחיצה אחת.",
+  "The first time you open the app from the home screen, enter your personal code once more. After that it stays signed in.": "בפעם הראשונה שפותחים את האפליקציה ממסך הבית, מקלידים שוב את הקוד האישי. אחרי זה היא נשארת מחוברת.",
+  "Tip: send athletes the app address with their code; they install it the same way.": "טיפ: שלחו לספורטאים את כתובת האפליקציה עם הקוד שלהם; הם מתקינים באותה דרך.",
+  "Copy invitation message": "העתקת הודעת הזמנה", "Copy invitation": "העתקת הזמנה", "The app was added to your home screen": "האפליקציה נוספה למסך הבית",
+  "Open this page in": "פתחו את הדף ב-", "Tap the": "לחצו על כפתור", "Share": "שיתוף", "Scroll down and tap": "גללו למטה ולחצו", "Add to Home Screen": "הוספה למסך הבית",
+  "Tap": "לחצו", "Add": "הוספה", ". The Performance360 icon appears on your home screen.": ". הסמל של Performance360 יופיע במסך הבית.",
+  "button": "", "at the bottom of the screen (or at the top on iPad).": "בתחתית המסך (או למעלה באייפד).", "Tap the menu": "לחצו על התפריט", "at the top.": "למעלה.",
+  "Install app": "התקנת אפליקציה", "Add to Home screen": "הוספה למסך הבית", ", then": ", ואז", "Install": "התקנה", "or": "או", "Tap the button below, then": "לחצו על הכפתור למטה, ואז",
+});
 
 /* ---------- icons ---------- */
 const IC = {
@@ -2768,7 +2784,7 @@ joinCodeCard = function () {
   const people = (S.people || []).filter((p) => p.member_id !== S.uid);
   return `<div class="card"><div class="hd"><h2>Your sign-in code</h2></div><p class="muted">Use it to sign in on another phone or computer. Keep it private.</p><div style="margin-top:8px">${codeLine(S.uid)}</div></div>
   <div class="card"><div class="hd"><h2>People and their codes</h2><button class="btn sm primary" data-act="add-person">${icon("plus")}Add a person</button></div>
-    <p class="muted">Each person signs in with their own code. Send it to them privately with this app's address${APPCFG.siteUrl ? `: <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. If a code is lost or reaches the wrong person, create a new one; the old one stops working and they're signed out everywhere.</p>
+    <p class="muted">Each person signs in with their own code. Send it to them privately with this app's address${appUrl() ? `: <b translate="no">${esc(appUrl())}</b>` : ""}. If a code is lost or reaches the wrong person, create a new one; the old one stops working and they're signed out everywhere.</p>
     ${!S.people ? `<div class="row" style="margin-top:8px"><span class="spinner"></span></div>` : people.length ? `<div class="tablewrap" style="margin-top:8px"><table><thead><tr><th>Name</th><th>Role</th><th>Code</th><th>Last sign-in</th></tr></thead><tbody>${people.map((p) => `<tr><td><b translate="no">${esc(p.display_name)}</b></td><td>${esc(roleName(tileOf(p.role)))}</td><td>${codeLine(p.member_id)}</td><td class="small muted">${p.last_sign_in ? esc(ago(p.last_sign_in)) : "Not yet"}</td></tr>`).join("")}</tbody></table></div>` : `<p class="small muted" style="margin-top:8px">Nobody else yet.</p>`}</div>
   <div class="card"><div class="hd"><h2>Shared join codes</h2></div>
     <p class="muted">Optional. Instead of adding people one by one, give a group one shared code. Each person enters it once, types their name and gets their own personal code.</p>
@@ -2779,8 +2795,8 @@ joinCodeCard = function () {
 function addPersonModal(m) {
   if (m.result) return `<div class="hd"><h2>${esc(m.result.name)} was added</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
     <p class="muted">Their personal code:</p><div class="codeshow" translate="no">${esc(fmtCode(m.result.code))}</div>
-    <p class="small muted">Send it to them privately${APPCFG.siteUrl ? ` with the address <b translate="no">${esc(APPCFG.siteUrl)}</b>` : ""}. They type it once on their phone and they're in.</p>
-    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(`${fmtCode(m.result.code)}${APPCFG.siteUrl ? " " + APPCFG.siteUrl : ""}`)}">Copy code and address</button><button class="btn primary" data-act="modal-close">Done</button></div>`;
+    <p class="small muted">Send it to them privately${appUrl() ? ` with the address <b translate="no">${esc(appUrl())}</b>` : ""}. They type it once on their phone and they're in.</p>
+    <div class="row"><button class="btn" data-act="copy-text" data-t="${esc(inviteText(m.result.name, m.result.code))}">Copy invitation message</button><button class="btn primary" data-act="modal-close">Done</button></div>`;
   const roles = S.role === "owner" ? [["athlete", "Athlete"], ["coach", "Coach"], ["physio", "Physiotherapist"]] : [["athlete", "Athlete"]];
   return `<div class="hd"><h2>Add a person</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
   <form class="form" data-form="add-person"><label class="f full">Full name<input id="ap2_name" name="name" required minlength="2" maxlength="80"></label>
@@ -3520,7 +3536,7 @@ VIEWS.admin = {
           <td class="small">${lastActive(p) ? esc(ago(lastActive(p))) : "–"}</td>
           <td class="small">${ath ? (lw ? esc(fmtDay(lw)) : '<span class="faint">None</span>') : "–"}</td><td class="small">${ath ? (lm ? esc(fmtDay(lm)) : '<span class="faint">None</span>') : "–"}</td>
           <td class="r">${p.devices || 0}</td>
-          <td>${code ? `<span class="row" style="flex-wrap:nowrap;gap:4px"><code translate="no" class="codebox" style="font-size:14px">${esc(fmtCode(code))}</code><button class="mini" data-act="copy-text" data-t="${esc(`${fmtCode(code)}${APPCFG.siteUrl ? " " + APPCFG.siteUrl : ""}`)}" aria-label="Copy code">${icon("copy")}</button>${ath ? `<button class="mini" data-act="thread" data-u="${esc(p.member_id)}" aria-label="Message">${icon("chat")}</button>` : ""}</span>` : "–"}</td></tr>`; }).join("")}
+          <td>${code ? `<span class="row" style="flex-wrap:nowrap;gap:4px"><code translate="no" class="codebox" style="font-size:14px">${esc(fmtCode(code))}</code><button class="mini" data-act="copy-text" data-t="${esc(inviteText(p.display_name || "", code))}" aria-label="Copy invitation">${icon("copy")}</button>${ath ? `<button class="mini" data-act="thread" data-u="${esc(p.member_id)}" aria-label="Message">${icon("chat")}</button>` : ""}</span>` : "–"}</td></tr>`; }).join("")}
       </tbody></table></div>` : `<p class="muted">Nobody matches.</p>`}
       <p class="small faint" style="margin-top:10px">"Last seen" is when the person last opened the app. Devices are the phones or computers currently signed in with their code.</p></div>
     ${S.platformAdmin && S.platform ? platformCard() : ""}`;
@@ -3550,6 +3566,58 @@ document.addEventListener("change", async (e) => {
   const ok = await act(() => rpc("acad_platform_set_plan", { a: el.dataset.a, p_plan: args[0], p_months: args[1], p_trial_days: args[2] }), "Plan updated");
   if (ok) { if (el.dataset.a === S.academy.id) { const me = (await rpc("acad_whoami", {}).catch(() => []))[0]; if (me) S.academy = { ...S.academy, ...me }; } loadActivity(true); }
 }, true);
+
+/* ================= install on the home screen ================= */
+Object.assign(IC, { share: '<path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/>', addsq: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>', phone: '<rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/>' });
+let installPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; schedule(); });
+window.addEventListener("appinstalled", () => { installPrompt = null; setLocalPref("installed", "1"); toast("The app was added to your home screen"); schedule(); });
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("/sw.js").catch(() => {});
+const isStandalone = () => { try { return matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch { return false; } };
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const showInstallCard = () => !isStandalone() && localPref("installHide") !== "1" && localPref("installed") !== "1";
+
+function installCard() {
+  if (!showInstallCard()) return "";
+  return `<div class="card installcard"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><img src="/apple-touch-icon.png" alt="" class="appicon" onerror="this.style.display='none'"><div style="flex:1;min-width:0"><h3>Put the app on your home screen</h3><p class="small muted" style="margin-top:2px">Open it with one tap, full screen, like any other app.</p></div><button class="mini" data-act="install-hide" aria-label="Hide">${icon("x")}</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn primary" data-act="install">${icon("phone")}Install the app</button></div></div>`;
+}
+function installSheet() {
+  const ios = isIOS();
+  const step = (n, html) => `<div class="li" style="align-items:center"><span class="av sm" style="background:var(--brand);color:var(--on-brand)">${n}</span><div class="grow">${html}</div></div>`;
+  return `<div class="hd"><h2>${icon("phone")} Install the app</h2><button class="iconbtn" data-act="modal-close" aria-label="Close">${icon("x")}</button></div>
+  <div class="seg"><button data-act="install-os" data-os="ios" aria-pressed="${(S.sel.installOs || (ios ? "ios" : "android")) === "ios"}">iPhone</button><button data-act="install-os" data-os="android" aria-pressed="${(S.sel.installOs || (ios ? "ios" : "android")) === "android"}">Android</button></div>
+  ${(S.sel.installOs || (ios ? "ios" : "android")) === "ios" ? `<div class="list">
+    ${step(1, `Open this page in <b>Safari</b>.`)}
+    ${step(2, `Tap the <b>Share</b> button <span class="inl">${icon("share")}</span> at the bottom of the screen (or at the top on iPad).`)}
+    ${step(3, `Scroll down and tap <b>Add to Home Screen</b> <span class="inl">${icon("addsq")}</span>.`)}
+    ${step(4, `Tap <b>Add</b>. The Performance360 icon appears on your home screen.`)}</div>
+    <p class="notice">The first time you open the app from the home screen, enter your personal code once more. After that it stays signed in.</p>`
+  : `<div class="list">${installPrompt ? step(1, `Tap the button below, then <b>Install</b>.`) : `${step(1, `Open this page in <b>Chrome</b>.`)}${step(2, `Tap the menu <b>⋮</b> at the top.`)}${step(3, `Tap <b>Install app</b> or <b>Add to Home screen</b>, then <b>Install</b>.`)}`}</div>
+    ${installPrompt ? `<button class="btn primary big" data-act="install-now">${icon("phone")}Install now</button>` : ""}`}
+  ${isStaff() ? `<p class="small muted">Tip: send athletes the app address with their code; they install it the same way.</p>` : ""}`;
+}
+ACTIONS["install"] = async () => { if (installPrompt && !isIOS()) return ACTIONS["install-now"](); S.modal = { kind: "install" }; render(); };
+ACTIONS["install-now"] = async () => { if (!installPrompt) return; installPrompt.prompt(); try { const r = await installPrompt.userChoice; if (r && r.outcome === "accepted") { setLocalPref("installed", "1"); S.modal = null; } } catch {} installPrompt = null; render(); };
+ACTIONS["install-os"] = (d) => { S.sel.installOs = d.os; render(); };
+ACTIONS["install-hide"] = () => { setLocalPref("installHide", "1"); render(); };
+const _modalHtml4 = modalHtml;
+modalHtml = function () { if (S.modal && S.modal.kind === "install") return `<div class="modal" data-act="modal-bg" role="dialog" aria-modal="true"><div class="box">${installSheet()}</div></div>`; return _modalHtml4(); };
+const _staffDash2 = staffDashboard, _athDash2 = athleteDashboard;
+staffDashboard = function () { return installCard() + _staffDash2(); };
+athleteDashboard = function () { return installCard() + _athDash2(); };
+const _quick = quickActions;
+quickActions = function () { const q = _quick(); if (!isStandalone()) q.push(["install-qa", "Install the app", "phone", {}]); return q; };
+const _qa = ACTIONS["qa"];
+ACTIONS["qa"] = (d) => { if (d.a === "install-qa") { S.modal = { kind: "install" }; return render(); } return _qa(d); };
+// settings → preferences: always offer it there too
+const _cfgPrefs = CFG.prefs;
+CFG.prefs = () => _cfgPrefs() + (isStandalone() ? "" : `<div class="card"><div class="hd"><h2>${icon("phone")} Home screen</h2></div><p class="muted">Install the app on this phone or computer to open it with one tap.</p><div class="row" style="margin-top:10px"><button class="btn primary" data-act="install">Install the app</button></div></div>`);
+// the app's own address, and a ready-to-send invitation message
+const appUrl = () => (location.protocol === "https:" ? location.origin + location.pathname : APPCFG.siteUrl || "");
+const inviteText = (name, code) => (LANG === "he"
+  ? `היי ${name}! זו הכניסה שלך לאפליקציית האימונים של ${settings().name}:\n${appUrl()}\nהקוד האישי שלך: ${fmtCode(code)}\nטיפ: באייפון לוחצים שיתוף ← "הוספה למסך הבית", באנדרואיד ⋮ ← "התקנת אפליקציה".`
+  : `Hi ${name}! Here's your sign-in for the ${settings().name} training app:\n${appUrl()}\nYour personal code: ${fmtCode(code)}\nTip: on iPhone tap Share → "Add to Home Screen"; on Android ⋮ → "Install app".`);
 
 boot();
 </script>

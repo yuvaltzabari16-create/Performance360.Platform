@@ -1,0 +1,19 @@
+{
+  "name": "Performance360 Academy",
+  "short_name": "P360 Academy",
+  "description": "Training, testing, nutrition and updates for your sports academy.",
+  "id": "/app.html",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f2f7",
+  "theme_color": "#1f8a45",
+  "lang": "he",
+  "dir": "auto",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

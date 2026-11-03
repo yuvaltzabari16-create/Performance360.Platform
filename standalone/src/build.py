@@ -2,7 +2,7 @@ import sys, json, os
 D = os.path.dirname(os.path.abspath(__file__))
 safe = lambda js: js.replace('</script', '<\\/script').replace('<!--', '<\\!--')
 cfg = json.load(open(sys.argv[2])) if len(sys.argv) > 2 else {}
-order = ['core.js','i18n.js','he.js','he2.js','he3.js','views1.js','views2.js','views3.js','actions.js','login.js','legal.js','platform.js','builder.js','assist.js','updates.js','extras.js','admin.js']
+order = ['core.js','i18n.js','he.js','he2.js','he3.js','views1.js','views2.js','views3.js','actions.js','login.js','legal.js','platform.js','builder.js','assist.js','updates.js','extras.js','admin.js','install.js']
 app = '\n'.join(open(os.path.join(D, f)).read() for f in order if os.path.exists(os.path.join(D, f)))
 lib = json.load(open(os.path.join(D, 'lib-seed.json')))
 app = 'const LIB_SEED = ' + json.dumps(lib, ensure_ascii=False, separators=(',',':')) + ';\n' + app + '\nboot();\n'
@@ -14,7 +14,8 @@ out = f'''<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Performance360 Academy: training, testing, nutrition and payments for sports academies.">
 <meta name="theme-color" content="#0b5a3a"><meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="icon" href="{icon}"><link rel="apple-touch-icon" href="{icon}">
+<link rel="icon" href="{icon}"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="P360 Academy"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>:root{{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}html,body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 <script>
 /* ===== Configuration: the only part you edit ===== */
