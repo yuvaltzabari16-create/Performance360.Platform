@@ -1,3 +1,5 @@
+> **Moved.** The academy now lives in the repository `performance-360-academy`, folder `academy/` (app source, database, server functions, tests). The files here are an older copy, kept for history only.
+
 # Performance360 Academy — standalone web app
 
 One-file website (`site/index.html`) on Supabase. Everyone signs in with one personal code (8 letters and numbers); no email, password, Claude or Google account.
