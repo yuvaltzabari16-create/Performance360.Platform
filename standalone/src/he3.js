@@ -52,3 +52,16 @@ Object.assign(HE, {
   "Athletes": "ספורטאים", "Athlete": "ספורטאי/ת", "All active athletes": "כל הספורטאים הפעילים", "Test": "מבדק", "Date": "תאריך", "Session": "אימון", "Status": "סטטוס", "Load": "עומס",
 });
 HE_PATTERNS.unshift([/^(.+) · (\d+) rows$/, (m) => `${m[1]} · ${m[2]} שורות`], [/^(\d+) of (\d+) sessions$/, (m) => `${m[1]} מתוך ${m[2]} אימונים`], [/^(\d+) minutes$/, (m) => `${m[1]} דקות`]);
+Object.assign(HE, {
+  "Management": "ניהול", "Who signs in and who doesn't": "מי נכנס ומי לא", "Refresh": "רענון", "Everyone": "כולם", "Active today": "פעילים היום", "This week": "השבוע",
+  "Inactive 7+ days": "לא פעילים 7+ ימים", "Never signed in": "לא נכנסו אף פעם", "Search by name": "חיפוש לפי שם", "All": "הכול", "Staff": "צוות", "Clear filter": "ניקוי סינון",
+  "Name": "שם", "Role": "תפקיד", "Last seen": "נראה לאחרונה", "Last workout": "אימון אחרון", "Last meal": "ארוחה אחרונה", "Devices": "מכשירים", "Code": "קוד", "None": "אין",
+  "Nobody matches.": "אין תוצאות.", "Copy code": "העתקת קוד",
+  "\"Last seen\" is when the person last opened the app. Devices are the phones or computers currently signed in with their code.": "\"נראה לאחרונה\" הוא הפעם האחרונה שהאדם פתח את האפליקציה. מכשירים הם הטלפונים או המחשבים שמחוברים כרגע עם הקוד שלו.",
+  "All academies": "כל האקדמיות", "Only you see this. Activate an academy after it pays; its records unlock at once.": "רק אתה רואה את זה. הפעל אקדמיה אחרי שהיא משלמת, והרשומות שלה נפתחות מיד.",
+  "Academy": "אקדמיה", "Plan": "מסלול", "People": "אנשים", "Active 7 days": "פעילים 7 ימים", "Last activity": "פעילות אחרונה", "Change plan…": "שינוי מסלול…", "Change plan": "שינוי מסלול",
+  "Activate (no end date)": "הפעלה (ללא תאריך סיום)", "Paid: +1 month": "שולם: +חודש", "Paid: +12 months": "שולם: +12 חודשים", "Extend trial 14 days": "הארכת ניסיון ב-14 יום", "Cancel": "ביטול",
+  "Plan updated": "המסלול עודכן", "Active, no end date": "פעיל, ללא תאריך סיום", "Cancelled": "בוטל", "Payment due": "ממתין לתשלום", "Message": "הודעה", "Loading…": "טוען…",
+});
+HE_PATTERNS.unshift([/^Inactive (\d+) days$/, (m) => `לא פעיל ${m[1]} ימים`], [/^(\d+) people never signed in\. Tap to see who, and send them their code again\.$/, (m) => `${m[1]} אנשים עוד לא נכנסו אף פעם. הקישו כדי לראות מי, ולשלוח להם שוב את הקוד.`],
+  [/^Paid until (.+)$/, (m) => `שולם עד ${m[1]}`], [/^Trial until (.+)$/, (m) => `ניסיון עד ${m[1]}`]);

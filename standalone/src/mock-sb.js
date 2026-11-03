@@ -56,7 +56,7 @@
     acad_whoami: () => { const m = st.mem.find((x) => x.id === st.sess[dev()]); if (!m) return ok([]); const x = st.acad.find((y) => y.id === m.a); return ok([{ id: x.id, name: x.name, role: m.r, member_id: m.id, display_name: m.n, plan: x.plan, trial_ends_at: x.trial_ends_at, paid_until: null, active: active(x.id) }]); },
     acad_enter: ({ p_code }) => {
       const c = norm(p_code); const m = st.mem.find((x) => x.code === c);
-      if (m) { st.sess[dev()] = m.id; save(); return ok([{ kind: "member", academy_id: m.a, academy_name: nameOfA(m.a), role: m.r, member_id: m.id }]); }
+      if (m) { st.sess[dev()] = m.id; m.signin = new Date().toISOString(); save(); return ok([{ kind: "member", academy_id: m.a, academy_name: nameOfA(m.a), role: m.r, member_id: m.id }]); }
       const k = st.codes.find((x) => x.c === c); if (k) return ok([{ kind: "join", academy_id: k.a, academy_name: nameOfA(k.a), role: k.r, member_id: null }]);
       return ok([]);
     },
@@ -95,6 +95,11 @@
     acad_remove_member: ({ a, m }) => { const x = st.mem.find((y) => y.id === m); if (!x) return ok(null); if (!(lvl(a) === 3 || (lvl(a) === 2 && x.r === "athlete"))) return err("not allowed", "42501"); st.mem = st.mem.filter((y) => y !== x); if (x.r !== "athlete") delete st.docs[key(a, "staff/" + m)]; save(); return ok(null); },
     acad_delete_me: ({ a }) => { const m = meM(a); if (m.r === "owner") { st.acad = st.acad.filter((x) => x.id !== a); Object.keys(st.docs).forEach((k) => { if (k.startsWith(a + "|")) delete st.docs[k]; }); } st.mem = st.mem.filter((x) => x.a !== a || m.r !== "owner" ? x.id !== m.id : false); save(); return ok(null); },
     acad_cal_token: ({ a, renew }) => { const m = meM(a); if (!m) return err("not signed in", "28000"); st.cal = st.cal || {}; if (renew || !st.cal[m.id]) st.cal[m.id] = Math.random().toString(16).slice(2).padEnd(16, "0") + Math.random().toString(16).slice(2).padEnd(16, "0"); save(); return ok(st.cal[m.id].slice(0, 32)); },
+    acad_touch: ({ a }) => { const m = meM(a); if (m) { m.seen = new Date().toISOString(); save(); } return ok(null); },
+    acad_activity: ({ a }) => { const me = meM(a); const L = lvl(a); return ok(st.mem.filter((m) => m.a === a && (L === 3 || m.id === me?.id || (L === 2 && m.r === "athlete"))).map((m) => ({ member_id: m.id, role: m.r, display_name: m.n, joined_at: null, last_sign_in: m.signin || null, last_seen: m.seen || null, devices: Object.values(st.sess).filter((x) => x === m.id).length }))); },
+    acad_is_platform_admin: () => ok(st.mem.some((m) => m.id === st.sess[dev()] && m.r === "owner")),
+    acad_platform_overview: () => ok(st.acad.map((x) => { const ms = st.mem.filter((m) => m.a === x.id); return { id: x.id, name: x.name, plan: x.plan, trial_ends_at: x.trial_ends_at, paid_until: x.paid_until || null, active: active(x.id), created_at: new Date().toISOString(), members: ms.length, athletes: ms.filter((m) => m.r === "athlete").length, staff: ms.filter((m) => m.r !== "athlete").length, never_signed_in: ms.filter((m) => !m.signin && !m.seen).length, seen_7d: ms.filter((m) => m.seen || m.signin).length, last_activity: null }; })),
+    acad_platform_set_plan: ({ a, p_plan, p_months, p_trial_days }) => { const x = st.acad.find((y) => y.id === a); x.plan = p_plan; if (p_plan === "active") x.paid_until = p_months ? new Date(Date.now() + p_months * 30 * 864e5).toISOString() : null; if (p_trial_days) x.trial_ends_at = new Date(new Date(x.trial_ends_at).getTime() + p_trial_days * 864e5).toISOString(); save(); return ok(null); },
     acad_merge: ({ a, p, patch }) => { const d = st.docs[key(a, p)]; if (!d || !can(a, p, true)) return err("document not found", "P0002"); d.data = merge(d.data, JSON.parse(JSON.stringify(patch))); save(); return ok(null); },
   };
   window.supabase = {
