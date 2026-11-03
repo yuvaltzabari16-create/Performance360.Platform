@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Logo } from "@/components/ui";
+import { Logo, LogoMark } from "@/components/ui";
 import { Icon } from "@/components/ui/Icon";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { getSession } from "@/lib/auth";
@@ -230,8 +230,8 @@ export default async function Landing() {
 
         {/* Closing call to action. */}
         <section aria-labelledby="cta-h" className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6 sm:py-32">
-          <span className="mx-auto grid size-20 place-items-center rounded-[22%] bg-gradient-to-b from-brand-500 to-brand-700 text-white shadow-[0_12px_30px_-10px_rgba(21,122,74,0.6)]">
-            <svg viewBox="0 0 32 32" className="size-11" aria-hidden><path d="M16 4a12 12 0 1 1-11.6 9" fill="none" stroke="currentColor" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" /><path d="M9 19l4-5 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <span className="mx-auto grid size-20 place-items-center rounded-[22%] bg-white shadow-[0_12px_30px_-10px_rgba(14,90,56,0.45)] ring-1 ring-black/[0.05]">
+            <LogoMark className="size-14 [--color-logo:#0e5a38]" />
           </span>
           <h2 id="cta-h" className={`mx-auto mt-7 max-w-3xl ${title}`}>{L.ctaHeading}</h2>
           <p className="mx-auto mt-4 max-w-xl text-[17px] text-ink-soft">{L.ctaSub}</p>
