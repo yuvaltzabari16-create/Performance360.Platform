@@ -12,6 +12,24 @@ const store = {
   clear: () => { try { sessionStorage.removeItem(FORM_MEMORY_KEY); } catch { /* ignore */ } },
 };
 
+/** Writes the kept values into the form they came from. */
+function apply(entry: Entry) {
+  const form = document.forms[entry.form];
+  if (!form) return;
+  for (const f of entry.fields) {
+    const el = form.elements.namedItem(f.name);
+    if (!el) continue;
+    if (el instanceof RadioNodeList) {
+      for (const node of el) if (node instanceof HTMLInputElement && node.value === f.value) node.checked = Boolean(f.checked);
+    } else if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) {
+      el.checked = Boolean(f.checked);
+    } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
+      // What the person typed wins over the saved value an edit form starts with.
+      el.value = f.value;
+    }
+  }
+}
+
 /**
  * Puts back what the person typed when a server action fails and redirects with `?error=` (see lib/form-memory.ts).
  * Mounted once in the root layout; renders nothing.
@@ -40,20 +58,18 @@ export function FormMemory() {
     const entry = entryToRestore(store.get(), pathname, `?${search}`);
     store.clear();
     if (!entry) return;
-    const form = document.forms[entry.form];
-    if (!form) return;
-    for (const f of entry.fields) {
-      const el = form.elements.namedItem(f.name);
-      if (!el) continue;
-      if (el instanceof RadioNodeList) {
-        for (const node of el) if (node instanceof HTMLInputElement && node.value === f.value) node.checked = Boolean(f.checked);
-      } else if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) {
-        el.checked = Boolean(f.checked);
-      } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
-        // What the person typed wins over the saved value an edit form starts with.
-        el.value = f.value;
-      }
-    }
+    // The redirect re-renders the page, so the form may appear (or be replaced) a few frames later. Fill each new
+    // form element once as it appears; stop after 2 seconds so later edits are never overwritten.
+    let filled: HTMLFormElement | null = null;
+    let frame = 0;
+    const started = performance.now();
+    const tick = () => {
+      const form = document.forms[entry.form];
+      if (form && form !== filled && form.elements.length > 0) { apply(entry); filled = form; }
+      if (performance.now() - started < 2000) frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
   }, [pathname, search]);
 
   return null;
