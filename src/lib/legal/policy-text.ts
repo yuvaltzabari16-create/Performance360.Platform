@@ -32,6 +32,7 @@ const privacyEn: PolicyDoc = {
         "Training and performance: programs, workout logs, test results, GPS data (distance, speeds, heart rate, pitch positions).",
         "Communication and files: messages and attached documents or images.",
         "Technical: security and audit records (who did what and when), and the network address of requests, used for abuse prevention and rate limiting.",
+        "Billing (only when a team subscription is used): the payment provider's customer and subscription identifiers, the plan, its status and the end of the paid period. Card details never reach Performance360.",
       ],
     },
     {
@@ -49,15 +50,27 @@ const privacyEn: PolicyDoc = {
         "Private notes of coaches and staff are visible to their authors and the athlete's professionals; notes shared with the athlete are visible to the athlete.",
         "Messages and their files are visible only to the sender and the recipient.",
         "People who operate the service can access data only as far as needed to keep it running and secure, and their actions on personal data are logged.",
+        "Nobody outside the athlete's team receives the data: we do not pass it to other organizations, apart from the service providers below, which handle it only to run the service.",
       ],
     },
     {
       title: "Service providers and transfers abroad",
-      body: ["We use providers to host and run the service: database and authentication hosting, application hosting, and email delivery. The workout builder and the chat assistant run inside the service itself and do not send what you type to any outside provider. Providers may process data outside Israel. We choose providers that commit to appropriate security and data-protection terms."],
+      body: ["The data is stored on the service's own servers, run by our hosting providers: database and authentication hosting (Supabase) and application hosting. The database servers are in the European Union (Frankfurt, Germany). The workout builder and the chat assistant run inside the service itself and do not send what you type to any outside provider. Depending on the features in use, these providers also take part:"],
+      bullets: [
+        "Email delivery (Resend), for email copies of notifications, if turned on.",
+        "Bot protection on public forms (Cloudflare Turnstile), if turned on: it receives your network address and browser details.",
+        "Sign-in with Google, if you choose it: Google confirms your identity and shares your name and email with us.",
+        "Payments (Stripe), on its own hosted page, for team subscriptions: we receive only the subscription details listed above.",
+        "Exercise videos are embedded with YouTube's player from youtube-nocookie.com and their preview images load from i.ytimg.com, so Google receives your network address when you open them. Three exercise videos load from sciofmultispeed.com.",
+      ],
+    },
+    {
+      title: "Transfers abroad",
+      body: ["Providers may process data outside Israel. We choose providers that commit to appropriate security and data-protection terms."],
     },
     {
       title: "How long we keep data and how to delete it",
-      body: ["You can permanently delete your account from Settings. This removes your sign-in and profile, and the athlete record you created for yourself. A record that a coach created about an athlete stays with that coach as a professional record, unlinked from the deleted account. Security audit entries keep only the removed account's identifier. Data in backups is removed when backups expire. Ask us if you need data removed from a coach's record."],
+      body: ["You can permanently delete your account from Settings. This removes your sign-in and profile, and the athlete record you created for yourself. A record that a coach created about an athlete stays with that coach as a professional record, unlinked from the deleted account. Security audit entries keep only the removed account's identifier. Data in backups is removed when backups expire, after [backup retention period]. Data of a team whose subscription ended is kept for [retention period after a team stops using the service] and then deleted. Ask us if you need data removed from a coach's record."],
     },
     {
       title: "Your rights",
@@ -73,7 +86,12 @@ const privacyEn: PolicyDoc = {
     },
     {
       title: "Cookies and local storage",
-      body: ["We use only what the service needs to work: a sign-in session, your language choice and the idle sign-out setting. We do not use advertising or tracking cookies."],
+      body: ["We use only what the service needs to work, and no advertising or tracking cookies:"],
+      bullets: [
+        "Cookies: the sign-in session (set by our authentication provider), and your choices of language (p360-locale), theme (p360-theme), text size (p360-text), reduced motion (p360-motion) and idle sign-out time (p360_idle_minutes).",
+        "Local storage in your browser: the time of your last activity (so idle sign-out works across tabs) and unsent text you were typing, so it survives a refresh.",
+        "Session storage, for this tab only: when a form cannot be saved, the values you typed (never passwords or codes) so the form can be filled again; they are deleted right away.",
+      ],
     },
     { title: "Changes to this policy", body: ["When we change this policy in a way that matters, we will tell you in the app and ask you to accept the new version. The version you accepted and when is recorded on your account."] },
   ],
@@ -113,6 +131,7 @@ const privacyHe: PolicyDoc = {
         "אימון וביצועים: תוכניות, יומני אימון, תוצאות בדיקות, נתוני GPS (מרחק, מהירויות, דופק, מיקומים במגרש).",
         "תקשורת וקבצים: הודעות ומסמכים או תמונות מצורפים.",
         "טכני: רישומי אבטחה וביקורת (מי עשה מה ומתי) וכתובת הרשת של בקשות, לצורך מניעת ניצול לרעה והגבלת קצב בקשות.",
+        "חיוב (רק כשמשתמשים במנוי קבוצתי): מזהי הלקוח והמנוי אצל ספק התשלומים, המסלול, הסטטוס ומועד סיום התקופה ששולמה. פרטי כרטיס אשראי לא מגיעים ל-Performance360 לעולם.",
       ],
     },
     {
@@ -130,15 +149,27 @@ const privacyHe: PolicyDoc = {
         "הערות פרטיות של מאמנים ואנשי צוות גלויות לכותבן ולאנשי המקצוע של הספורטאי; הערות ששותפו עם הספורטאי גלויות גם לו.",
         "הודעות והקבצים שלהן גלויים רק לשולח ולנמען.",
         "מי שמפעיל את השירות ניגש למידע רק במידה הנדרשת לתפעול ואבטחה, ופעולותיו על מידע אישי נרשמות.",
+        "אף אחד מחוץ לקבוצה של הספורטאי לא מקבל את המידע: איננו מעבירים אותו לארגונים אחרים, מלבד ספקי השירות שלמטה, שמטפלים בו רק כדי להפעיל את השירות.",
       ],
     },
     {
       title: "ספקי שירות והעברה לחו\"ל",
-      body: ["אנחנו משתמשים בספקים לאחסון והפעלת השירות: אחסון מסד נתונים והזדהות, אחסון האפליקציה ושליחת מיילים. בונה האימונים ועוזר הצ'אט פועלים בתוך השירות עצמו ואינם שולחים את מה שאתה מקליד לאף ספק חיצוני. ספקים עשויים לעבד מידע מחוץ לישראל. אנחנו בוחרים ספקים שמתחייבים לאבטחה ולתנאי הגנת מידע הולמים."],
+      body: ["המידע נשמר בשרתים של השירות, שמופעלים על ידי ספקי האחסון שלנו: אחסון מסד הנתונים וההזדהות (Supabase) ואחסון האפליקציה. שרתי מסד הנתונים נמצאים באיחוד האירופי (פרנקפורט, גרמניה). בונה האימונים ועוזר הצ'אט פועלים בתוך השירות עצמו ואינם שולחים את מה שאתה מקליד לאף ספק חיצוני. בהתאם לאפשרויות שבשימוש, משתתפים גם הספקים האלה:"],
+      bullets: [
+        "שליחת מיילים (Resend), להעתקי התראות במייל, אם הופעלה.",
+        "הגנה מבוטים בטפסים ציבוריים (Cloudflare Turnstile), אם הופעלה: היא מקבלת את כתובת הרשת ופרטי הדפדפן.",
+        "התחברות עם Google, אם בחרת בה: Google מאמתת את זהותך ומעבירה לנו את השם והמייל.",
+        "תשלומים (Stripe), בעמוד התשלום שלה, למנויי קבוצות: אנחנו מקבלים רק את פרטי המנוי שמפורטים למעלה.",
+        "סרטוני התרגילים מוטמעים בנגן של YouTube מהכתובת youtube-nocookie.com, ותמונות התצוגה נטענות מ-i.ytimg.com, ולכן Google מקבלת את כתובת הרשת שלך כשפותחים אותם. שלושה סרטוני תרגילים נטענים מהאתר sciofmultispeed.com.",
+      ],
+    },
+    {
+      title: "העברה לחו\"ל",
+      body: ["ספקים עשויים לעבד מידע מחוץ לישראל. אנחנו בוחרים ספקים שמתחייבים לאבטחה ולתנאי הגנת מידע הולמים."],
     },
     {
       title: "כמה זמן שומרים ואיך מוחקים",
-      body: ["אפשר למחוק את החשבון לצמיתות דרך ההגדרות. הפעולה מסירה את ההתחברות והפרופיל ואת רשומת הספורטאי שיצרת לעצמך. רשומה שמאמן יצר על ספורטאי נשארת אצל המאמן כרשומה מקצועית, מנותקת מהחשבון שנמחק. רישומי ביקורת אבטחה שומרים רק את מזהה החשבון שהוסר. מידע בגיבויים נמחק כשהגיבויים פגים. אם צריך להסיר מידע מרשומה של מאמן, פנו אלינו."],
+      body: ["אפשר למחוק את החשבון לצמיתות דרך ההגדרות. הפעולה מסירה את ההתחברות והפרופיל ואת רשומת הספורטאי שיצרת לעצמך. רשומה שמאמן יצר על ספורטאי נשארת אצל המאמן כרשומה מקצועית, מנותקת מהחשבון שנמחק. רישומי ביקורת אבטחה שומרים רק את מזהה החשבון שהוסר. מידע בגיבויים נמחק כשהגיבויים פגים, אחרי [תקופת שמירת הגיבויים]. מידע של קבוצה שהמנוי שלה הסתיים נשמר [תקופת השמירה אחרי שקבוצה מפסיקה להשתמש בשירות] ואז נמחק. אם צריך להסיר מידע מרשומה של מאמן, פנו אלינו."],
     },
     {
       title: "הזכויות שלך",
@@ -154,7 +185,12 @@ const privacyHe: PolicyDoc = {
     },
     {
       title: "עוגיות ואחסון מקומי",
-      body: ["אנחנו משתמשים רק במה שהשירות צריך כדי לעבוד: חיבור פעיל, בחירת השפה והגדרת הניתוק האוטומטי. איננו משתמשים בעוגיות פרסום או מעקב."],
+      body: ["אנחנו משתמשים רק במה שהשירות צריך כדי לעבוד, בלי עוגיות פרסום או מעקב:"],
+      bullets: [
+        "עוגיות: החיבור הפעיל (נקבע על ידי ספק ההזדהות), ובחירת השפה (p360-locale), ערכת הנושא (p360-theme), גודל הטקסט (p360-text), הפחתת התנועה (p360-motion) וזמן הניתוק האוטומטי (p360_idle_minutes).",
+        "אחסון מקומי בדפדפן: מועד הפעילות האחרונה (כדי שהניתוק האוטומטי יעבוד בין לשוניות) וטקסט שהתחלת להקליד ולא נשלח, כדי שלא יאבד ברענון.",
+        "אחסון ללשונית הנוכחית בלבד: כשאי אפשר לשמור טופס, הערכים שהקלדת (אף פעם לא סיסמאות או קודים), כדי למלא את הטופס מחדש. הם נמחקים מיד.",
+      ],
     },
     { title: "שינויים במדיניות", body: ["כשנשנה את המדיניות בצורה מהותית נודיע באפליקציה ונבקש לאשר את הגרסה החדשה. הגרסה שאישרת ומועד האישור נרשמים בחשבון."] },
   ],

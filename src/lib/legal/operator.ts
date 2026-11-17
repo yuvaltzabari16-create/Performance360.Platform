@@ -18,7 +18,8 @@ const clean = (v: string | undefined) => (v && v.trim() ? v.trim() : null);
 export function operatorDetails(): OperatorDetails {
   const email = clean(process.env.OPERATOR_EMAIL);
   return {
-    name: clean(process.env.OPERATOR_NAME),
+    // The business name, confirmed by the owner; OPERATOR_NAME can still override it.
+    name: clean(process.env.OPERATOR_NAME) ?? "performance360",
     email,
     address: clean(process.env.OPERATOR_ADDRESS),
     privacyEmail: clean(process.env.PRIVACY_EMAIL) ?? email,
