@@ -10,6 +10,7 @@ import { sectionsFor } from "@/lib/permissions";
 import { emailCodeEnabled, needsTermsAcceptance } from "@/lib/google";
 import { isLoginRole, matchesLoginRole } from "@/lib/login-roles";
 import { siteUrl } from "@/lib/site";
+import { revealsExistingAccount } from "@/lib/auth-errors";
 import type { OrgRole, UserRole } from "@/lib/types";
 import { verifyBotGuard } from "@/lib/security/bot-guard";
 import { clientIp } from "@/lib/security/rate-limit";
@@ -132,6 +133,8 @@ export async function signup(formData: FormData) {
       emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(onboard)}`,
     },
   });
+  // An already-registered address gets the same answer as a new one (no account enumeration).
+  if (revealsExistingAccount(error)) redirect(`/login?ok=${encodeURIComponent(t.auth.checkEmail)}&next=${encodeURIComponent(onboard)}`);
   if (error) fail(back, error.message);
   // With email confirmation enabled there is no session yet.
   if (!data.session) redirect(`/login?ok=${encodeURIComponent(t.auth.checkEmail)}&next=${encodeURIComponent(onboard)}`);
@@ -160,5 +163,7 @@ export async function updatePassword(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
   if (error) fail("/auth/update-password", error.message);
+  // A new password ends every other session of this account (a stolen session stops working); this one stays.
+  await supabase.auth.signOut({ scope: "others" });
   redirect(`/settings?ok=${encodeURIComponent(t.auth.passwordUpdated)}`);
 }

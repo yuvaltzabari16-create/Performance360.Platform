@@ -34,7 +34,7 @@ export function ExercisePlayer({ src, title, vertical, labels, speedControl }: {
               type="button"
               aria-pressed={rate === s}
               onClick={() => { setRate(s); command("setPlaybackRate", [s]); }}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${rate === s ? "bg-brand-600 text-white ring-brand-600" : "bg-surface text-ink-soft ring-line hover:bg-brand-50"}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${rate === s ? "bg-brand-600 text-on-brand ring-brand-600" : "bg-surface text-ink-soft ring-line hover:bg-brand-50"}`}
             >
               {s === 1 ? labels.normal : `${s}×`}
             </button>

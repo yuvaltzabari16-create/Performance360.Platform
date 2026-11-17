@@ -52,7 +52,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
     <div className="no-print fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] end-4 z-40 flex flex-col items-end gap-3 lg:bottom-4" data-testid="assistant" data-role={roleKey}>
       {open && (
         <section role="dialog" aria-label={labels.title} className="flex h-[min(40rem,calc(100dvh-6rem))] w-[min(28rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border ring-line/60 bg-surface/95 shadow-[var(--shadow-lift)] backdrop-blur-md">
-          <header className="flex items-center justify-between gap-2 bg-brand-600 px-5 py-3.5 text-white">
+          <header className="flex items-center justify-between gap-2 bg-brand-600 px-5 py-3.5 text-on-brand">
             <h2 className="text-sm font-semibold">{labels.title}</h2>
             <span className="flex items-center gap-1">
               {messages.length > 0 && <button type="button" onClick={() => { setMessages([]); setError(null); }} className="rounded-md px-2 py-1 text-xs text-white/70 hover:text-white">{labels.clear}</button>}
@@ -72,7 +72,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
             )}
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                <div className={`max-w-[92%] break-words rounded-2xl px-4 py-2.5 leading-6 ${m.role === "user" ? "whitespace-pre-wrap bg-gradient-to-b from-brand-500 to-brand-600 text-white" : "bg-brand-50/70 text-ink"}`} data-from={m.role}>
+                <div className={`max-w-[92%] break-words rounded-2xl px-4 py-2.5 leading-6 ${m.role === "user" ? "whitespace-pre-wrap bg-gradient-to-b from-brand-500 to-brand-600 text-on-brand" : "bg-brand-50/70 text-ink"}`} data-from={m.role}>
                   <span className="sr-only">{m.role === "user" ? labels.you : labels.assistant}: </span>
                   {m.role === "user" ? m.content : <RichText text={m.content} />}
                   {m.role === "assistant" && (
@@ -95,7 +95,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(draft); } }}
                 className="min-h-11 flex-1 resize-none rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
               />
-              <button type="submit" disabled={pending || !draft.trim()} className="rounded-xl bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:from-brand-600 hover:to-brand-700 disabled:opacity-50">{labels.send}</button>
+              <button type="submit" disabled={pending || !draft.trim()} className="rounded-xl bg-gradient-to-b from-brand-500 to-brand-600 px-4 py-2.5 text-sm font-medium text-on-brand hover:from-brand-600 hover:to-brand-700 disabled:opacity-50">{labels.send}</button>
             </div>
             <p className="mt-2 text-[11px] leading-snug text-muted">{labels.privacy}</p>
           </form>
@@ -103,7 +103,7 @@ export function AssistantWidget({ labels, starters, roleKey }: { labels: Labels;
       )}
       <button
         ref={buttonRef} type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? labels.close : labels.open}
-        className="press flex size-13 items-center justify-center rounded-full bg-brand-600 text-white shadow-[var(--shadow-lift)] hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="press flex size-13 items-center justify-center rounded-full bg-brand-600 text-on-brand shadow-[var(--shadow-lift)] hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /><path d="M9 11h6M9 14h4" /></svg>
       </button>

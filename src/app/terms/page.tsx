@@ -3,7 +3,7 @@ import { PolicyNotice } from "@/components/legal/PolicyNotice";
 import { getSession } from "@/lib/auth";
 import { policyDoc } from "@/lib/legal/policy-text";
 
-export const metadata = { title: "Terms of use" };
+export const metadata = { title: "Terms of use", description: "The terms for using Performance360, the athletic performance platform for coaches, practitioners and athletes." };
 
 /** Terms of use: structured text in the visitor's language, with the operator's details and a draft notice until reviewed. */
 export default async function Page() {

@@ -176,7 +176,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
               <Link
                 key={w}
                 href={`/training/${id}?week=${w}`}
-                className={cx("num shrink-0 rounded-lg border px-3 py-1.5 text-sm", w === week ? "border-brand-500 bg-brand-600 text-white" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
+                className={cx("num shrink-0 rounded-lg border px-3 py-1.5 text-sm", w === week ? "border-brand-500 bg-brand-600 text-on-brand" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
               >
                 {t.common.week} {w}{sessionCountByWeek.get(w) ? <span className="ms-1 opacity-70">({sessionCountByWeek.get(w)})</span> : null}
               </Link>
@@ -211,7 +211,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 </h2>
                 <div className="flex items-center gap-2">
                 {myAthleteId && <ButtonLink className="px-2.5 py-1 text-xs" href={`/training/session/${selected.id}?athlete=${myAthleteId}`}>{tt.log}</ButtonLink>}
-                <a href="#assign" className="no-print inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"><Icon name="send" /> {tt.assignTo}</a>
+                <a href="#assign" className="no-print inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-on-brand hover:bg-brand-700"><Icon name="send" /> {tt.assignTo}</a>
               </div>
               </div>
               {selected.notes && <p className="whitespace-pre-line text-sm text-ink-soft">{selected.notes}</p>}

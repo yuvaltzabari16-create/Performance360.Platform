@@ -9,7 +9,7 @@ export function PayButton({ href, label, hint }: { href: string; label: string; 
       rel="noopener noreferrer"
       aria-describedby={undefined}
       title={hint}
-      className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+      className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-on-brand hover:bg-brand-700"
     >
       {label} <Icon name="external" className="ms-1 size-3.5" />
       <span className="sr-only"> — {hint}</span>

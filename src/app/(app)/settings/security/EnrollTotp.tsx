@@ -39,7 +39,7 @@ export function EnrollTotp({ labels }: { labels: Labels }) {
   if (!data) {
     return (
       <div>
-        <button type="button" onClick={start} disabled={pending} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">
+        <button type="button" onClick={start} disabled={pending} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-700 disabled:opacity-60">
           {labels.setup}
         </button>
         {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
@@ -58,7 +58,7 @@ export function EnrollTotp({ labels }: { labels: Labels }) {
           <span className="mb-1 block">{labels.code}</span>
           <input name="code" inputMode="numeric" pattern="\d{6}" maxLength={6} autoComplete="one-time-code" required className="num w-36 rounded-lg border border-line px-3 py-2 text-center text-lg tracking-widest" />
         </label>
-        <button type="submit" disabled={pending} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">{labels.confirm}</button>
+        <button type="submit" disabled={pending} className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-on-brand hover:bg-brand-700 disabled:opacity-60">{labels.confirm}</button>
       </form>
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
     </div>

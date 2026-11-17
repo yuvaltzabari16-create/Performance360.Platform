@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { publicBaseUrl } from "@/lib/seo";
+import { Suspense } from "react";
+import { FormMemory } from "@/components/forms/FormMemory";
 import { getSession } from "@/lib/auth";
 import { dirFor, getDictionary } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -11,6 +14,17 @@ import { MOTION_COOKIE, TEXT_COOKIE, parseMotion, parseTextSize } from "@/lib/pr
 export const metadata: Metadata = {
   title: { default: "Performance360", template: "%s · Performance360" },
   description: "Athletic performance management for coaches, practitioners and athletes.",
+  metadataBase: new URL(publicBaseUrl()),
+  // The share image is src/app/opengraph-image.png (1200×630), picked up for every page.
+  openGraph: {
+    type: "website",
+    siteName: "Performance360",
+    title: "Performance360",
+    description: "Athletic performance management for coaches, practitioners and athletes.",
+    locale: "en_US",
+    alternateLocale: ["he_IL"],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
@@ -34,6 +48,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {getDictionary(locale).legal.skipToContent}
         </a>
         {children}
+        {/* Puts typed values back when a form submission fails (passwords and codes are never kept). */}
+        <Suspense fallback={null}><FormMemory /></Suspense>
       </body>
     </html>
   );

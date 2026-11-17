@@ -48,7 +48,7 @@ export function QuickSheet({ open, onClose, actions, title, closeLabel }: { open
           {actions.map((a) => (
             <li key={a.id}>
               <Link href={a.href} onClick={onClose} className="press flex h-full flex-col items-start gap-3 rounded-2xl bg-brand-50 p-4 text-[15px] font-semibold text-brand-800 hover:bg-brand-100">
-                <span className="grid size-10 place-items-center rounded-xl bg-brand-600 text-white"><QuickIconSvg icon={a.icon} className="size-5" /></span>
+                <span className="grid size-10 place-items-center rounded-xl bg-brand-600 text-on-brand"><QuickIconSvg icon={a.icon} className="size-5" /></span>
                 <span className="leading-snug">{a.label}</span>
               </Link>
             </li>

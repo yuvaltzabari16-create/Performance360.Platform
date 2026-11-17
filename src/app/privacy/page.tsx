@@ -3,7 +3,7 @@ import { PolicyNotice } from "@/components/legal/PolicyNotice";
 import { getSession } from "@/lib/auth";
 import { policyDoc } from "@/lib/legal/policy-text";
 
-export const metadata = { title: "Privacy policy" };
+export const metadata = { title: "Privacy policy", description: "What Performance360 collects about coaches, practitioners and athletes, why, who can see it, and how to see, export or delete it." };
 
 /** Privacy policy: structured text in the visitor's language, with the operator's details and a draft notice until reviewed. */
 export default async function Page() {
