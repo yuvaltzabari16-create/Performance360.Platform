@@ -1,7 +1,7 @@
 import { LegalPage, LegalSection } from "@/components/legal/LegalPage";
 import { getSession } from "@/lib/auth";
 
-export const metadata = { title: "Disclosures" };
+export const metadata = { title: "Disclosures", description: "How Performance360 discloses affiliate links, external payments and other commercial relationships." };
 
 /** Affiliate-link, payment and external-link disclosures. */
 export default async function DisclosurePage() {

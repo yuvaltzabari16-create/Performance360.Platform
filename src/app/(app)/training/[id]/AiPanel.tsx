@@ -116,7 +116,7 @@ export function AiPanel({ programId, sessionId, tt, onClose, onApplied }: Props)
           {pending && !preview ? ai.generating : preview ? ai.another : ai.generate}
         </button>
         {preview && (
-          <button type="button" onClick={apply} disabled={pending} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60">{ai.apply}</button>
+          <button type="button" onClick={apply} disabled={pending} className="flex-1 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-medium text-on-brand hover:bg-brand-700 disabled:opacity-60">{ai.apply}</button>
         )}
       </div>
     </div>

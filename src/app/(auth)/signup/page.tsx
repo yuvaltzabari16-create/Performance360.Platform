@@ -10,7 +10,7 @@ import { getSession } from "@/lib/auth";
 import { safeNext } from "@/lib/forms";
 import { signup } from "../actions";
 
-export const metadata = { title: "Create account" };
+export const metadata = { title: "Create account", description: "Create a Performance360 account as a coach, practitioner, team or athlete." };
 
 export default async function SignupPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;

@@ -92,7 +92,7 @@ export default async function ExercisePage({ params, searchParams }: { params: P
               <ol className="space-y-3 text-sm" data-testid="exercise-steps">
                 {e.coaching_cues.map((c, n) => (
                   <li key={c} className="flex items-start gap-3">
-                    <span className="num mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-b from-brand-500 to-brand-600 text-xs font-bold text-white">{n + 1}</span>
+                    <span className="num mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-b from-brand-500 to-brand-600 text-xs font-bold text-on-brand">{n + 1}</span>
                     <span className="leading-6"><bdi>{c}</bdi></span>
                   </li>
                 ))}

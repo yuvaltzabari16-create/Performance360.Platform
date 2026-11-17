@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ButtonLink, Logo } from "@/components/ui";
 import { LanguageSwitch } from "@/components/shell/LanguageSwitch";
 import { getSession } from "@/lib/auth";
+import { LegalFooter } from "@/components/legal/LegalFooter";
 import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
 import { getTheme } from "@/lib/theme/server";
 
@@ -67,7 +68,7 @@ export default async function Landing() {
           ))}
         </div>
       </main>
-      <footer className="border-t border-line/60 py-6 text-center text-xs text-muted">{t.footer.disclaimer}</footer>
+      <footer className="space-y-2 border-t border-line/60 py-6 text-center text-xs text-muted"><p>{t.footer.disclaimer}</p><LegalFooter t={t} /></footer>
     </div>
   );
 }

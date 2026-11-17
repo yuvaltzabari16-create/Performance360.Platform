@@ -93,7 +93,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
                     const mine = m.sender_id === user.id;
                     return (
                       <li key={m.id} className={cx("flex", mine ? "justify-end" : "justify-start")}>
-                        <div className={cx("max-w-[80%] rounded-2xl px-3.5 py-2 text-sm", mine ? "bg-brand-600 text-white" : "bg-canvas text-ink")}>
+                        <div className={cx("max-w-[80%] rounded-2xl px-3.5 py-2 text-sm", mine ? "bg-brand-600 text-on-brand" : "bg-canvas text-ink")}>
                           <p className="whitespace-pre-line break-words"><bdi>{m.body}</bdi></p>
                           {threadFiles.filter((f) => f.ref_id === m.id).map((f) => (
                             <a key={f.id} href={`/files/${f.id}`} download className={cx("mt-1.5 block truncate rounded-lg px-2 py-1 text-xs underline", mine ? "bg-white/15" : "bg-surface")}>

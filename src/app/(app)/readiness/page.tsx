@@ -23,7 +23,7 @@ function ScaleInput({ name, label, hint, value }: { name: string; label: string;
         {[1, 2, 3, 4, 5].map((n) => (
           <label key={n} className="relative flex-1">
             <input type="radio" name={name} value={n} defaultChecked={value === n} className="peer absolute inset-0 size-full cursor-pointer opacity-0" />
-            <span className="num flex h-10 cursor-pointer items-center justify-center rounded-xl bg-canvas/80 text-[15px] font-medium ring-1 ring-inset ring-line peer-checked:ring-brand-600 peer-checked:bg-brand-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300">{n}</span>
+            <span className="num flex h-10 cursor-pointer items-center justify-center rounded-xl bg-canvas/80 text-[15px] font-medium ring-1 ring-inset ring-line peer-checked:ring-brand-600 peer-checked:bg-brand-600 peer-checked:text-on-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand-300">{n}</span>
           </label>
         ))}
       </div>

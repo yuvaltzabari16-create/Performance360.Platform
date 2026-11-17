@@ -12,7 +12,7 @@ import { sectionsFor } from "@/lib/permissions";
 import { LOGIN_ROLES, isLoginRole } from "@/lib/login-roles";
 import { login } from "../actions";
 
-export const metadata = { title: "Sign in" };
+export const metadata = { title: "Sign in", description: "Sign in to Performance360 to plan training, track readiness and testing, and manage return to play." };
 
 /** Profile role and team role of each login choice, to list what that login opens. */
 const LOGIN_ACCOUNT: Record<(typeof LOGIN_ROLES)[number], Parameters<typeof sectionsFor>> = {
@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               <Link
                 href={optionHref(r)}
                 aria-current={r === chosen ? "true" : undefined}
-                className={`inline-block rounded-full px-3 py-1.5 text-sm ring-1 ring-inset ${r === chosen ? "bg-brand-600 font-medium text-white ring-brand-600" : "text-ink-soft ring-line hover:bg-canvas"}`}
+                className={`inline-block rounded-full px-3 py-1.5 text-sm ring-1 ring-inset ${r === chosen ? "bg-brand-600 font-medium text-on-brand ring-brand-600" : "text-ink-soft ring-line hover:bg-canvas"}`}
               >
                 {r ? roleName(r) : t.auth.loginAny}
               </Link>

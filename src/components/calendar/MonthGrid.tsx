@@ -5,7 +5,7 @@ import type { CalendarEvent, EventStatus, GridDay } from "@/lib/calendar";
 /** Colour per completion status (also written as text in the day panel, never colour alone). */
 export const STATUS_TONE: Record<EventStatus, string> = {
   planned: "bg-brand-100/80 text-brand-900 ring-brand-200",
-  completed: "bg-gradient-to-b from-brand-500 to-brand-600 text-white ring-brand-700/40",
+  completed: "bg-gradient-to-b from-brand-500 to-brand-600 text-on-brand ring-brand-700/40",
   partial: "bg-amber-100 text-amber-950 ring-amber-300",
   skipped: "bg-slate-100 text-slate-600 ring-slate-300 line-through",
 };
@@ -62,7 +62,7 @@ export function MonthGrid({ weeks, eventsByDate, selected, today, hrefFor, weekd
                   isSelected && "bg-brand-50/60 ring-2 ring-inset ring-brand-500",
                 )}
               >
-                <span className={cx("num grid size-6 place-items-center rounded-full text-xs", day.iso === today ? "bg-brand-600 font-semibold text-white" : "text-ink-soft")}>
+                <span className={cx("num grid size-6 place-items-center rounded-full text-xs", day.iso === today ? "bg-brand-600 font-semibold text-on-brand" : "text-ink-soft")}>
                   {Number(day.iso.slice(8))}
                 </span>
                 {chips.slice(0, 3).map((c) => (

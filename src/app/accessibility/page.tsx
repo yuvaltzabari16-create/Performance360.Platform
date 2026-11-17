@@ -2,7 +2,7 @@ import { BulletList, LegalPage, LegalSection } from "@/components/legal/LegalPag
 import { getSession } from "@/lib/auth";
 import { accessibilityContact } from "@/lib/legal/site-config";
 
-export const metadata = { title: "Accessibility statement" };
+export const metadata = { title: "Accessibility statement", description: "How Performance360 meets WCAG 2.1 AA and the Israeli standard SI 5568, what is still limited, and how to contact the accessibility coordinator." };
 
 /** Public accessibility statement (Israeli Standard 5568 / WCAG 2.1 AA). */
 export default async function AccessibilityPage() {

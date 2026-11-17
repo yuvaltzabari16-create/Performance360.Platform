@@ -79,7 +79,7 @@ export function IdleLogout({ minutes, labels }: { minutes: number; labels: Label
           type="button"
           autoFocus
           onClick={() => { writeLast(Date.now()); lastWrite.current = Date.now(); setRemaining(null); }}
-          className="mt-5 w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700"
+          className="mt-5 w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-on-brand hover:bg-brand-700"
         >
           {labels.stay}
         </button>

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import assets from "@/lib/legal/assets.json";
 import deps from "@/lib/legal/dependency-licenses.json";
 
-export const metadata = { title: "Licenses" };
+export const metadata = { title: "Licenses", description: "Open-source software, fonts and icons used in Performance360, with their licences." };
 
 interface Asset { name: string; license: string; source: string; usage: string }
 

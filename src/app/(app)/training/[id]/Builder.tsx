@@ -119,7 +119,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
             type="button"
             onClick={() => { setAiOpen((v) => !v); setLibraryOpen(false); }}
             aria-expanded={aiOpen}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-on-brand transition-colors hover:bg-brand-700"
           >
             <Icon name="sparkle" /> {b.ai.button}
           </button>
@@ -128,7 +128,7 @@ export function Builder({ programId, session, exercises, library, tt, categories
             onClick={() => { setLibraryOpen((v) => !v); setAiOpen(false); }}
             aria-expanded={libraryOpen}
             className={cx("inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
-              libraryOpen ? "border-brand-600 bg-brand-600 text-white" : "border-line bg-surface text-ink hover:border-brand-300")}
+              libraryOpen ? "border-brand-600 bg-brand-600 text-on-brand" : "border-line bg-surface text-ink hover:border-brand-300")}
           >
             <Icon name="list" /> {b.library}
           </button>
@@ -459,7 +459,7 @@ function LibraryPanel({ library, categories, title, addingTo, labels, onAdd, onA
                     <img src={l.thumb} alt="" loading="lazy" onError={hideBroken} className="size-full object-cover" />
                   </>
                 )}
-                <span className="absolute end-1.5 top-1.5 rounded-md bg-brand-600 px-1.5 py-0.5 text-[11px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">+ {labels.add}</span>
+                <span className="absolute end-1.5 top-1.5 rounded-md bg-brand-600 px-1.5 py-0.5 text-[11px] font-semibold text-on-brand opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">+ {labels.add}</span>
               </span>
               <span className="p-2 text-xs font-medium leading-snug text-ink"><bdi>{l.name}</bdi></span>
             </button>
@@ -478,7 +478,7 @@ function LibraryPanel({ library, categories, title, addingTo, labels, onAdd, onA
           maxLength={160}
           className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm focus:border-brand-400"
         />
-        <button type="submit" className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700">{labels.add}</button>
+        <button type="submit" className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-on-brand hover:bg-brand-700">{labels.add}</button>
       </form>
     </div>
   );
@@ -490,7 +490,7 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={cx("rounded-full border px-2.5 py-1 text-xs transition-colors", active ? "border-brand-600 bg-brand-600 text-white" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
+      className={cx("rounded-full border px-2.5 py-1 text-xs transition-colors", active ? "border-brand-600 bg-brand-600 text-on-brand" : "border-line bg-surface text-ink-soft hover:border-brand-300")}
     >
       {children}
     </button>
