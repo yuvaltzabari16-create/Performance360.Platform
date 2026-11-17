@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Suspense } from "react";
+import { FormMemory } from "@/components/forms/FormMemory";
 import { getSession } from "@/lib/auth";
 import { dirFor, getDictionary } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -34,6 +36,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {getDictionary(locale).legal.skipToContent}
         </a>
         {children}
+        {/* Puts typed values back when a form submission fails (passwords and codes are never kept). */}
+        <Suspense fallback={null}><FormMemory /></Suspense>
       </body>
     </html>
   );

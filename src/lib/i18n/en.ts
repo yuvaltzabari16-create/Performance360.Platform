@@ -109,7 +109,7 @@ const en = {
     resetSent: "If an account exists for that email, a reset link is on its way.",
     newPassword: "New password",
     updatePassword: "Update password",
-    passwordUpdated: "Password updated.",
+    passwordUpdated: "Password updated. You were signed out on your other devices.",
     checkEmail: "Check your email to confirm your account, then sign in.",
     mfaTitle: "Two-step verification",
     mfaHelp: "Enter the 6-digit code from your authenticator app.",

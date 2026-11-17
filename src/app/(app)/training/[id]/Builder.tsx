@@ -476,7 +476,7 @@ function LibraryPanel({ library, categories, title, addingTo, labels, onAdd, onA
           placeholder={labels.custom}
           aria-label={labels.custom}
           maxLength={160}
-          className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-brand-400"
+          className="min-w-0 flex-1 rounded-lg border border-line px-3 py-2 text-sm focus:border-brand-400"
         />
         <button type="submit" className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700">{labels.add}</button>
       </form>
